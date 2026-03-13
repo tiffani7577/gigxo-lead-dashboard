@@ -1,0 +1,15 @@
+{
+  "query": "SELECT COUNT(*) as total_leads, COUNT(CASE WHEN isApproved = 1 THEN 1 END) as approved, COUNT(CASE WHEN isApproved = 0 AND isRejected = 0 THEN 1 END) as pending FROM gigLeads;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 21BFt5o7WZAgbzs.root --database 2zCg9SPoUukX8rXL62G4yf --execute SELECT COUNT(*) as total_leads, COUNT(CASE WHEN isApproved = 1 THEN 1 END) as approved, COUNT(CASE WHEN isApproved = 0 AND isRejected = 0 THEN 1 END) as pending FROM gigLeads;",
+  "rows": [
+    {
+      "total_leads": "112",
+      "approved": "55",
+      "pending": "57"
+    }
+  ],
+  "messages": [],
+  "stdout": "total_leads\tapproved\tpending\n112\t55\t57\n",
+  "stderr": "",
+  "execution_time_ms": 101
+}

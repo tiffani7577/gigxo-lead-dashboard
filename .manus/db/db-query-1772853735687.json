@@ -1,0 +1,58 @@
+{
+  "query": "SELECT id, name, email, role, emailVerified, createdAt FROM users ORDER BY createdAt DESC LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 21BFt5o7WZAgbzs.root --database 2zCg9SPoUukX8rXL62G4yf --execute SELECT id, name, email, role, emailVerified, createdAt FROM users ORDER BY createdAt DESC LIMIT 10;",
+  "rows": [
+    {
+      "id": "210019",
+      "name": "tiff",
+      "email": "gigxogirl@gmail.com",
+      "role": "user",
+      "emailVerified": "0",
+      "createdAt": "2026-03-07 02:43:57"
+    },
+    {
+      "id": "210015",
+      "name": "DJ Fresh",
+      "email": "djfresh789@example.com",
+      "role": "user",
+      "emailVerified": "0",
+      "createdAt": "2026-03-07 02:38:07"
+    },
+    {
+      "id": "210013",
+      "name": "DJ Testuser",
+      "email": "djtest456@example.com",
+      "role": "user",
+      "emailVerified": "0",
+      "createdAt": "2026-03-07 02:35:06"
+    },
+    {
+      "id": "210012",
+      "name": "Test Artist",
+      "email": "testartist123@example.com",
+      "role": "user",
+      "emailVerified": "0",
+      "createdAt": "2026-03-07 02:31:43"
+    },
+    {
+      "id": "210007",
+      "name": "tiff ani",
+      "email": "booktiffanileblanc@gmail.com",
+      "role": "user",
+      "emailVerified": "0",
+      "createdAt": "2026-03-07 02:21:20"
+    },
+    {
+      "id": "1",
+      "name": "pearlleashworldwide",
+      "email": "pearlleashworldwide@gmail.com",
+      "role": "admin",
+      "emailVerified": "0",
+      "createdAt": "2026-03-06 17:55:35"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\trole\temailVerified\tcreatedAt\n210019\ttiff\tgigxogirl@gmail.com\tuser\t0\t2026-03-07 02:43:57\n210015\tDJ Fresh\tdjfresh789@example.com\tuser\t0\t2026-03-07 02:38:07\n210013\tDJ Testuser\tdjtest456@example.com\tuser\t0\t2026-03-07 02:35:06\n210012\tTest Artist\ttestartist123@example.com\tuser\t0\t2026-03-07 02:31:43\n210007\ttiff ani\tbooktiffanileblanc@gmail.com\tuser\t0\t2026-03-07 02:21:20\n1\tpearlleashworldwide\tpearlleashworldwide@gmail.com\tadmin\t0\t2026-03-06 17:55:35\n",
+  "stderr": "",
+  "execution_time_ms": 255
+}

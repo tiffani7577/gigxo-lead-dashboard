@@ -1,0 +1,8 @@
+{
+  "query": "\nALTER TABLE `artistProfiles`\n  ADD COLUMN `djName` VARCHAR(128) NULL AFTER `userId`,\n  ADD COLUMN `slug` VARCHAR(128) NULL UNIQUE AFTER `djName`,\n  ADD COLUMN `photoUrl` VARCHAR(2048) NULL AFTER `slug`;\n\nALTER TABLE `users`\n  ADD COLUMN `emailVerificationToken` VARCHAR(255) NULL AFTER `emailVerified`,\n  ADD COLUMN `emailVerificationExpiry` TIMESTAMP NULL AFTER `emailVerificationToken`,\n  ADD COLUMN `googleId` VARCHAR(128) NULL UNIQUE AFTER `emailVerificationExpiry`,\n  ADD COLUMN `avatarUrl` VARCHAR(2048) NULL AFTER `googleId`;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 21BFt5o7WZAgbzs.root --database 2zCg9SPoUukX8rXL62G4yf --execute \nALTER TABLE `artistProfiles`\n  ADD COLUMN `djName` VARCHAR(128) NULL AFTER `userId`,\n  ADD COLUMN `slug` VARCHAR(128) NULL UNIQUE AFTER `djName`,\n  ADD COLUMN `photoUrl` VARCHAR(2048) NULL AFTER `slug`;\n\nALTER TABLE `users`\n  ADD COLUMN `emailVerificationToken` VARCHAR(255) NULL AFTER `emailVerified`,\n  ADD COLUMN `emailVerificationExpiry` TIMESTAMP NULL AFTER `emailVerificationToken`,\n  ADD COLUMN `googleId` VARCHAR(128) NULL UNIQUE AFTER `emailVerificationExpiry`,\n  ADD COLUMN `avatarUrl` VARCHAR(2048) NULL AFTER `googleId`;\n",
+  "returncode": 1,
+  "logs": [
+    "ERROR 8200 (HY000) at line 2: unsupported add column 'slug' constraint UNIQUE KEY when altering '2zCg9SPoUukX8rXL62G4yf.artistProfiles'"
+  ]
+}

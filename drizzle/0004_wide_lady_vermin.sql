@@ -1,0 +1,1 @@
+ALTER TABLE `gigLeads` ADD `performerType` enum('dj','solo_act','small_band','large_band','singer','instrumentalist','immersive_experience','other') DEFAULT 'other';

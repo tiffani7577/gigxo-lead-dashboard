@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE `dripEmailLog` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`userId` int NOT NULL,\n\t`dripType` enum('day3','day7','lead_alert','reengagement') NOT NULL,\n\t`sentAt` timestamp NOT NULL DEFAULT (now()),\n\tCONSTRAINT `dripEmailLog_id` PRIMARY KEY(`id`)\n);\nCREATE INDEX `dripEmailLog_userId_dripType_idx` ON `dripEmailLog` (`userId`,`dripType`);\nALTER TABLE `gigLeads` MODIFY COLUMN `source` enum('gigxo','eventbrite','thumbtack','yelp','craigslist','nextdoor','facebook','manual','gigsalad','thebash') NOT NULL;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 21BFt5o7WZAgbzs.root --database 2zCg9SPoUukX8rXL62G4yf --execute CREATE TABLE `dripEmailLog` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`userId` int NOT NULL,\n\t`dripType` enum('day3','day7','lead_alert','reengagement') NOT NULL,\n\t`sentAt` timestamp NOT NULL DEFAULT (now()),\n\tCONSTRAINT `dripEmailLog_id` PRIMARY KEY(`id`)\n);\nCREATE INDEX `dripEmailLog_userId_dripType_idx` ON `dripEmailLog` (`userId`,`dripType`);\nALTER TABLE `gigLeads` MODIFY COLUMN `source` enum('gigxo','eventbrite','thumbtack','yelp','craigslist','nextdoor','facebook','manual','gigsalad','thebash') NOT NULL;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1124
+}

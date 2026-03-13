@@ -1,0 +1,22 @@
+{
+  "query": "SELECT id, name, email, hasUsedFreeTrial FROM users WHERE name LIKE '%Fresh%' OR name LIKE '%DJ%' ORDER BY id DESC LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 21BFt5o7WZAgbzs.root --database 2zCg9SPoUukX8rXL62G4yf --execute SELECT id, name, email, hasUsedFreeTrial FROM users WHERE name LIKE '%Fresh%' OR name LIKE '%DJ%' ORDER BY id DESC LIMIT 5;",
+  "rows": [
+    {
+      "id": "210015",
+      "name": "DJ Fresh",
+      "email": "djfresh789@example.com",
+      "hasUsedFreeTrial": "1"
+    },
+    {
+      "id": "210013",
+      "name": "DJ Testuser",
+      "email": "djtest456@example.com",
+      "hasUsedFreeTrial": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\thasUsedFreeTrial\n210015\tDJ Fresh\tdjfresh789@example.com\t1\n210013\tDJ Testuser\tdjtest456@example.com\t0\n",
+  "stderr": "",
+  "execution_time_ms": 73
+}

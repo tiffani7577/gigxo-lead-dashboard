@@ -1,0 +1,1 @@
+ALTER TABLE `gigLeads` MODIFY COLUMN `source` enum('gigxo','eventbrite','thumbtack','yelp','craigslist','nextdoor','facebook','manual','gigsalad','thebash','weddingwire','theknot','inbound') NOT NULL;

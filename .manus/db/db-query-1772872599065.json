@@ -1,0 +1,58 @@
+{
+  "query": "SELECT id, name, email, hasUsedFreeTrial FROM users ORDER BY id DESC LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 21BFt5o7WZAgbzs.root --database 2zCg9SPoUukX8rXL62G4yf --execute SELECT id, name, email, hasUsedFreeTrial FROM users ORDER BY id DESC LIMIT 10;",
+  "rows": [
+    {
+      "id": "360001",
+      "name": "Dj pendejo",
+      "email": "oyerenzo305@gmail.com",
+      "hasUsedFreeTrial": "0"
+    },
+    {
+      "id": "300004",
+      "name": "teryn",
+      "email": "teryn@gigxo.com",
+      "hasUsedFreeTrial": "0"
+    },
+    {
+      "id": "210019",
+      "name": "tiff",
+      "email": "gigxogirl@gmail.com",
+      "hasUsedFreeTrial": "0"
+    },
+    {
+      "id": "210015",
+      "name": "DJ Fresh",
+      "email": "djfresh789@example.com",
+      "hasUsedFreeTrial": "1"
+    },
+    {
+      "id": "210013",
+      "name": "DJ Testuser",
+      "email": "djtest456@example.com",
+      "hasUsedFreeTrial": "0"
+    },
+    {
+      "id": "210012",
+      "name": "Test Artist",
+      "email": "testartist123@example.com",
+      "hasUsedFreeTrial": "0"
+    },
+    {
+      "id": "210007",
+      "name": "tiff ani",
+      "email": "booktiffanileblanc@gmail.com",
+      "hasUsedFreeTrial": "0"
+    },
+    {
+      "id": "1",
+      "name": "pearlleashworldwide",
+      "email": "pearlleashworldwide@gmail.com",
+      "hasUsedFreeTrial": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\thasUsedFreeTrial\n360001\tDj pendejo\toyerenzo305@gmail.com\t0\n300004\tteryn\tteryn@gigxo.com\t0\n210019\ttiff\tgigxogirl@gmail.com\t0\n210015\tDJ Fresh\tdjfresh789@example.com\t1\n210013\tDJ Testuser\tdjtest456@example.com\t0\n210012\tTest Artist\ttestartist123@example.com\t0\n210007\ttiff ani\tbooktiffanileblanc@gmail.com\t0\n1\tpearlleashworldwide\tpearlleashworldwide@gmail.com\t0\n",
+  "stderr": "",
+  "execution_time_ms": 64
+}

@@ -1,0 +1,31 @@
+{
+  "query": "\n-- First count how many we're removing\nSELECT COUNT(*) as fake_lead_count FROM gigLeads WHERE source = 'gigxo' OR externalId LIKE 'ai-%';\n\n-- Delete all AI-generated fake leads\nDELETE FROM gigLeads WHERE source = 'gigxo' OR externalId LIKE 'ai-%';\n\n-- Verify what's left\nSELECT source, COUNT(*) as count FROM gigLeads GROUP BY source;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 21BFt5o7WZAgbzs.root --database 2zCg9SPoUukX8rXL62G4yf --execute \n-- First count how many we're removing\nSELECT COUNT(*) as fake_lead_count FROM gigLeads WHERE source = 'gigxo' OR externalId LIKE 'ai-%';\n\n-- Delete all AI-generated fake leads\nDELETE FROM gigLeads WHERE source = 'gigxo' OR externalId LIKE 'ai-%';\n\n-- Verify what's left\nSELECT source, COUNT(*) as count FROM gigLeads GROUP BY source;\n",
+  "rows": [
+    {
+      "fake_lead_count": "54"
+    },
+    {
+      "fake_lead_count": "source\tcount"
+    },
+    {
+      "fake_lead_count": "eventbrite\t5"
+    },
+    {
+      "fake_lead_count": "facebook\t5"
+    },
+    {
+      "fake_lead_count": "manual\t31"
+    },
+    {
+      "fake_lead_count": "gigsalad\t8"
+    },
+    {
+      "fake_lead_count": "thebash\t6"
+    }
+  ],
+  "messages": [],
+  "stdout": "fake_lead_count\n54\nsource\tcount\neventbrite\t5\nfacebook\t5\nmanual\t31\ngigsalad\t8\nthebash\t6\n",
+  "stderr": "",
+  "execution_time_ms": 119
+}

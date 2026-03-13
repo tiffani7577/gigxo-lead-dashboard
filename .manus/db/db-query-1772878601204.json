@@ -1,0 +1,16 @@
+{
+  "query": "SELECT id, email, name, createdAt FROM users WHERE email = 'teryn@gigxo.com' LIMIT 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 21BFt5o7WZAgbzs.root --database 2zCg9SPoUukX8rXL62G4yf --execute SELECT id, email, name, createdAt FROM users WHERE email = 'teryn@gigxo.com' LIMIT 1;",
+  "rows": [
+    {
+      "id": "300004",
+      "email": "teryn@gigxo.com",
+      "name": "teryn",
+      "createdAt": "2026-03-07 05:27:34"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\temail\tname\tcreatedAt\n300004\tteryn@gigxo.com\tteryn\t2026-03-07 05:27:34\n",
+  "stderr": "",
+  "execution_time_ms": 122
+}

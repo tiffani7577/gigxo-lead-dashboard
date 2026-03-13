@@ -1,0 +1,1 @@
+ALTER TABLE `gigLeads` ADD `contentHash` varchar(64);

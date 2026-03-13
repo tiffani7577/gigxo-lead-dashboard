@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE `majorEvents` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`name` varchar(255) NOT NULL,\n\t`filterLabel` varchar(128) NOT NULL,\n\t`marketId` varchar(64) NOT NULL,\n\t`city` varchar(128) NOT NULL,\n\t`startDate` timestamp NOT NULL,\n\t`endDate` timestamp NOT NULL,\n\t`leadDays` int NOT NULL DEFAULT 90,\n\t`searchKeywords` json NOT NULL,\n\t`relevantPerformerTypes` json NOT NULL,\n\t`isActive` boolean NOT NULL DEFAULT true,\n\t`eventYear` int NOT NULL,\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\t`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,\n\tCONSTRAINT `majorEvents_id` PRIMARY KEY(`id`)\n);\nCREATE INDEX `majorEvents_marketId_idx` ON `majorEvents` (`marketId`);\nCREATE INDEX `majorEvents_startDate_idx` ON `majorEvents` (`startDate`);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 21BFt5o7WZAgbzs.root --database 2zCg9SPoUukX8rXL62G4yf --execute CREATE TABLE `majorEvents` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`name` varchar(255) NOT NULL,\n\t`filterLabel` varchar(128) NOT NULL,\n\t`marketId` varchar(64) NOT NULL,\n\t`city` varchar(128) NOT NULL,\n\t`startDate` timestamp NOT NULL,\n\t`endDate` timestamp NOT NULL,\n\t`leadDays` int NOT NULL DEFAULT 90,\n\t`searchKeywords` json NOT NULL,\n\t`relevantPerformerTypes` json NOT NULL,\n\t`isActive` boolean NOT NULL DEFAULT true,\n\t`eventYear` int NOT NULL,\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\t`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,\n\tCONSTRAINT `majorEvents_id` PRIMARY KEY(`id`)\n);\nCREATE INDEX `majorEvents_marketId_idx` ON `majorEvents` (`marketId`);\nCREATE INDEX `majorEvents_startDate_idx` ON `majorEvents` (`startDate`);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 525
+}
