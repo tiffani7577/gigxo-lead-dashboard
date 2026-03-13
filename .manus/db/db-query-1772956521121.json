@@ -1,9 +1,0 @@
-{
-  "query": "ALTER TABLE `gigLeads` MODIFY COLUMN `performerType` enum('dj','solo_act','small_band','large_band','singer','instrumentalist','immersive_experience','hybrid_electronic','photo_video','photo_booth','makeup_artist','emcee','princess_character','photographer','videographer','audio_engineer','other') DEFAULT 'other';",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 21BFt5o7WZAgbzs.root --database 2zCg9SPoUukX8rXL62G4yf --execute ALTER TABLE `gigLeads` MODIFY COLUMN `performerType` enum('dj','solo_act','small_band','large_band','singer','instrumentalist','immersive_experience','hybrid_electronic','photo_video','photo_booth','makeup_artist','emcee','princess_character','photographer','videographer','audio_engineer','other') DEFAULT 'other';",
-  "rows": [],
-  "messages": [],
-  "stdout": "",
-  "stderr": "",
-  "execution_time_ms": 356
-}

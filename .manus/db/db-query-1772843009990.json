@@ -1,9 +1,0 @@
-{
-  "query": "\nALTER TABLE `artistProfiles` ADD COLUMN `djName` VARCHAR(128) NULL;\nALTER TABLE `artistProfiles` ADD COLUMN `slug` VARCHAR(128) NULL;\nALTER TABLE `artistProfiles` ADD UNIQUE INDEX `artistProfiles_slug_unique` (`slug`);\nALTER TABLE `artistProfiles` ADD COLUMN `photoUrl` VARCHAR(2048) NULL;\nALTER TABLE `users` ADD COLUMN `emailVerificationToken` VARCHAR(255) NULL;\nALTER TABLE `users` ADD COLUMN `emailVerificationExpiry` TIMESTAMP NULL;\nALTER TABLE `users` ADD COLUMN `googleId` VARCHAR(128) NULL;\nALTER TABLE `users` ADD UNIQUE INDEX `users_googleId_unique` (`googleId`);\nALTER TABLE `users` ADD COLUMN `avatarUrl` VARCHAR(2048) NULL;\n",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 21BFt5o7WZAgbzs.root --database 2zCg9SPoUukX8rXL62G4yf --execute \nALTER TABLE `artistProfiles` ADD COLUMN `djName` VARCHAR(128) NULL;\nALTER TABLE `artistProfiles` ADD COLUMN `slug` VARCHAR(128) NULL;\nALTER TABLE `artistProfiles` ADD UNIQUE INDEX `artistProfiles_slug_unique` (`slug`);\nALTER TABLE `artistProfiles` ADD COLUMN `photoUrl` VARCHAR(2048) NULL;\nALTER TABLE `users` ADD COLUMN `emailVerificationToken` VARCHAR(255) NULL;\nALTER TABLE `users` ADD COLUMN `emailVerificationExpiry` TIMESTAMP NULL;\nALTER TABLE `users` ADD COLUMN `googleId` VARCHAR(128) NULL;\nALTER TABLE `users` ADD UNIQUE INDEX `users_googleId_unique` (`googleId`);\nALTER TABLE `users` ADD COLUMN `avatarUrl` VARCHAR(2048) NULL;\n",
-  "rows": [],
-  "messages": [],
-  "stdout": "",
-  "stderr": "",
-  "execution_time_ms": 4853
-}

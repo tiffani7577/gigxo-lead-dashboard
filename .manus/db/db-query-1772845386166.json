@@ -1,9 +1,0 @@
-{
-  "query": "\nCREATE TABLE IF NOT EXISTS subscriptions (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  userId INT NOT NULL,\n  plan VARCHAR(20) NOT NULL DEFAULT 'free',\n  status VARCHAR(20) NOT NULL DEFAULT 'active',\n  stripeSubscriptionId VARCHAR(255),\n  stripeCustomerId VARCHAR(255),\n  unlockCredits INT NOT NULL DEFAULT 0,\n  unlockCreditsUsed INT NOT NULL DEFAULT 0,\n  currentPeriodStart BIGINT,\n  currentPeriodEnd BIGINT,\n  createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  UNIQUE KEY uq_subscriptions_userId (userId)\n);\n",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 21BFt5o7WZAgbzs.root --database 2zCg9SPoUukX8rXL62G4yf --execute \nCREATE TABLE IF NOT EXISTS subscriptions (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  userId INT NOT NULL,\n  plan VARCHAR(20) NOT NULL DEFAULT 'free',\n  status VARCHAR(20) NOT NULL DEFAULT 'active',\n  stripeSubscriptionId VARCHAR(255),\n  stripeCustomerId VARCHAR(255),\n  unlockCredits INT NOT NULL DEFAULT 0,\n  unlockCreditsUsed INT NOT NULL DEFAULT 0,\n  currentPeriodStart BIGINT,\n  currentPeriodEnd BIGINT,\n  createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  UNIQUE KEY uq_subscriptions_userId (userId)\n);\n",
-  "rows": [],
-  "messages": [],
-  "stdout": "",
-  "stderr": "",
-  "execution_time_ms": 123
-}
