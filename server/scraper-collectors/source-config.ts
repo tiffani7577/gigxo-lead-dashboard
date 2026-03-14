@@ -18,22 +18,25 @@ export const LEAD_SOURCE_KEYS: LeadSourceKey[] = [
 
 /** Returns which source keys are enabled. Defaults to all enabled when DB has no row for a key. */
 export async function getEnabledLeadSourceKeys(): Promise<LeadSourceKey[]> {
+  const safeKeys = Array.isArray(LEAD_SOURCE_KEYS)
+    ? LEAD_SOURCE_KEYS
+    : ["reddit", "eventbrite", "craigslist", "dbpr", "sunbiz", "apify"];
   try {
     const { getDb } = await import("../db");
     const { explorerSourceToggles } = await import("../../drizzle/schema");
     const db = await getDb();
-    if (!db) return [...LEAD_SOURCE_KEYS];
+    if (!db) return [...safeKeys];
 
     const rows = await db.select().from(explorerSourceToggles);
     const enabledSet = new Set<string>();
-    for (const k of LEAD_SOURCE_KEYS) {
+    for (const k of safeKeys) {
       const row = rows.find((r) => r.sourceKey === k);
       if (row === undefined) enabledSet.add(k);
       else if (row.enabled) enabledSet.add(k);
     }
-    return LEAD_SOURCE_KEYS.filter((k) => enabledSet.has(k));
+    return safeKeys.filter((k) => enabledSet.has(k));
   } catch (err) {
     console.warn("[source-config] Failed to load source toggles, defaulting to all enabled", err);
-    return [...LEAD_SOURCE_KEYS];
+    return [...safeKeys];
   }
 }
