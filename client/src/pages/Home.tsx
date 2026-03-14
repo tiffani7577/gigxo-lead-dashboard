@@ -185,7 +185,7 @@ export default function Home() {
                   Find Your Next <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">Gig</span>
                 </h1>
                 <p className="text-xl text-slate-300">
-                  Discover verified gig opportunities matched to your style, location, and budget. $7 per lead. No commission. No BS.
+                  Book DJs, bands, and performers across South Florida. Discover verified gig opportunities matched to your style, location, and budget. $7 per lead. No commission.
                 </p>
               </div>
 
@@ -203,7 +203,7 @@ export default function Home() {
 
               {/* Social Proof */}
               <div className="pt-4 border-t border-slate-700">
-                <p className="text-sm text-slate-400 mb-3">Trusted by artists in Miami, Fort Lauderdale, and beyond</p>
+                <p className="text-sm text-slate-400 mb-3">Trusted by artists across South Florida — Miami, Fort Lauderdale, Boca, West Palm</p>
                 <div className="flex items-center gap-4">
                   <div className="flex -space-x-2">
                     {[1, 2, 3, 4].map((i) => (

@@ -28,7 +28,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Search, RefreshCw, Phone, Mail, ExternalLink, MessageSquare } from "lucide-react";
+import { Search, RefreshCw, Phone, Mail, ExternalLink, MessageSquare, Send, Users, CreditCard, Building2 } from "lucide-react";
 import { toast } from "sonner";
 
 const VENUE_STATUS_OPTIONS = [
@@ -70,7 +70,62 @@ type VenueLead = {
   venueUrl: string | null;
   notes: string | null;
   sourceLabel: string | null;
+  leadMonetizationType?: string | null;
+  outreachStatus?: string | null;
+  outreachAttemptCount?: number | null;
+  outreachLastSentAt?: Date | string | null;
+  outreachNextFollowUpAt?: Date | string | null;
+  venueClientStatus?: string | null;
+  subscriptionVisibility?: boolean | null;
+  regionTag?: string | null;
+  artistUnlockEnabled?: boolean | null;
+  premiumOnly?: boolean | null;
 };
+
+const MONETIZATION_OPTIONS = [
+  { value: "", label: "Any path" },
+  { value: "artist_unlock", label: "Sell to Artists" },
+  { value: "venue_outreach", label: "Venue Outreach" },
+  { value: "venue_subscription", label: "Subscription Pool" },
+  { value: "direct_client_pipeline", label: "Client Pipeline" },
+] as const;
+
+function monetizationLabel(type: string | null | undefined): string {
+  if (!type) return "—";
+  const m: Record<string, string> = {
+    artist_unlock: "Artist lead",
+    venue_outreach: "Outreach",
+    venue_subscription: "Subscription",
+    direct_client_pipeline: "Client pipeline",
+  };
+  return m[type] ?? type;
+}
+const OUTREACH_STATUS_OPTIONS = [
+  { value: "", label: "Any" },
+  { value: "not_sent", label: "Not sent" },
+  { value: "queued", label: "Queued" },
+  { value: "sent", label: "Sent" },
+  { value: "replied", label: "Replied" },
+  { value: "interested", label: "Interested" },
+  { value: "not_interested", label: "Not interested" },
+  { value: "bounced", label: "Bounced" },
+] as const;
+const CLIENT_STATUS_OPTIONS = [
+  { value: "", label: "Any" },
+  { value: "prospect", label: "Prospect" },
+  { value: "contacted", label: "Contacted" },
+  { value: "qualified", label: "Qualified" },
+  { value: "active_client", label: "Active client" },
+  { value: "archived", label: "Archived" },
+] as const;
+const REGION_OPTIONS = [
+  { value: "", label: "Any region" },
+  { value: "miami", label: "Miami" },
+  { value: "fort_lauderdale", label: "Fort Lauderdale" },
+  { value: "boca", label: "Boca" },
+  { value: "west_palm", label: "West Palm" },
+  { value: "south_florida", label: "South Florida" },
+] as const;
 
 function ContactInfo({ lead }: { lead: VenueLead }) {
   const email = lead.venueEmail || lead.contactEmail;
@@ -110,6 +165,13 @@ export default function AdminVenueIntelligence() {
   const [searchText, setSearchText] = useState("");
   const [notesLead, setNotesLead] = useState<VenueLead | null>(null);
   const [notesDraft, setNotesDraft] = useState("");
+  const [leadMonetizationType, setLeadMonetizationType] = useState("");
+  const [outreachStatusFilter, setOutreachStatusFilter] = useState("");
+  const [venueClientStatusFilter, setVenueClientStatusFilter] = useState("");
+  const [subscriptionVisibilityFilter, setSubscriptionVisibilityFilter] = useState<"" | "yes" | "no">("");
+  const [regionTag, setRegionTag] = useState("");
+  const [outreachLead, setOutreachLead] = useState<VenueLead | null>(null);
+  const [outreachTemplateId, setOutreachTemplateId] = useState<"venue_intro" | "follow_up" | "performer_supply">("venue_intro");
 
   const filters = {
     limit,
@@ -118,6 +180,11 @@ export default function AdminVenueIntelligence() {
     city: city.trim() || undefined,
     licenseType: licenseType.trim() || undefined,
     searchText: searchText.trim() || undefined,
+    leadMonetizationType: leadMonetizationType || undefined,
+    outreachStatus: outreachStatusFilter || undefined,
+    venueClientStatus: venueClientStatusFilter || undefined,
+    subscriptionVisibility: subscriptionVisibilityFilter === "yes" ? true : subscriptionVisibilityFilter === "no" ? false : undefined,
+    regionTag: regionTag || undefined,
   };
 
   const { data, isLoading, refetch } = trpc.admin.getVenueIntelligenceLeads.useQuery(filters);
@@ -136,6 +203,24 @@ export default function AdminVenueIntelligence() {
     },
     onError: (e) => toast.error(e.message),
   });
+  const setMonetizationMutation = trpc.admin.setLeadMonetization.useMutation({
+    onSuccess: () => {
+      refetch();
+      toast.success("Monetization updated");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+  const sendOutreachMutation = trpc.admin.sendOutreach.useMutation({
+    onSuccess: (result) => {
+      refetch();
+      setOutreachLead(null);
+      if (result.noOutreachableEmail) toast.error("No outreachable email");
+      else if (result.success) toast.success("Outreach sent");
+      else toast.error(result.message ?? "Send failed");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+  const { data: outreachTemplates } = trpc.admin.getOutreachTemplates.useQuery(undefined, { enabled: !!outreachLead });
 
   const openNotes = (lead: VenueLead) => {
     setNotesLead(lead);
@@ -145,6 +230,16 @@ export default function AdminVenueIntelligence() {
   const saveNotes = () => {
     if (!notesLead) return;
     updateNotesMutation.mutate({ leadId: notesLead.id, notes: notesDraft });
+  };
+
+  const hasOutreachableEmail = (lead: VenueLead) => !!(lead.venueEmail?.trim() || lead.contactEmail?.trim());
+  const sendOutreach = () => {
+    if (!outreachLead) return;
+    if (!hasOutreachableEmail(outreachLead)) {
+      toast.error("No outreachable email");
+      return;
+    }
+    sendOutreachMutation.mutate({ leadId: outreachLead.id, templateId: outreachTemplateId });
   };
 
   const items = (data?.items ?? []) as VenueLead[];
@@ -158,7 +253,7 @@ export default function AdminVenueIntelligence() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Venue Intelligence</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            CRM for venue leads (leadType = venue_intelligence). Admin-only.
+            South Florida venue leads. Assign each lead a money path: Artist lead (sell to artists), Outreach (email venue), Subscription (visible to Premium), or Client pipeline (direct sales).
           </p>
         </div>
 
@@ -190,18 +285,58 @@ export default function AdminVenueIntelligence() {
                   ))}
                 </SelectContent>
               </Select>
-              <Input
-                placeholder="City"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                className="w-40"
-              />
-              <Input
-                placeholder="License type (e.g. 400)"
-                value={licenseType}
-                onChange={(e) => setLicenseType(e.target.value)}
-                className="w-36"
-              />
+              <Select value={leadMonetizationType || "any"} onValueChange={(v) => setLeadMonetizationType(v === "any" ? "" : v)}>
+                <SelectTrigger className="w-44">
+                  <SelectValue placeholder="Monetization" />
+                </SelectTrigger>
+                <SelectContent>
+                  {MONETIZATION_OPTIONS.map((o) => (
+                    <SelectItem key={o.value || "any"} value={o.value || "any"}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={outreachStatusFilter || "any"} onValueChange={(v) => setOutreachStatusFilter(v === "any" ? "" : v)}>
+                <SelectTrigger className="w-36">
+                  <SelectValue placeholder="Outreach" />
+                </SelectTrigger>
+                <SelectContent>
+                  {OUTREACH_STATUS_OPTIONS.map((o) => (
+                    <SelectItem key={o.value || "any"} value={o.value || "any"}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={venueClientStatusFilter || "any"} onValueChange={(v) => setVenueClientStatusFilter(v === "any" ? "" : v)}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Client status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CLIENT_STATUS_OPTIONS.map((o) => (
+                    <SelectItem key={o.value || "any"} value={o.value || "any"}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={subscriptionVisibilityFilter || "any"} onValueChange={(v) => setSubscriptionVisibilityFilter((v === "any" ? "" : v) as "" | "yes" | "no")}>
+                <SelectTrigger className="w-36">
+                  <SelectValue placeholder="Sub visible" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="any">Any</SelectItem>
+                  <SelectItem value="yes">Yes</SelectItem>
+                  <SelectItem value="no">No</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={regionTag || "any"} onValueChange={(v) => setRegionTag(v === "any" ? "" : v)}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Region" />
+                </SelectTrigger>
+                <SelectContent>
+                  {REGION_OPTIONS.map((o) => (
+                    <SelectItem key={o.value || "any"} value={o.value || "any"}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Input placeholder="City" value={city} onChange={(e) => setCity(e.target.value)} className="w-40" />
+              <Input placeholder="License type (e.g. 400)" value={licenseType} onChange={(e) => setLicenseType(e.target.value)} className="w-36" />
               <Button variant="outline" size="icon" onClick={() => refetch()} disabled={isLoading}>
                 <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
               </Button>
@@ -231,9 +366,12 @@ export default function AdminVenueIntelligence() {
                       <TableRow>
                         <TableHead>Name</TableHead>
                         <TableHead>City</TableHead>
-                        <TableHead>License type</TableHead>
+                        <TableHead>License</TableHead>
                         <TableHead className="text-right">Intent</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead>Monetization</TableHead>
+                        <TableHead>Outreach</TableHead>
+                        <TableHead>Artist / Sub</TableHead>
                         <TableHead>Contact</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
@@ -259,11 +397,66 @@ export default function AdminVenueIntelligence() {
                               </span>
                             )}
                           </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary" className="text-xs" title="Money path">
+                              {monetizationLabel(lead.leadMonetizationType)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="text-xs">{lead.outreachStatus ?? "not_sent"}</Badge>
+                            {lead.outreachAttemptCount != null && lead.outreachAttemptCount > 0 && (
+                              <span className="ml-1 text-xs text-muted-foreground">×{lead.outreachAttemptCount}</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-xs">
+                            {lead.artistUnlockEnabled === false ? "Artist off" : "Artist on"}
+                            {lead.subscriptionVisibility ? " · In subscription pool" : " · Not in pool"}
+                          </TableCell>
                           <TableCell className="max-w-[200px]">
                             <ContactInfo lead={lead} />
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex flex-wrap justify-end gap-1">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setMonetizationMutation.mutate({ leadId: lead.id, leadMonetizationType: "artist_unlock" })}
+                                disabled={setMonetizationMutation.isPending}
+                                title="Mark as Sell to Artists"
+                              >
+                                <CreditCard className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setOutreachLead(lead)}
+                                disabled={sendOutreachMutation.isPending}
+                                title="Send Outreach"
+                              >
+                                <Send className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant={lead.subscriptionVisibility ? "secondary" : "outline"}
+                                onClick={() => setMonetizationMutation.mutate({
+                                  leadId: lead.id,
+                                  subscriptionVisibility: !lead.subscriptionVisibility,
+                                  ...(lead.subscriptionVisibility ? {} : { leadMonetizationType: "venue_subscription" }),
+                                })}
+                                disabled={setMonetizationMutation.isPending}
+                                title={lead.subscriptionVisibility ? "Remove from subscription pool" : "Add to subscription pool (visible to Premium)"}
+                              >
+                                <Users className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setMonetizationMutation.mutate({ leadId: lead.id, leadMonetizationType: "direct_client_pipeline", venueClientStatus: "prospect" })}
+                                disabled={setMonetizationMutation.isPending}
+                                title="Convert to Client Pipeline"
+                              >
+                                <Building2 className="h-3.5 w-3.5" />
+                              </Button>
                               <Button
                                 size="sm"
                                 variant="outline"
@@ -288,12 +481,7 @@ export default function AdminVenueIntelligence() {
                               >
                                 Client
                               </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => openNotes(lead)}
-                                title="Add notes"
-                              >
+                              <Button size="sm" variant="ghost" onClick={() => openNotes(lead)} title="Add notes">
                                 <MessageSquare className="h-4 w-4" />
                               </Button>
                             </div>
@@ -353,6 +541,49 @@ export default function AdminVenueIntelligence() {
             </Button>
             <Button onClick={saveNotes} disabled={updateNotesMutation.isPending}>
               Save notes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!outreachLead} onOpenChange={(open) => !open && setOutreachLead(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Send outreach — {outreachLead?.title ?? "Lead"}</DialogTitle>
+            <CardDescription>
+              {outreachLead && (hasOutreachableEmail(outreachLead)
+                ? `To: ${outreachLead.venueEmail?.trim() || outreachLead.contactEmail?.trim()}`
+                : "No outreachable email (add venue or contact email).")}
+            </CardDescription>
+          </DialogHeader>
+          {outreachLead && !hasOutreachableEmail(outreachLead) ? (
+            <p className="text-destructive text-sm">No outreachable email. Add venue email or contact email to this lead to send outreach.</p>
+          ) : (
+            <>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Template</label>
+                <Select value={outreachTemplateId} onValueChange={(v: "venue_intro" | "follow_up" | "performer_supply") => setOutreachTemplateId(v)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(outreachTemplates ?? []).map((t: { id: string; label: string }) => (
+                      <SelectItem key={t.id} value={t.id}>{t.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOutreachLead(null)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={sendOutreach}
+              disabled={sendOutreachMutation.isPending || !outreachLead || !hasOutreachableEmail(outreachLead!)}
+            >
+              {sendOutreachMutation.isPending ? "Sending…" : "Send outreach"}
             </Button>
           </DialogFooter>
         </DialogContent>

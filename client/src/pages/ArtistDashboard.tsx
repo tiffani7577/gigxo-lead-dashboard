@@ -11,7 +11,7 @@ import { Link } from "wouter";
 import {
   Loader2, MapPin, DollarSign, Calendar, Phone, Mail, Lock, Unlock,
   Search, Music, TrendingUp, User, Gift, Copy, Check, Eye,
-  ChevronRight, Zap, Star, LogOut, Users, Sparkles, Flame, ThumbsUp, ThumbsDown, MessageSquare, BarChart2,
+  ChevronRight, Zap, Star, LogOut, Users, Sparkles, Flame, ThumbsUp, ThumbsDown, MessageSquare, BarChart2, Building2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
@@ -467,6 +467,8 @@ export default function ArtistDashboard() {
 
   // Fetch subscription
   const { data: mySubscription } = trpc.subscription.getMy.useQuery();
+  const { data: venueIntelEligibility } = trpc.venueIntel.getSubscriptionEligibility.useQuery();
+  const hasVenueIntelAccess = !!venueIntelEligibility?.eligible;
 
   // Update inquiry status mutation
   const { mutate: updateInquiryStatus } = trpc.booking.updateStatus.useMutation({
@@ -600,7 +602,7 @@ export default function ArtistDashboard() {
             <Music className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-white mb-3">Sign in to browse gigs</h1>
-          <p className="text-slate-400 mb-8">Access 55+ curated gig leads for Miami & Fort Lauderdale artists</p>
+          <p className="text-slate-400 mb-8">Access curated gig leads for South Florida artists — Miami, Fort Lauderdale, Boca, West Palm</p>
           <div className="flex gap-3 justify-center">
             <Link href="/login">
               <Button className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg">
@@ -694,6 +696,14 @@ export default function ArtistDashboard() {
                   <span className="hidden sm:inline text-xs font-medium">Pipeline</span>
                 </button>
               </Link>
+              {hasVenueIntelAccess && (
+                <Link href="/venue-intel">
+                  <button className="flex items-center gap-2 text-sm text-slate-700 hover:text-purple-600 transition-colors px-2 py-1 rounded-lg hover:bg-purple-50" title="South Florida Venue Intelligence">
+                    <Building2 className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline text-xs font-medium">Venue Intel</span>
+                  </button>
+                </Link>
+              )}
               <NotificationBell />
               <Link href="/profile">
                 <button className="flex items-center gap-2 text-sm text-slate-700 hover:text-purple-600 transition-colors px-2 py-1 rounded-lg hover:bg-purple-50">

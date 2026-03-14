@@ -2,6 +2,11 @@
  * Lightweight source config: which collectors are enabled for the lead pipeline.
  * Uses explorerSourceToggles so admin can turn sources on/off without code changes.
  * If a source has no row, it is treated as enabled (backward compatible).
+ *
+ * High-intent source targeting: Craigslist gigs, Reddit event planning threads,
+ * Facebook event planning groups (via Apify), and Eventbrite organizer requests
+ * are all included when their keys are enabled. Manual, Inbound, DBPR, Sunbiz
+ * remain supported; do not remove any existing sources.
  */
 
 const SOURCE_KEYS_TUPLE = ["reddit", "eventbrite", "craigslist", "dbpr", "sunbiz", "apify"] as const;

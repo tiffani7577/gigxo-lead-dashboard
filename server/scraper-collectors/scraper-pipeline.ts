@@ -168,6 +168,25 @@ const DJ_HIRING_PHRASES = [
   "wedding dj recommendations",
 ];
 
+/** High-intent transactional booking phrases: +25 to intent_score when present. */
+export const TRANSACTIONAL_BOOKING_KEYWORDS = [
+  "looking for dj",
+  "need a dj",
+  "hire a dj",
+  "dj for wedding",
+  "dj for birthday party",
+  "dj for corporate event",
+  "dj needed",
+  "wedding dj needed",
+  "event dj needed",
+  "dj available tonight",
+  "band for wedding",
+  "live band needed",
+  "hire a band",
+  "musician for event",
+  "wedding band needed",
+];
+
 function normalizeText(text: string): string {
   return text
     .toLowerCase()
@@ -188,6 +207,20 @@ function hasDjHiringPhraseNormalized(normalized: string): boolean {
   return DJ_HIRING_PHRASES.some((phrase) => normalized.includes(phrase));
 }
 
+function hasTransactionalBookingPhrase(normalized: string): boolean {
+  return TRANSACTIONAL_BOOKING_KEYWORDS.some((phrase) => normalized.includes(phrase));
+}
+
+/** In-memory classification for scoring only (no schema). If "conversation", apply -10 to intent. */
+type LeadTypeClassification = "client_request" | "venue_opportunity" | "artist_referral" | "conversation";
+
+function classifyLeadTypeForScoring(normalized: string): LeadTypeClassification {
+  if (hasTransactionalBookingPhrase(normalized) || hasDjHiringPhraseNormalized(normalized)) return "client_request";
+  if (/\b(venue|event\s*space|restaurant|bar|club|rooftop|ballroom)\b/.test(normalized) && /\b(looking|need|hire|book|entertainment)\b/.test(normalized)) return "venue_opportunity";
+  if (/\b(referral|referred|recommend|recommendation)\b/.test(normalized)) return "artist_referral";
+  return "conversation";
+}
+
 function hasIncludePhraseWithList(normalized: string, phraseList: string[]): boolean {
   return phraseList.some((p) => normalized.includes(normalizeText(p)));
 }
@@ -195,6 +228,7 @@ function hasIncludePhraseWithList(normalized: string, phraseList: string[]): boo
 function localIntentScoreFromNormalized(normalized: string): number {
   if (hasNegativeKeyword(normalized)) return 0;
   if (hasDjHiringPhraseNormalized(normalized)) return 80;
+  if (hasTransactionalBookingPhrase(normalized)) return 60; // +25 applied later in rawLeadDocToLead
   return 0;
 }
 
@@ -209,7 +243,8 @@ function shouldPassIntentGate(text: string): boolean {
   const normalized = normalizeText(text);
   if (hasNegativeKeyword(normalized)) return false;
   const score = localIntentScoreFromNormalized(normalized);
-  return hasDjHiringPhraseNormalized(normalized) && score >= 40;
+  const hasIntentPhrase = hasDjHiringPhraseNormalized(normalized) || hasTransactionalBookingPhrase(normalized);
+  return hasIntentPhrase && score >= 40;
 }
 
 function shouldPassIntentGateWithLists(text: string, negativeList: string[], includeList: string[]): boolean {
@@ -401,6 +436,14 @@ function rawLeadDocToLead(doc: RawLeadDoc, baseIntentScore: number): ScrapedLead
     else if (ageDays <= 7) intentScore += 5;
     else if (ageDays > 60) intentScore -= 5;
   }
+
+  // Transactional booking keyword boost (+25)
+  const normalizedForBoost = normalizeText(doc.rawText);
+  if (hasTransactionalBookingPhrase(normalizedForBoost)) intentScore += 25;
+
+  // Lead type classification (in-memory): conversation gets -10
+  const classification = classifyLeadTypeForScoring(normalizedForBoost);
+  if (classification === "conversation") intentScore -= 10;
 
   // Clamp to [0, 100]
   if (intentScore < 0) intentScore = 0;
@@ -606,25 +649,36 @@ export async function runScraperPipeline(city?: string, performerType?: string):
   }
   stats.classified = leadsAfterStaleFilter.length;
 
+  // high_intent_only filter: when enabled, keep only intent_score >= 60
+  const highIntentOnly = process.env.HIGH_INTENT_ONLY === "true";
+  let leadsForOutput = leadsAfterStaleFilter;
+  if (highIntentOnly) {
+    const before = leadsForOutput.length;
+    leadsForOutput = leadsForOutput.filter((l) => l.intentScore >= 60);
+    const rejected = before - leadsForOutput.length;
+    if (rejected > 0) console.log("[scraper-pipeline] HIGH_INTENT_ONLY: filtered out", rejected, "leads with intent_score < 60");
+    stats.classified = leadsForOutput.length;
+  }
+
   console.log("[scraper-pipeline] Filter breakdown (trash vs valid):", {
     collected: stats.collected,
     trashCount: stats.trashCount,
     negativeRejected: stats.negativeRejected,
     intentRejected: stats.intentRejected,
-    accepted: leadsAfterStaleFilter.length,
+    accepted: leadsForOutput.length,
   });
 
-  const contactEmailCount = leadsAfterStaleFilter.filter((l) => !!l.contactEmail).length;
-  const contactPhoneCount = leadsAfterStaleFilter.filter((l) => !!l.contactPhone).length;
-  const venueUrlCount = leadsAfterStaleFilter.filter((l) => !!l.venueUrl).length;
-  const venueUrlFromExtractedCount = leadsAfterStaleFilter.filter((l) => (l as any)._venueUrlSource === "extracted").length;
-  const venueUrlFromMetaOrContactCount = leadsAfterStaleFilter.filter((l) => {
+  const contactEmailCount = leadsForOutput.filter((l) => !!l.contactEmail).length;
+  const contactPhoneCount = leadsForOutput.filter((l) => !!l.contactPhone).length;
+  const venueUrlCount = leadsForOutput.filter((l) => !!l.venueUrl).length;
+  const venueUrlFromExtractedCount = leadsForOutput.filter((l) => (l as any)._venueUrlSource === "extracted").length;
+  const venueUrlFromMetaOrContactCount = leadsForOutput.filter((l) => {
     const src = (l as any)._venueUrlSource;
     return src === "contact" || src === "metadata";
   }).length;
-  const highIntentCount = leadsAfterStaleFilter.filter((l) => l.intentScore >= 80).length;
-  const mediumIntentCount = leadsAfterStaleFilter.filter((l) => l.intentScore >= 50 && l.intentScore < 80).length;
-  const lowIntentCount = leadsAfterStaleFilter.filter((l) => l.intentScore < 50).length;
+  const highIntentCount = leadsForOutput.filter((l) => l.intentScore >= 80).length;
+  const mediumIntentCount = leadsForOutput.filter((l) => l.intentScore >= 50 && l.intentScore < 80).length;
+  const lowIntentCount = leadsForOutput.filter((l) => l.intentScore < 50).length;
   console.log("[scraper-pipeline] Contact enrichment:", {
     contactEmailCount,
     contactPhoneCount,
@@ -637,7 +691,7 @@ export async function runScraperPipeline(city?: string, performerType?: string):
   });
 
   const sourceCounts: Record<string, number> = {};
-  for (const lead of leadsAfterStaleFilter) {
+  for (const lead of leadsForOutput) {
     const key =
       lead.sourceLabel?.startsWith("Apify ")
         ? "apify"
@@ -656,7 +710,7 @@ export async function runScraperPipeline(city?: string, performerType?: string):
   }
 
   const docs: RawDoc[] = allDocs.map(rawLeadDocToLegacyDoc);
-  return { stats, docs, leads: leadsAfterStaleFilter, sourceCounts };
+  return { stats, docs, leads: leadsForOutput, sourceCounts };
 }
 
 // ─── Live Lead Search (admin tool: query live sources with custom phrase) ──────
@@ -692,7 +746,11 @@ export async function runLiveLeadSearch(params: LiveSearchParams): Promise<LiveS
   const phrase = params.customPhrase?.trim() || "dj";
   const maxResults = Math.min(params.maxResults ?? 50, 200);
   const negativeList = [...ALL_NEGATIVE_KEYWORDS, ...(params.excludeKeywords || []).map((k) => normalizeText(k)).filter(Boolean)];
-  const includeList = [...DJ_HIRING_PHRASES, ...(params.includeKeywords || []).map((p) => normalizeText(p)).filter(Boolean)];
+  const includeList = [
+    ...DJ_HIRING_PHRASES,
+    ...TRANSACTIONAL_BOOKING_KEYWORDS,
+    ...(params.includeKeywords || []).map((p) => normalizeText(p)).filter(Boolean),
+  ];
 
   const collectorPromises: Promise<RawLeadDoc[]>[] = [];
   if (params.sources.includes("reddit")) {

@@ -44,6 +44,10 @@ import {
   MessageSquare,
   Target,
   Mail,
+  Send,
+  Users,
+  CreditCard,
+  Building2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -154,6 +158,17 @@ function formatDate(d: Date | string | null) {
   return x.toLocaleString();
 }
 
+function monetizationLabel(type: string | null | undefined): string {
+  if (!type) return "—";
+  const m: Record<string, string> = {
+    artist_unlock: "Artist lead",
+    venue_outreach: "Outreach",
+    venue_subscription: "Subscription",
+    direct_client_pipeline: "Client pipeline",
+  };
+  return m[type] ?? type;
+}
+
 function approvalStatus(lead: { isApproved: boolean; isRejected: boolean }) {
   if (lead.isApproved) return "approved";
   if (lead.isRejected) return "rejected";
@@ -191,7 +206,13 @@ export default function AdminLeadsExplorer() {
   const [hasPhone, setHasPhone] = useState(false);
   const [hasVenueUrl, setHasVenueUrl] = useState(false);
   const [missingContact, setMissingContact] = useState(false);
-  const [outreachLead, setOutreachLead] = useState<{ id: number; contactEmail: string } | null>(null);
+  const [leadMonetizationType, setLeadMonetizationType] = useState("");
+  const [outreachStatusFilter, setOutreachStatusFilter] = useState("");
+  const [venueClientStatusFilter, setVenueClientStatusFilter] = useState("");
+  const [subscriptionVisibilityFilter, setSubscriptionVisibilityFilter] = useState<"" | "yes" | "no">("");
+  const [regionTag, setRegionTag] = useState("");
+  const [outreachLead, setOutreachLead] = useState<{ id: number; title: string | null; contactEmail: string | null; venueEmail?: string | null } | null>(null);
+  const [outreachTemplateId, setOutreachTemplateId] = useState<"venue_intro" | "follow_up" | "performer_supply">("venue_intro");
   const [outreachSubject, setOutreachSubject] = useState(OUTREACH_DEFAULT_SUBJECT);
   const [outreachBody, setOutreachBody] = useState(OUTREACH_DEFAULT_BODY);
   const [selectedLeadIds, setSelectedLeadIds] = useState<number[]>([]);
@@ -246,6 +267,11 @@ export default function AdminLeadsExplorer() {
       hasPhone: hasPhone || undefined,
       hasVenueUrl: hasVenueUrl || undefined,
       missingContact: missingContact || undefined,
+      leadMonetizationType: leadMonetizationType || undefined,
+      outreachStatus: outreachStatusFilter || undefined,
+      venueClientStatus: venueClientStatusFilter || undefined,
+      subscriptionVisibility: subscriptionVisibilityFilter === "yes" ? true : subscriptionVisibilityFilter === "no" ? false : undefined,
+      regionTag: regionTag || undefined,
     }),
     [
       limit,
@@ -264,6 +290,11 @@ export default function AdminLeadsExplorer() {
       hasPhone,
       hasVenueUrl,
       missingContact,
+      leadMonetizationType,
+      outreachStatusFilter,
+      venueClientStatusFilter,
+      subscriptionVisibilityFilter,
+      regionTag,
       includePhrases,
       excludePhrases,
     ]
@@ -316,6 +347,27 @@ export default function AdminLeadsExplorer() {
     onSuccess: () => refetchExplorer(),
     onError: (e) => toast.error(e.message),
   });
+  const setMonetizationMutation = trpc.admin.setLeadMonetization.useMutation({
+    onSuccess: () => {
+      refetchExplorer();
+      toast.success("Monetization updated");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+  const sendOutreachMutation = trpc.admin.sendOutreach.useMutation({
+    onSuccess: (result) => {
+      refetchExplorer();
+      setOutreachLead(null);
+      if (result.noOutreachableEmail) toast.error("No outreachable email");
+      else if (result.success) toast.success("Outreach sent");
+      else toast.error(result.message ?? "Send failed");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+  const { data: outreachTemplates } = trpc.admin.getOutreachTemplates.useQuery(undefined, { enabled: !!outreachLead });
+
+  const hasOutreachableEmail = (lead: { contactEmail?: string | null; venueEmail?: string | null }) =>
+    !!(lead.venueEmail?.trim() || lead.contactEmail?.trim());
 
   const handleBulkLeadType = async (leadType: "trash" | "event_demand" | "venue_intelligence") => {
     const ids = [...selectedLeadIds];
@@ -354,6 +406,11 @@ export default function AdminLeadsExplorer() {
       setHasPhone(false);
       setHasVenueUrl(false);
       setMissingContact(false);
+      setLeadMonetizationType("");
+      setOutreachStatusFilter("");
+      setVenueClientStatusFilter("");
+      setSubscriptionVisibilityFilter("");
+      setRegionTag("");
       setStatus("all");
       setOffset(0);
       return;
@@ -429,7 +486,7 @@ export default function AdminLeadsExplorer() {
       <div className="w-full max-w-[1600px] mx-auto p-6 space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Lead Search Console</h1>
-          <p className="text-muted-foreground mt-1">Browse, search, and organize scraped leads</p>
+          <p className="text-muted-foreground mt-1">Browse, search, and organize leads. Each lead has a money path: Artist lead, Outreach, Subscription pool, or Client pipeline—set and filter below.</p>
         </div>
 
         <Tabs defaultValue="explorer" className="w-full">
@@ -641,6 +698,74 @@ export default function AdminLeadsExplorer() {
                       <Label htmlFor="missingContact" className="text-xs">Missing contact (no email/phone)</Label>
                     </div>
                   </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 pt-2 border-t">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Monetization path</Label>
+                      <Select value={leadMonetizationType || "any"} onValueChange={(v) => setLeadMonetizationType(v === "any" ? "" : v)}>
+                        <SelectTrigger><SelectValue placeholder="Any" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="any">Any</SelectItem>
+                          <SelectItem value="artist_unlock">Sell to Artists</SelectItem>
+                          <SelectItem value="venue_outreach">Venue Outreach</SelectItem>
+                          <SelectItem value="venue_subscription">Subscription Pool</SelectItem>
+                          <SelectItem value="direct_client_pipeline">Client Pipeline</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Outreach status</Label>
+                      <Select value={outreachStatusFilter || "any"} onValueChange={(v) => setOutreachStatusFilter(v === "any" ? "" : v)}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="any">Any</SelectItem>
+                          <SelectItem value="not_sent">Not sent</SelectItem>
+                          <SelectItem value="sent">Sent</SelectItem>
+                          <SelectItem value="replied">Replied</SelectItem>
+                          <SelectItem value="interested">Interested</SelectItem>
+                          <SelectItem value="not_interested">Not interested</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Client status</Label>
+                      <Select value={venueClientStatusFilter || "any"} onValueChange={(v) => setVenueClientStatusFilter(v === "any" ? "" : v)}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="any">Any</SelectItem>
+                          <SelectItem value="prospect">Prospect</SelectItem>
+                          <SelectItem value="contacted">Contacted</SelectItem>
+                          <SelectItem value="qualified">Qualified</SelectItem>
+                          <SelectItem value="active_client">Active client</SelectItem>
+                          <SelectItem value="archived">Archived</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Sub visible</Label>
+                      <Select value={subscriptionVisibilityFilter || "any"} onValueChange={(v) => setSubscriptionVisibilityFilter((v === "any" ? "" : v) as "" | "yes" | "no")}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="any">Any</SelectItem>
+                          <SelectItem value="yes">Yes</SelectItem>
+                          <SelectItem value="no">No</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Region</Label>
+                      <Select value={regionTag || "any"} onValueChange={(v) => setRegionTag(v === "any" ? "" : v)}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="any">Any</SelectItem>
+                          <SelectItem value="miami">Miami</SelectItem>
+                          <SelectItem value="fort_lauderdale">Fort Lauderdale</SelectItem>
+                          <SelectItem value="boca">Boca</SelectItem>
+                          <SelectItem value="west_palm">West Palm</SelectItem>
+                          <SelectItem value="south_florida">South Florida</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Search + Save */}
@@ -746,7 +871,7 @@ export default function AdminLeadsExplorer() {
                         <TableRow>
                           <TableHead className="w-10">
                             <Checkbox
-                              checked={items.length > 0 && items.every((lead) => selectedLeadIds.includes(lead.id))}
+                              checked={items.length > 0 && items.every((l) => selectedLeadIds.includes(l.id))}
                               onCheckedChange={(checked) => {
                                 if (checked) setSelectedLeadIds(items.map((l) => l.id));
                                 else setSelectedLeadIds([]);
@@ -761,6 +886,7 @@ export default function AdminLeadsExplorer() {
                           <TableHead>Intent</TableHead>
                           <TableHead>Created</TableHead>
                           <TableHead>Status</TableHead>
+                          <TableHead className="text-xs">Monet / Outreach</TableHead>
                           <TableHead>URL</TableHead>
                           <TableHead>Outreach</TableHead>
                         </TableRow>
@@ -768,7 +894,7 @@ export default function AdminLeadsExplorer() {
                       <TableBody>
                         {items.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
+                            <TableCell colSpan={11} className="text-center text-muted-foreground py-8">
                               No leads match the current filters.
                             </TableCell>
                           </TableRow>
@@ -824,6 +950,15 @@ export default function AdminLeadsExplorer() {
                                   {approvalStatus(lead)}
                                 </Badge>
                               </TableCell>
+                              <TableCell className="text-xs">
+                                <span className="block font-medium">{monetizationLabel((lead as { leadMonetizationType?: string | null }).leadMonetizationType)}</span>
+                                {(lead as { outreachStatus?: string | null }).outreachStatus && (
+                                  <span className="block text-muted-foreground">{(lead as any).outreachStatus}</span>
+                                )}
+                                {(lead as { subscriptionVisibility?: boolean }).subscriptionVisibility && (
+                                  <span className="block text-muted-foreground">In subscription pool</span>
+                                )}
+                              </TableCell>
                               <TableCell>
                                 {lead.venueUrl ? (
                                   <a href={lead.venueUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-1">
@@ -835,25 +970,51 @@ export default function AdminLeadsExplorer() {
                                 )}
                               </TableCell>
                               <TableCell>
-                                {(lead as { contactedAt?: Date | string | null }).contactedAt ? (
-                                  <span className="text-muted-foreground text-sm">Contacted</span>
-                                ) : lead.contactEmail ? (
+                                <div className="flex flex-wrap gap-1 items-center">
                                   <Button
-                                    variant="outline"
                                     size="sm"
-                                    className="gap-1"
-                                    onClick={() => {
-                                      setOutreachLead({ id: lead.id, contactEmail: lead.contactEmail! });
-                                      setOutreachSubject(OUTREACH_DEFAULT_SUBJECT);
-                                      setOutreachBody(OUTREACH_DEFAULT_BODY);
-                                    }}
+                                    variant="outline"
+                                    title="Mark as Sell to Artists"
+                                    onClick={() => setMonetizationMutation.mutate({ leadId: lead.id, leadMonetizationType: "artist_unlock" })}
+                                    disabled={setMonetizationMutation.isPending}
                                   >
-                                    <Mail className="w-3 h-3" />
-                                    Outreach
+                                    <CreditCard className="h-3.5 w-3.5" />
                                   </Button>
-                                ) : (
-                                  "—"
-                                )}
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    title="Send Outreach"
+                                    onClick={() => setOutreachLead({ id: lead.id, title: lead.title ?? null, contactEmail: lead.contactEmail ?? null, venueEmail: (lead as { venueEmail?: string | null }).venueEmail ?? null })}
+                                    disabled={sendOutreachMutation.isPending}
+                                  >
+                                    <Send className="h-3.5 w-3.5" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant={(lead as { subscriptionVisibility?: boolean }).subscriptionVisibility ? "secondary" : "outline"}
+                                    title={(lead as { subscriptionVisibility?: boolean }).subscriptionVisibility ? "Remove from subscription pool" : "Add to subscription pool"}
+                                    onClick={() => setMonetizationMutation.mutate({
+                                      leadId: lead.id,
+                                      subscriptionVisibility: !(lead as { subscriptionVisibility?: boolean }).subscriptionVisibility,
+                                      ...(!(lead as { subscriptionVisibility?: boolean }).subscriptionVisibility ? { leadMonetizationType: "venue_subscription" as const } : {}),
+                                    })}
+                                    disabled={setMonetizationMutation.isPending}
+                                  >
+                                    <Users className="h-3.5 w-3.5" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    title="Convert to Client Pipeline"
+                                    onClick={() => setMonetizationMutation.mutate({ leadId: lead.id, leadMonetizationType: "direct_client_pipeline", venueClientStatus: "prospect" })}
+                                    disabled={setMonetizationMutation.isPending}
+                                  >
+                                    <Building2 className="h-3.5 w-3.5" />
+                                  </Button>
+                                  {(lead as { contactedAt?: Date | string | null }).contactedAt && (
+                                    <span className="text-muted-foreground text-xs">Contacted</span>
+                                  )}
+                                </div>
                               </TableCell>
                             </TableRow>
                           ))
@@ -1048,50 +1209,41 @@ export default function AdminLeadsExplorer() {
       <Dialog open={!!outreachLead} onOpenChange={(open) => !open && setOutreachLead(null)}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Outreach email</DialogTitle>
+            <DialogTitle>Send outreach — {outreachLead?.title ?? "Lead"}</DialogTitle>
+            <CardDescription>
+              {outreachLead && (hasOutreachableEmail(outreachLead)
+                ? `To: ${(outreachLead.venueEmail?.trim() || outreachLead.contactEmail?.trim()) ?? ""}`
+                : "No outreachable email (add venue or contact email).")}
+            </CardDescription>
           </DialogHeader>
-          {outreachLead && (
+          {outreachLead && !hasOutreachableEmail(outreachLead) ? (
+            <p className="text-destructive text-sm">No outreachable email. Add venue email or contact email to this lead to send outreach.</p>
+          ) : outreachLead ? (
             <>
               <div className="space-y-2">
-                <Label>Subject</Label>
-                <Input
-                  value={outreachSubject}
-                  onChange={(e) => setOutreachSubject(e.target.value)}
-                  placeholder="Subject"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Message</Label>
-                <textarea
-                  className="flex min-h-[200px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  value={outreachBody}
-                  onChange={(e) => setOutreachBody(e.target.value)}
-                  placeholder="Body"
-                />
+                <Label>Template</Label>
+                <Select value={outreachTemplateId} onValueChange={(v: "venue_intro" | "follow_up" | "performer_supply") => setOutreachTemplateId(v)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(outreachTemplates ?? []).map((t: { id: string; label: string }) => (
+                      <SelectItem key={t.id} value={t.id}>{t.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setOutreachLead(null)}>
-                  Cancel
-                </Button>
+                <Button variant="outline" onClick={() => setOutreachLead(null)}>Cancel</Button>
                 <Button
-                  onClick={() => {
-                    const mailto = `mailto:${encodeURIComponent(outreachLead.contactEmail)}?subject=${encodeURIComponent(outreachSubject)}&body=${encodeURIComponent(outreachBody)}`;
-                    window.open(mailto);
-                    updateLeadMutation.mutate(
-                      { leadId: outreachLead.id, contactedAt: new Date().toISOString() },
-                      { onSuccess: () => toast.success("Marked as contacted") }
-                    );
-                    setOutreachLead(null);
-                  }}
-                  disabled={updateLeadMutation.isPending}
-                  className="gap-1"
+                  onClick={() => sendOutreachMutation.mutate({ leadId: outreachLead.id, templateId: outreachTemplateId })}
+                  disabled={sendOutreachMutation.isPending}
                 >
-                  <Mail className="w-3 h-3" />
-                  Open Email
+                  {sendOutreachMutation.isPending ? "Sending…" : "Send outreach"}
                 </Button>
               </DialogFooter>
             </>
-          )}
+          ) : null}
         </DialogContent>
       </Dialog>
     </DashboardLayout>

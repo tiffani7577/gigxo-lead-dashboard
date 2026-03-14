@@ -22,7 +22,7 @@ const REPLY_TO = "teryn@gigxo.com";
 
 async function sendEmail(to: string, subject: string, html: string): Promise<boolean> {
   const resend = getResend();
-  
+
   if (!resend) {
     // Demo mode - log to console
     console.log(`[Email Demo] To: ${to}`);
@@ -44,6 +44,39 @@ async function sendEmail(to: string, subject: string, html: string): Promise<boo
   } catch (error) {
     console.error(`[Email] Failed to send to ${to}:`, error);
     return false;
+  }
+}
+
+/**
+ * Send admin outreach email (venue/lead one-click or bulk). Uses same Resend infra.
+ * Returns { success, error? } for logging to outreachLog.
+ */
+export async function sendOutreachEmail(
+  to: string,
+  subject: string,
+  bodyPlain: string
+): Promise<{ success: boolean; error?: string }> {
+  const html = `<!DOCTYPE html><html><body style="font-family: sans-serif; white-space: pre-wrap;">${bodyPlain.replace(/\n/g, "<br>")}</body></html>`;
+  const resend = getResend();
+
+  if (!resend) {
+    console.log(`[Outreach Demo] To: ${to}, Subject: ${subject}`);
+    return { success: true };
+  }
+
+  try {
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to,
+      subject,
+      html,
+      replyTo: REPLY_TO,
+    });
+    return { success: true };
+  } catch (err: any) {
+    const msg = err?.message ?? String(err);
+    console.error(`[Outreach] Failed to ${to}:`, msg);
+    return { success: false, error: msg };
   }
 }
 
