@@ -1,6 +1,19 @@
 import "dotenv/config";
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
+import { LEAD_SOURCE_KEYS } from "../scraper-collectors/source-config";
+if (!Array.isArray(LEAD_SOURCE_KEYS)) {
+  (global as any).LEAD_SOURCE_KEYS_OVERRIDE = [
+    "reddit",
+    "eventbrite",
+    "craigslist",
+    "dbpr",
+    "sunbiz",
+    "apify"
+  ];
+}
+
 import express from "express";
 import { createServer } from "http";
 import net from "net";
