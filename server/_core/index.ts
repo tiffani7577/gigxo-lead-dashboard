@@ -50,17 +50,17 @@ async function startServer() {
   const app = express();
   const server = createServer(app);
 
-  // Redirect www to root in production (www.gigxo.com → gigxo.com)
-  app.use((req, res, next) => {
-    const host = req.headers.host ?? "";
-    if (
-      process.env.NODE_ENV === "production" &&
-      (host === "www.gigxo.com" || host === "www.gigxo.com:443")
-    ) {
-      return res.redirect(301, `https://gigxo.com${req.originalUrl}`);
-    }
-    next();
-  });
+  // Redirect non-www to www in production (gigxo.com → www.gigxo.com) — commented out so both domains work
+  // app.use((req, res, next) => {
+  //   const host = req.headers.host ?? "";
+  //   if (
+  //     process.env.NODE_ENV === "production" &&
+  //     (host === "gigxo.com" || host === "gigxo.com:443")
+  //   ) {
+  //     return res.redirect(301, `https://www.gigxo.com${req.originalUrl}`);
+  //   }
+  //   next();
+  // });
 
   // Stripe webhook MUST be registered BEFORE express.json() to get raw body
   registerStripeWebhook(app);
