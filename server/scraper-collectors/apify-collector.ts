@@ -98,6 +98,55 @@ const FACEBOOK_GROUP_URLS = [
 
 const FACEBOOK_POST_KEYWORDS = ["dj", "entertainment", "performer", "band", "musician"];
 
+/** Only use Miami/Fort Lauderdale when post text contains one of these; otherwise city = null. */
+const SOUTH_FLORIDA_LOCATION_KEYWORDS = [
+  "miami",
+  "fort lauderdale",
+  "broward",
+  "dade",
+  "palm beach",
+  "south florida",
+  "boca",
+  "pompano",
+  "hollywood fl",
+  "coral gables",
+  "hialeah",
+  "aventura",
+  "hallandale",
+  "plantation fl",
+  "sunrise fl",
+  "weston fl",
+  "davie fl",
+] as const;
+
+const MIAMI_KEYWORDS = ["miami", "dade", "coral gables", "hialeah", "aventura"];
+const FORT_LAUDERDALE_KEYWORDS = [
+  "fort lauderdale",
+  "broward",
+  "palm beach",
+  "boca",
+  "pompano",
+  "hollywood fl",
+  "hallandale",
+  "plantation fl",
+  "sunrise fl",
+  "weston fl",
+  "davie fl",
+];
+
+/**
+ * Returns "Miami, FL" or "Fort Lauderdale, FL" only if text contains a known South Florida location keyword; otherwise null.
+ */
+export function cityFromPostText(text: string): "Miami, FL" | "Fort Lauderdale, FL" | null {
+  const lower = (text ?? "").toLowerCase();
+  const hasAny = SOUTH_FLORIDA_LOCATION_KEYWORDS.some((kw) => lower.includes(kw));
+  if (!hasAny) return null;
+  if (FORT_LAUDERDALE_KEYWORDS.some((kw) => lower.includes(kw))) return "Fort Lauderdale, FL";
+  if (MIAMI_KEYWORDS.some((kw) => lower.includes(kw))) return "Miami, FL";
+  if (lower.includes("south florida")) return "Miami, FL"; // generic fallback when only "south florida" appears
+  return null;
+}
+
 // Twitter/X: apify/twitter-scraper — search queries
 const TWITTER_SEARCH_QUERIES = [
   "need dj miami",
@@ -177,11 +226,7 @@ function normalizeRedditItem(item: Record<string, unknown>, index: number): RawL
   const rawText = `${title}\n\n${body}`.trim();
   const url = String(item.url ?? item.permalink ?? item.link ?? "").trim() || `https://www.reddit.com`;
   const postedAt = safeDate(item.createdAt ?? item.created_utc ?? item.created ?? Date.now());
-  const city = (item.subreddit ?? "").toString().toLowerCase().includes("miami")
-    ? "Miami, FL"
-    : (item.subreddit ?? "").toString().toLowerCase().includes("fortlauderdale") || (item.subreddit ?? "").toString().toLowerCase().includes("florida")
-      ? "Fort Lauderdale, FL"
-      : "South Florida";
+  const city = cityFromPostText(rawText);
 
   return {
     externalId: `apify-reddit-${id}`,
@@ -203,17 +248,18 @@ function normalizeRedditItem(item: Record<string, unknown>, index: number): RawL
   };
 }
 
-/** Craigslist RSS item → RawLeadDoc (from direct RSS fetch) */
+/** Craigslist RSS item → RawLeadDoc (from direct RSS fetch). Only set city to Miami/Fort Lauderdale if post text contains a South Florida keyword. */
 function normalizeCraigslistRssItem(
   title: string,
   link: string,
   description: string,
   pubDate: string,
-  city: string,
+  _feedCity: string,
   index: number
 ): RawLeadDoc {
   const slug = link.replace(/[^a-z0-9]/gi, "_").slice(0, 80) || `cl-${index}`;
   const rawText = `${title}\n\n${description}`.trim();
+  const city = cityFromPostText(rawText);
   return {
     externalId: `craigslist-rss-${slug}`,
     source: "craigslist",
@@ -290,7 +336,7 @@ function normalizeFacebookGroupPost(item: Record<string, unknown>, index: number
   const rawText = body || title;
   const url = String(item.url ?? item.facebookUrl ?? "").trim() || "https://www.facebook.com";
   const postedAt = safeDate(item.time ?? item.createdAt ?? Date.now());
-  const city = "South Florida";
+  const city = cityFromPostText(rawText);
 
   return {
     externalId: `apify-fb-${String(id).replace(/[^a-z0-9_-]/gi, "_").slice(0, 80)}`,
@@ -326,7 +372,7 @@ function normalizeTwitterItem(item: Record<string, unknown>, index: number): Raw
   const rawText = text;
   const url = String(item.url ?? item.tweetUrl ?? `https://x.com/i/status/${id}`).trim();
   const postedAt = safeDate(item.created_at ?? item.createdAt ?? Date.now());
-  const city = "South Florida";
+  const city = cityFromPostText(rawText);
 
   return {
     externalId: `apify-twitter-${String(id).replace(/[^a-z0-9_-]/gi, "_").slice(0, 80)}`,
@@ -356,7 +402,7 @@ function normalizeLinkedInItem(item: Record<string, unknown>, index: number): Ra
   const headline = String(item.headline ?? "").trim();
   const rawText = [fullName, headline, String(item.summary ?? "")].filter(Boolean).join("\n\n");
   const url = String(item.linkedinUrl ?? item.linkedinPublicUrl ?? item.url ?? "").trim() || "https://www.linkedin.com";
-  const city = String(item.location ?? item.jobLocation ?? "South Florida").trim() || "South Florida";
+  const city = cityFromPostText(rawText);
 
   return {
     externalId: `apify-linkedin-${slug}`,
@@ -392,11 +438,7 @@ function normalizeGoogleSerpItem(organicResult: Record<string, unknown>, index: 
   const title = String(organicResult.title ?? "").slice(0, 255) || "Google result";
   const description = String(organicResult.description ?? organicResult.snippet ?? "").trim();
   const rawText = `${title}\n\n${description}`.trim();
-  const city = rawText.toLowerCase().includes("fort lauderdale")
-    ? "Fort Lauderdale, FL"
-    : rawText.toLowerCase().includes("miami")
-      ? "Miami, FL"
-      : "South Florida";
+  const city = cityFromPostText(rawText);
 
   return {
     externalId: `apify-serp-${slug}`,
@@ -427,7 +469,7 @@ function normalizeGoogleMapsItem(item: Record<string, unknown>, index: number): 
   const body = [address, String(item.category ?? ""), String(item.description ?? "")].filter(Boolean).join("\n");
   const rawText = `${title}\n\n${body}`.trim();
   const url = String(item.url ?? item.website ?? item.link ?? item.googleMapsUri ?? "").trim() || "https://www.google.com/maps";
-  const city = address || "South Florida";
+  const city = cityFromPostText(rawText);
 
   return {
     externalId: `apify-gmaps-${slug}`,
@@ -438,7 +480,7 @@ function normalizeGoogleMapsItem(item: Record<string, unknown>, index: number): 
     rawText,
     url,
     postedAt: new Date(),
-    city: city || null,
+    city,
     contact: undefined,
     metadata: {
       leadType: "venue_intelligence",

@@ -976,6 +976,29 @@ export default function ArtistDashboard() {
                           </div>
                         )}
 
+                        {/* Contact availability badges — what artists unlock */}
+                        {!lead.isUnlocked && (
+                          <div className="flex flex-wrap items-center gap-1.5 mb-2">
+                            {(lead as any).hasContactEmail && (
+                              <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
+                                <Mail className="w-3 h-3" />
+                                Email available
+                              </span>
+                            )}
+                            {(lead as any).hasContactPhone && (
+                              <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
+                                <Phone className="w-3 h-3" />
+                                Phone available
+                              </span>
+                            )}
+                            {(lead as any).hasFacebookProfileLink && (
+                              <span className="inline-flex items-center gap-1 text-xs font-medium text-sky-700 bg-sky-100 px-2 py-0.5 rounded-full">
+                                Facebook Lead — contact via profile link
+                              </span>
+                            )}
+                          </div>
+                        )}
+
                         <div className="flex items-center justify-between">
                           <span />
                           {!lead.isUnlocked ? (
@@ -1239,11 +1262,30 @@ export default function ArtistDashboard() {
                             </div>
                           )}
                           <div className="bg-slate-50 rounded-lg p-3 mb-3">
-                            <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
+                            <div className="flex items-center gap-2 text-sm text-slate-500 mb-2">
                               <Lock className="w-3.5 h-3.5" />
                               <span>Contact info locked</span>
                             </div>
-                            <p className="text-xs text-slate-400">Unlock to reveal name, email, and phone number</p>
+                            <div className="flex flex-wrap items-center gap-1.5 mb-2">
+                              {(selectedLeadData as any).hasContactEmail && (
+                                <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-600 bg-white border border-slate-200 px-2 py-0.5 rounded-full">
+                                  <Mail className="w-3 h-3" />
+                                  Email available
+                                </span>
+                              )}
+                              {(selectedLeadData as any).hasContactPhone && (
+                                <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-600 bg-white border border-slate-200 px-2 py-0.5 rounded-full">
+                                  <Phone className="w-3 h-3" />
+                                  Phone available
+                                </span>
+                              )}
+                              {(selectedLeadData as any).hasFacebookProfileLink && (
+                                <span className="inline-flex items-center gap-1 text-xs font-medium text-sky-700 bg-sky-50 border border-sky-200 px-2 py-0.5 rounded-full">
+                                  Facebook Lead — contact via profile link
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-slate-400">Unlock to reveal contact details</p>
                           </div>
                           <Button
                             onClick={() => handleUnlock(selectedLeadData.id)}

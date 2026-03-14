@@ -169,6 +169,41 @@ export const gigLeads = mysqlTable("gigLeads", {
   venuePhone: varchar("venuePhone", { length: 32 }),
   venueEmail: varchar("venueEmail", { length: 320 }),
 
+  // ── Monetization Layer (Phase 1) ──────────────────────────────────────────
+  leadMonetizationType: mysqlEnum("leadMonetizationType", [
+    "artist_unlock",
+    "venue_outreach",
+    "venue_subscription",
+    "direct_client_pipeline",
+  ]),
+  outreachStatus: mysqlEnum("outreachStatus", [
+    "not_sent",
+    "queued",
+    "sent",
+    "replied",
+    "interested",
+    "not_interested",
+    "bounced",
+  ])
+    .default("not_sent")
+    .notNull(),
+  outreachAttemptCount: int("outreachAttemptCount").default(0).notNull(),
+  outreachLastSentAt: timestamp("outreachLastSentAt"),
+  outreachNextFollowUpAt: timestamp("outreachNextFollowUpAt"),
+  venueClientStatus: mysqlEnum("venueClientStatus", [
+    "prospect",
+    "contacted",
+    "qualified",
+    "active_client",
+    "archived",
+  ]),
+  subscriptionVisibility: boolean("subscriptionVisibility").default(false).notNull(),
+  regionTag: mysqlEnum("regionTag", ["miami", "fort_lauderdale", "boca", "west_palm", "south_florida"]),
+  /** Admin kill-switch for marketplace unlock flow (default true for backward compat). */
+  artistUnlockEnabled: boolean("artistUnlockEnabled").default(true).notNull(),
+  /** Admin: restrict unlock to premium subscribers only (default false). */
+  premiumOnly: boolean("premiumOnly").default(false).notNull(),
+
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => ({
@@ -179,6 +214,27 @@ export const gigLeads = mysqlTable("gigLeads", {
 
 export type GigLead = typeof gigLeads.$inferSelect;
 export type InsertGigLead = typeof gigLeads.$inferInsert;
+
+// Outreach log (admin-controlled, one-click/batch)
+export const outreachLog = mysqlTable("outreachLog", {
+  id: int("id").autoincrement().primaryKey(),
+  leadId: int("leadId").notNull(),
+  templateId: varchar("templateId", { length: 64 }),
+  recipientEmail: varchar("recipientEmail", { length: 320 }).notNull(),
+  subject: varchar("subject", { length: 512 }).notNull(),
+  bodyPreview: text("bodyPreview"),
+  status: mysqlEnum("status", ["sent", "failed", "bounced"]).notNull(),
+  errorMessage: text("errorMessage"),
+  scheduledFollowUpAt: timestamp("scheduledFollowUpAt"),
+  sentAt: timestamp("sentAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  leadIdIdx: index("outreachLog_leadId_idx").on(table.leadId),
+  sentAtIdx: index("outreachLog_sentAt_idx").on(table.sentAt),
+}));
+
+export type OutreachLog = typeof outreachLog.$inferSelect;
+export type InsertOutreachLog = typeof outreachLog.$inferInsert;
 
 // Lead scores table (AI-generated scores for matching)
 export const leadScores = mysqlTable("leadScores", {

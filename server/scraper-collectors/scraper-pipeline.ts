@@ -18,7 +18,7 @@ import { collectFromEventbrite } from "./eventbrite-collector";
 import { collectFromCraigslistRss } from "./craigslist-collector";
 import { collectFromDbpr } from "./dbpr-collector";
 import { collectFromSunbiz } from "./sunbiz-collector";
-import { collectFromApify } from "./apify-collector";
+import { collectFromApify, cityFromPostText } from "./apify-collector";
 import { getEnabledLeadSourceKeys } from "./source-config";
 import type { RawLeadDoc } from "./raw-lead-doc";
 import { extractContactFromRawLeadDoc } from "../contact-extraction";
@@ -317,8 +317,10 @@ function redditRawDocToRawLeadDoc(doc: RawDoc): RawLeadDoc {
 // ─── RawLeadDoc → ScrapedLead ──────────────────────────────────────────────────
 
 function rawLeadDocToLead(doc: RawLeadDoc, baseIntentScore: number): ScrapedLead {
-  const location = doc.city ?? "South Florida";
-  const [lat, lng] = resolveCoords(doc.city);
+  // Only use Miami/Fort Lauderdale when post text contains a South Florida keyword; otherwise null so it doesn't show as a Miami lead.
+  const effectiveCity = cityFromPostText(doc.rawText);
+  const location = effectiveCity ?? "";
+  const [lat, lng] = resolveCoords(effectiveCity);
 
   let source: ScrapedLead["source"] = "gigxo";
   if (doc.sourceType === "reddit" || doc.source === "reddit") source = "reddit";

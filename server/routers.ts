@@ -643,13 +643,16 @@ export const appRouter = router({
           }
         });
         
-        // Return leads with contact info blurred unless unlocked
+        // Return leads with contact info blurred unless unlocked; expose hints so artists know what they're unlocking
         return filtered.map(lead => ({
           ...lead,
           isUnlocked: unlockedLeadIds.has(lead.id),
           contactName: unlockedLeadIds.has(lead.id) ? lead.contactName : (lead.contactName ? "Contact info locked" : null),
           contactEmail: unlockedLeadIds.has(lead.id) ? lead.contactEmail : null,
           contactPhone: unlockedLeadIds.has(lead.id) ? lead.contactPhone : null,
+          hasContactEmail: !!lead.contactEmail,
+          hasContactPhone: !!lead.contactPhone,
+          hasFacebookProfileLink: !lead.contactEmail && !lead.contactPhone && !!(lead.venueUrl && String(lead.venueUrl).includes("facebook.com")),
           viewCount: (viewCounts[lead.id] ?? 0) + ((lead.id * 17 + 43) % 67) + 12,
           unlockCount: unlockCounts[lead.id] ?? 0,
         }));
@@ -674,6 +677,9 @@ export const appRouter = router({
           contactName: unlocked ? lead.contactName : (lead.contactName ? "Contact info locked" : null),
           contactEmail: unlocked ? lead.contactEmail : null,
           contactPhone: unlocked ? lead.contactPhone : null,
+          hasContactEmail: !!lead.contactEmail,
+          hasContactPhone: !!lead.contactPhone,
+          hasFacebookProfileLink: !lead.contactEmail && !lead.contactPhone && !!(lead.venueUrl && String(lead.venueUrl).includes("facebook.com")),
         };
       }),
       
