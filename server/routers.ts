@@ -1499,16 +1499,17 @@ export const appRouter = router({
         focusPerformerType: z.string().optional(),
       }).optional())
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user?.role !== 'admin') throw new Error("Unauthorized");
-        const { runScraperPipeline } = await import("./scraper-collectors/scraper-pipeline");
-        const { gigLeads } = await import("../drizzle/schema");
-        const { getDb } = await import("./db");
-        
-        const db = await getDb();
-        if (!db) throw new Error("Database not available");
-        
-        // Pass city and performerType from input to scraper pipeline
-        const { stats, leads, sourceCounts } = await runScraperPipeline(input?.marketId, input?.focusPerformerType);
+        try {
+          if (ctx.user?.role !== 'admin') throw new Error("Unauthorized");
+          const { runScraperPipeline } = await import("./scraper-collectors/scraper-pipeline");
+          const { gigLeads } = await import("../drizzle/schema");
+          const { getDb } = await import("./db");
+          
+          const db = await getDb();
+          if (!db) throw new Error("Database not available");
+          
+          // Pass city and performerType from input to scraper pipeline
+          const { stats, leads, sourceCounts } = await runScraperPipeline(input?.marketId, input?.focusPerformerType);
         
         let inserted = 0;
         let skipped = 0;
@@ -1608,6 +1609,10 @@ export const appRouter = router({
           message:    `Scraped ${stats.collected} posts → ${inserted} new leads added to approval queue`,
           sourceCounts,
         };
+        } catch (err) {
+          console.error("[runScraper] Full stack trace:", err instanceof Error ? err.stack : String(err));
+          throw err;
+        }
       }),
 
     // Get list of available city markets for the scraper UI

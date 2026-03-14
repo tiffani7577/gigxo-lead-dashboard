@@ -18,6 +18,7 @@ export const LEAD_SOURCE_KEYS: LeadSourceKey[] = [
 
 /** Returns which source keys are enabled. Defaults to all enabled when DB has no row for a key. */
 export async function getEnabledLeadSourceKeys(): Promise<LeadSourceKey[]> {
+  console.log("[source-config] LEAD_SOURCE_KEYS type:", typeof LEAD_SOURCE_KEYS, Array.isArray(LEAD_SOURCE_KEYS));
   const safeKeys = Array.isArray(LEAD_SOURCE_KEYS)
     ? LEAD_SOURCE_KEYS
     : ["reddit", "eventbrite", "craigslist", "dbpr", "sunbiz", "apify"];
