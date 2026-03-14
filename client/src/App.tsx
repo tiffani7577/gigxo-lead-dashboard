@@ -23,6 +23,8 @@ import BookDj from "./pages/BookDj";
 import { ScraperConfig } from "./pages/ScraperConfig";
 import AdminLeadsExplorer from "./pages/AdminLeadsExplorer";
 import AdminVenueIntelligence from "./pages/AdminVenueIntelligence";
+import AdminArtistLeads from "./pages/AdminArtistLeads";
+import VenueIntelSubscriber from "./pages/VenueIntelSubscriber";
 import LiveLeadSearch from "./pages/LiveLeadSearch";
 import Contracts from "./pages/Contracts";
 import SEOLandingPage from "./pages/SEOLandingPage";
@@ -36,6 +38,7 @@ function Router() {
       <Route path="/forgot-password" component={ForgotPassword} />
       <Route path="/reset-password" component={ResetPassword} />
       <Route path="/dashboard" component={ArtistDashboard} />
+      <Route path="/venue-intel" component={VenueIntelSubscriber} />
       <Route path="/profile" component={ArtistProfile} />
       <Route path="/verify-email" component={VerifyEmail} />
       <Route path="/artists" component={ArtistDirectory} />
@@ -49,6 +52,7 @@ function Router() {
       <Route path="/admin/scraper-config" component={ScraperConfig} />
       <Route path="/admin/leads-explorer" component={AdminLeadsExplorer} />
       <Route path="/admin/venue-intelligence" component={AdminVenueIntelligence} />
+      <Route path="/admin/artist-growth" component={AdminArtistLeads} />
       <Route path="/admin/live-lead-search" component={LiveLeadSearch} />
       <Route path="/contracts" component={Contracts} />
       {/* SEO Landing Pages - Dynamic route for all service+city combinations */}

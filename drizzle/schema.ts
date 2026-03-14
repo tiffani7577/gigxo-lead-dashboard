@@ -236,6 +236,36 @@ export const outreachLog = mysqlTable("outreachLog", {
 export type OutreachLog = typeof outreachLog.$inferSelect;
 export type InsertOutreachLog = typeof outreachLog.$inferInsert;
 
+// Artist outreach (admin artist acquisition / growth tracking — separate from lead discovery)
+export const artistOutreach = mysqlTable(
+  "artistOutreach",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    artistName: varchar("artistName", { length: 255 }).notNull(),
+    instagramHandle: varchar("instagramHandle", { length: 255 }),
+    city: varchar("city", { length: 255 }),
+    genre: varchar("genre", { length: 128 }),
+    contactMethod: varchar("contactMethod", { length: 64 }),
+    source: varchar("source", { length: 128 }),
+    followerRange: varchar("followerRange", { length: 64 }),
+    notes: text("notes"),
+    contactedAt: timestamp("contactedAt"),
+    joinedAt: timestamp("joinedAt"),
+    lastContactedAt: timestamp("lastContactedAt"),
+    status: mysqlEnum("status", ["new", "contacted", "replied", "joined", "active_buyer", "inactive"]).default("new").notNull(),
+    userId: int("userId"), // link to users.id when they sign up — for leads unlocked / revenue
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    statusIdx: index("artistOutreach_status_idx").on(table.status),
+    userIdIdx: index("artistOutreach_userId_idx").on(table.userId),
+  })
+);
+
+export type ArtistOutreach = typeof artistOutreach.$inferSelect;
+export type InsertArtistOutreach = typeof artistOutreach.$inferInsert;
+
 // Lead scores table (AI-generated scores for matching)
 export const leadScores = mysqlTable("leadScores", {
   id: int("id").autoincrement().primaryKey(),
