@@ -4,7 +4,7 @@
  * If a source has no row, it is treated as enabled (backward compatible).
  */
 
-export const LEAD_SOURCE_KEYS = ["reddit", "eventbrite", "craigslist", "dbpr", "sunbiz"] as const;
+export const LEAD_SOURCE_KEYS = ["reddit", "eventbrite", "craigslist", "dbpr", "sunbiz", "apify"] as const;
 export type LeadSourceKey = (typeof LEAD_SOURCE_KEYS)[number];
 
 /** Returns which source keys are enabled. Defaults to all enabled when DB has no row for a key. */

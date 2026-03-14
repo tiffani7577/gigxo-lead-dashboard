@@ -521,7 +521,11 @@ export async function runScraperPipeline(city?: string, performerType?: string):
   } else {
     collectorPromises.push(Promise.resolve([]));
   }
-  collectorPromises.push(collectFromApify());
+  if (enabledKeys.includes("apify")) {
+    collectorPromises.push(collectFromApify());
+  } else {
+    collectorPromises.push(Promise.resolve([]));
+  }
 
   const [redditDocs, eventbriteDocs, craigslistDocs, dbprDocs, sunbizDocs, apifyDocs] = await Promise.all(collectorPromises);
   const allDocs: RawLeadDoc[] = [
