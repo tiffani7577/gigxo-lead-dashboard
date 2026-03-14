@@ -15,11 +15,7 @@
 import type { RawLeadDoc } from "./raw-lead-doc";
 import * as fs from "fs/promises";
 
-const _sunbizPath = process.env.SUNBIZ_FILE_PATH;
-if (!_sunbizPath) {
-  throw new Error("SUNBIZ_FILE_PATH is not set");
-}
-const SUNBIZ_FILE_PATH: string = _sunbizPath;
+const SUNBIZ_FILE_PATH: string | null = process.env.SUNBIZ_FILE_PATH?.trim() || null;
 
 // Official fixed-width offsets from Sunbiz Corporate Data File definitions are now wired.
 // See: https://dos.sunbiz.org/data-definitions/cor.html
@@ -90,6 +86,9 @@ function parseFixedWidthRecord(line: string): SunbizFixedRecord | null {
 }
 
 export async function collectFromSunbiz(options?: SunbizCollectorOptions): Promise<RawLeadDoc[]> {
+  if (!SUNBIZ_FILE_PATH) {
+    return [];
+  }
   if (!SUNBIZ_OFFSETS_READY) {
     console.warn("[sunbiz-collector] Disabled: official Sunbiz fixed-width field offsets are not finalized. No Sunbiz records will be ingested.");
     return [];

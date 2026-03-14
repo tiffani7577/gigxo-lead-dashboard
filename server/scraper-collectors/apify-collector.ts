@@ -450,6 +450,7 @@ function normalizeGoogleMapsItem(item: Record<string, unknown>, index: number): 
 }
 
 export async function collectFromApify(): Promise<RawLeadDoc[]> {
+  console.log("[apify-collector] collectFromApify() called");
   const token = process.env.APIFY_API_TOKEN?.trim();
   if (!token) {
     console.warn("[apify-collector] APIFY_API_TOKEN is not set; skipping Apify.");
