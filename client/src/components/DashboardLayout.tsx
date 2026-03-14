@@ -30,7 +30,7 @@ import { Button } from "./ui/button";
 const menuItems = [
   { icon: LayoutDashboard, label: "Admin Dashboard", path: "/admin" },
   { icon: Zap, label: "Event Windows", path: "/admin/event-windows" },
-  { icon: Search, label: "Leads Explorer", path: "/admin/leads-explorer" },
+  { icon: Search, label: "Lead Explorer", path: "/admin/leads-explorer" },
   { icon: Building2, label: "Venue Intelligence", path: "/admin/venue-intelligence" },
   { icon: Radio, label: "Live Lead Search", path: "/admin/live-lead-search" },
   { icon: Music, label: "Artist Directory", path: "/artists" },
