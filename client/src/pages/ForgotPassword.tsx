@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Loader2, Music, CheckCircle2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import { SiteFooter } from "@/components/SiteFooter";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -19,7 +20,8 @@ export default function ForgotPassword() {
 
   if (sent) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-950 via-slate-900 to-slate-950 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-purple-950 via-slate-900 to-slate-950 flex flex-col">
+        <div className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-md text-center">
           <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle2 className="w-8 h-8 text-green-400" />
@@ -35,16 +37,19 @@ export default function ForgotPassword() {
             </Button>
           </Link>
         </div>
+        </div>
+        <SiteFooter compact />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-950 via-slate-900 to-slate-950 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-950 via-slate-900 to-slate-950 flex flex-col">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-purple-600/10 rounded-full blur-3xl" />
       </div>
 
+      <div className="flex-1 flex items-center justify-center p-4">
       <div className="w-full max-w-md relative">
         <div className="text-center mb-8">
           <Link href="/">
@@ -96,6 +101,8 @@ export default function ForgotPassword() {
           </CardContent>
         </Card>
       </div>
+      </div>
+      <SiteFooter compact />
     </div>
   );
 }

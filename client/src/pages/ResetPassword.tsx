@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Loader2, Music, Eye, EyeOff, CheckCircle2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { SiteFooter } from "@/components/SiteFooter";
 
 export default function ResetPassword() {
   const [, navigate] = useLocation();
@@ -31,47 +32,54 @@ export default function ResetPassword() {
 
   if (!token) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-950 via-slate-900 to-slate-950 flex items-center justify-center p-4">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <AlertCircle className="w-8 h-8 text-red-400" />
+      <div className="min-h-screen bg-gradient-to-br from-purple-950 via-slate-900 to-slate-950 flex flex-col">
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertCircle className="w-8 h-8 text-red-400" />
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-2">Invalid link</h2>
+            <p className="text-slate-400 mb-6">This reset link is missing or invalid.</p>
+            <Link href="/forgot-password">
+              <Button className="bg-purple-600 hover:bg-purple-700">Request a new link</Button>
+            </Link>
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2">Invalid link</h2>
-          <p className="text-slate-400 mb-6">This reset link is missing or invalid.</p>
-          <Link href="/forgot-password">
-            <Button className="bg-purple-600 hover:bg-purple-700">Request a new link</Button>
-          </Link>
         </div>
+        <SiteFooter compact />
       </div>
     );
   }
 
   if (done) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-950 via-slate-900 to-slate-950 flex items-center justify-center p-4">
-        <div className="w-full max-w-md text-center">
-          <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle2 className="w-8 h-8 text-green-400" />
+      <div className="min-h-screen bg-gradient-to-br from-purple-950 via-slate-900 to-slate-950 flex flex-col">
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="w-full max-w-md text-center">
+            <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle2 className="w-8 h-8 text-green-400" />
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-2">Password updated!</h2>
+            <p className="text-green-400 font-medium mb-2">Your password has been updated successfully.</p>
+            <p className="text-slate-400 text-sm mb-6">You'll be redirected to sign in shortly.</p>
+            <Link href="/login">
+              <Button className="bg-purple-600 hover:bg-purple-700 text-white font-semibold">
+                Sign in now
+              </Button>
+            </Link>
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2">Password updated!</h2>
-          <p className="text-green-400 font-medium mb-2">Your password has been updated successfully.</p>
-          <p className="text-slate-400 text-sm mb-6">You'll be redirected to sign in shortly.</p>
-          <Link href="/login">
-            <Button className="bg-purple-600 hover:bg-purple-700 text-white font-semibold">
-              Sign in now
-            </Button>
-          </Link>
         </div>
+        <SiteFooter compact />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-950 via-slate-900 to-slate-950 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-950 via-slate-900 to-slate-950 flex flex-col">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-purple-600/10 rounded-full blur-3xl" />
       </div>
 
+      <div className="flex-1 flex items-center justify-center p-4">
       <div className="w-full max-w-md relative">
         <div className="text-center mb-8">
           <Link href="/">
@@ -134,6 +142,8 @@ export default function ResetPassword() {
           </CardContent>
         </Card>
       </div>
+      </div>
+      <SiteFooter compact />
     </div>
   );
 }

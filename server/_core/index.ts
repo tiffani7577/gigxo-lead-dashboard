@@ -20,6 +20,8 @@ import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { registerGoogleAuthRoutes } from "../googleAuth";
+import { registerMicrosoftAuthRoutes } from "../microsoftAuthRoutes";
+import { registerOutreachRoutes } from "../outreachRoutes";
 import { registerSitemapRoute } from "../sitemap";
 import { registerStripeWebhook } from "../stripeWebhook";
 import { appRouter } from "../routers";
@@ -71,6 +73,10 @@ async function startServer() {
   registerOAuthRoutes(app);
   // Google OAuth routes
   registerGoogleAuthRoutes(app);
+  // Microsoft OAuth (inbox for outreach — teryn@gigxo.com)
+  registerMicrosoftAuthRoutes(app);
+  // Outreach send (admin only, manual send only)
+  registerOutreachRoutes(app);
   // SEO sitemap
   registerSitemapRoute(app);
   // tRPC API

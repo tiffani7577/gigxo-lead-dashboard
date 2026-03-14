@@ -739,3 +739,87 @@ export const explorerSourceToggles = mysqlTable("explorerSourceToggles", {
 
 export type ExplorerSourceToggle = typeof explorerSourceToggles.$inferSelect;
 export type InsertExplorerSourceToggle = typeof explorerSourceToggles.$inferInsert;
+
+// ─── Outreach & lead intelligence (Teryn persona, manual send only) ─────────────────
+
+/** Outreach leads (venues / performers) for email outreach — separate from gigLeads */
+export const leads = mysqlTable(
+  "leads",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    leadType: mysqlEnum("leadType", ["venue_new", "venue_existing", "performer"]).notNull(),
+    name: varchar("name", { length: 255 }),
+    businessName: varchar("businessName", { length: 255 }),
+    email: varchar("email", { length: 320 }),
+    phone: varchar("phone", { length: 32 }),
+    instagram: varchar("instagram", { length: 255 }),
+    city: varchar("city", { length: 128 }),
+    state: varchar("state", { length: 64 }),
+    score: int("score").default(0).notNull(),
+    status: mysqlEnum("status", ["new", "contacted", "replied", "booked"]).default("new").notNull(),
+    source: varchar("source", { length: 128 }),
+    lastContacted: timestamp("lastContacted"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (table) => ({
+    statusIdx: index("leads_status_idx").on(table.status),
+    leadTypeIdx: index("leads_leadType_idx").on(table.leadType),
+    scoreIdx: index("leads_score_idx").on(table.score),
+  })
+);
+
+export type Lead = typeof leads.$inferSelect;
+export type InsertLead = typeof leads.$inferInsert;
+
+/** Email templates for outreach (variables: {{name}}, {{venue}}, {{city}}) */
+export const templates = mysqlTable("templates", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 128 }).notNull(),
+  targetType: mysqlEnum("targetType", ["venue_new", "venue_existing", "performer"]).notNull(),
+  subjectTemplate: text("subjectTemplate").notNull(),
+  bodyTemplate: text("bodyTemplate").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Template = typeof templates.$inferSelect;
+export type InsertTemplate = typeof templates.$inferInsert;
+
+/** Sent outreach emails (logged when admin clicks Send) */
+export const outreachMessages = mysqlTable(
+  "outreachMessages",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    leadId: int("leadId").notNull(),
+    subject: varchar("subject", { length: 512 }).notNull(),
+    body: text("body").notNull(),
+    templateId: int("templateId"),
+    senderName: varchar("senderName", { length: 128 }),
+    senderEmail: varchar("senderEmail", { length: 320 }).notNull(),
+    provider: varchar("provider", { length: 32 }).default("microsoft").notNull(),
+    messageId: varchar("messageId", { length: 255 }),
+    sentAt: timestamp("sentAt").defaultNow().notNull(),
+    status: varchar("status", { length: 32 }).default("sent").notNull(),
+  },
+  (table) => ({
+    leadIdIdx: index("outreachMessages_leadId_idx").on(table.leadId),
+    sentAtIdx: index("outreachMessages_sentAt_idx").on(table.sentAt),
+  })
+);
+
+export type OutreachMessage = typeof outreachMessages.$inferSelect;
+export type InsertOutreachMessage = typeof outreachMessages.$inferInsert;
+
+/** Microsoft inbox connection for sending as teryn@gigxo.com */
+export const microsoftInboxConnection = mysqlTable("microsoftInboxConnection", {
+  id: int("id").autoincrement().primaryKey(),
+  accessToken: text("accessToken").notNull(),
+  refreshToken: text("refreshToken"),
+  expiresAt: timestamp("expiresAt").notNull(),
+  connectedEmail: varchar("connectedEmail", { length: 320 }).notNull(),
+  provider: varchar("provider", { length: 32 }).default("microsoft").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type MicrosoftInboxConnection = typeof microsoftInboxConnection.$inferSelect;
+export type InsertMicrosoftInboxConnection = typeof microsoftInboxConnection.$inferInsert;

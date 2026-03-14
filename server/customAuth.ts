@@ -258,7 +258,7 @@ export async function loginWithGoogle(googleProfile: {
       }).where(eq(users.id, userId));
     } else {
       // New user via Google
-      const result = await db.insert(users).values({
+      await db.insert(users).values({
         name: googleProfile.name,
         email,
         googleId: googleProfile.googleId,
@@ -268,13 +268,16 @@ export async function loginWithGoogle(googleProfile: {
         role: "user",
         lastSignedIn: new Date(),
       });
-      userId = (result as any).insertId as number;
+      const newUser = await db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1);
+      if (!newUser[0]) throw new Error("Failed to create Google user");
+      userId = newUser[0].id;
       isNew = true;
     }
   }
 
   const fresh = await db.select().from(users).where(eq(users.id, userId)).limit(1);
   const u = fresh[0];
+  if (!u) throw new Error("User not found after login");
 
   const authUser: AuthUser = {
     id: u.id,

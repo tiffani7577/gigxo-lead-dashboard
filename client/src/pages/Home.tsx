@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { ArrowRight, CheckCircle2, Zap, Users, TrendingUp, Music, MapPin, Calendar, Lock, Sparkles } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { SiteFooter } from "@/components/SiteFooter";
 
 // Helper: format budget from cents
 function formatBudget(cents: number | null): string {
@@ -403,12 +404,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-700 bg-slate-900/50 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-slate-400 text-sm">
-          <p>© 2026 Gigxo. Founded by artists, for artists.</p>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

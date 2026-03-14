@@ -24,8 +24,13 @@ import { ScraperConfig } from "./pages/ScraperConfig";
 import AdminLeadsExplorer from "./pages/AdminLeadsExplorer";
 import AdminVenueIntelligence from "./pages/AdminVenueIntelligence";
 import AdminArtistLeads from "./pages/AdminArtistLeads";
+import AdminOutreachDashboard from "./pages/AdminOutreachDashboard";
+import AdminOutreachLeads from "./pages/AdminOutreachLeads";
+import AdminOutreachTemplates from "./pages/AdminOutreachTemplates";
 import LiveLeadSearch from "./pages/LiveLeadSearch";
 import Contracts from "./pages/Contracts";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 import SEOLandingPage from "./pages/SEOLandingPage";
 
 function Router() {
@@ -51,8 +56,13 @@ function Router() {
       <Route path="/admin/leads-explorer" component={AdminLeadsExplorer} />
       <Route path="/admin/venue-intelligence" component={AdminVenueIntelligence} />
       <Route path="/admin/artist-growth" component={AdminArtistLeads} />
+      <Route path="/admin/outreach" component={AdminOutreachDashboard} />
+      <Route path="/admin/outreach/leads" component={AdminOutreachLeads} />
+      <Route path="/admin/outreach/templates" component={AdminOutreachTemplates} />
       <Route path="/admin/live-lead-search" component={LiveLeadSearch} />
       <Route path="/contracts" component={Contracts} />
+      <Route path="/privacy" component={Privacy} />
+      <Route path="/terms" component={Terms} />
       {/* SEO Landing Pages - Dynamic route for all service+city combinations */}
       <Route path="/:slug" component={SEOLandingPage} />
       <Route path="/404" component={NotFound} />

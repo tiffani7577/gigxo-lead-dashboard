@@ -8,6 +8,7 @@ import { trpc } from "@/lib/trpc";
 import { Link, useLocation } from "wouter";
 import { generateAllPageConfigs, generatePageConfig, parseSlug } from "@/lib/seoConfig";
 import { MapPin, Music, ChevronRight } from "lucide-react";
+import { SiteFooter } from "@/components/SiteFooter";
 
 interface FormData {
   eventType: "wedding" | "party" | "birthday" | "corporate" | "other";
@@ -795,6 +796,7 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
           );
         })()}
       </div>
+      <SiteFooter />
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Loader2, Music, Eye, EyeOff, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+import { SiteFooter } from "@/components/SiteFooter";
 
 // Simple Google icon SVG
 function GoogleIcon() {
@@ -60,13 +61,14 @@ export default function Signup() {
   })();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-950 via-slate-900 to-slate-950 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-950 via-slate-900 to-slate-950 flex flex-col">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-purple-600/10 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-violet-600/10 rounded-full blur-3xl" />
       </div>
 
+      <div className="flex-1 flex items-center justify-center p-4">
       <div className="w-full max-w-md relative">
         {/* Logo */}
         <div className="text-center mb-8">
@@ -183,7 +185,7 @@ export default function Signup() {
 
               {/* Google Sign Up */}
               <a
-                href={`/api/auth/google?origin=${encodeURIComponent(window.location.origin)}`}
+                href={`/api/auth/google/login?origin=${encodeURIComponent(window.location.origin)}`}
                 className="flex items-center justify-center gap-3 w-full h-11 rounded-md border border-slate-600 bg-slate-700/50 hover:bg-slate-700 text-white text-sm font-medium transition-colors"
               >
                 <GoogleIcon />
@@ -201,9 +203,14 @@ export default function Signup() {
         </Card>
 
         <p className="text-center text-slate-500 text-xs mt-4">
-          By signing up, you agree to our Terms of Service and Privacy Policy.
+          By signing up, you agree to our{" "}
+          <Link href="/terms"><a className="text-purple-400 hover:underline">Terms of Service</a></Link>
+          {" "}and{" "}
+          <Link href="/privacy"><a className="text-purple-400 hover:underline">Privacy Policy</a></Link>.
         </p>
       </div>
+      </div>
+      <SiteFooter compact />
     </div>
   );
 }

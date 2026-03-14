@@ -2380,6 +2380,155 @@ export const appRouter = router({
         return { success: true };
       }),
 
+    // ── Outreach & lead intelligence (Teryn persona, manual send only) ─────────────
+    getOutreachLeads: protectedProcedure
+      .input(z.object({ limit: z.number().min(1).max(500).default(200) }))
+      .query(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+        const { leads } = await import("../drizzle/schema");
+        return db.select().from(leads).orderBy(desc(leads.score), desc(leads.createdAt)).limit(input.limit);
+      }),
+
+    getOutreachLeadById: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+        const { leads } = await import("../drizzle/schema");
+        const [row] = await db.select().from(leads).where(eq(leads.id, input.id)).limit(1);
+        return row ?? null;
+      }),
+
+    createOutreachLead: protectedProcedure
+      .input(z.object({
+        leadType: z.enum(["venue_new", "venue_existing", "performer"]),
+        name: z.string().optional(),
+        businessName: z.string().optional(),
+        email: z.string().optional(),
+        phone: z.string().optional(),
+        instagram: z.string().optional(),
+        city: z.string().optional(),
+        state: z.string().optional(),
+        source: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+        const { leads } = await import("../drizzle/schema");
+        const { computeLeadScore } = await import("./services/leadScoring");
+        const score = computeLeadScore({
+          leadType: input.leadType,
+          source: input.source,
+          city: input.city,
+          state: input.state,
+          instagram: input.instagram,
+        });
+        await db.insert(leads).values({
+          leadType: input.leadType,
+          name: input.name ?? null,
+          businessName: input.businessName ?? null,
+          email: input.email ?? null,
+          phone: input.phone ?? null,
+          instagram: input.instagram ?? null,
+          city: input.city ?? null,
+          state: input.state ?? null,
+          score,
+          source: input.source ?? null,
+        });
+        const [row] = await db.select({ id: leads.id }).from(leads).orderBy(desc(leads.id)).limit(1);
+        return { id: row?.id };
+      }),
+
+    getLeadOutreachTemplates: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+      const { getDb } = await import("./db");
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+      const { templates } = await import("../drizzle/schema");
+      return db.select().from(templates).orderBy(desc(templates.createdAt));
+    }),
+
+    createLeadOutreachTemplate: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1),
+        targetType: z.enum(["venue_new", "venue_existing", "performer"]),
+        subjectTemplate: z.string().min(1),
+        bodyTemplate: z.string().min(1),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+        const { templates } = await import("../drizzle/schema");
+        await db.insert(templates).values(input);
+        const [row] = await db.select({ id: templates.id }).from(templates).orderBy(desc(templates.id)).limit(1);
+        return { id: row?.id };
+      }),
+
+    updateLeadOutreachTemplate: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().min(1).optional(),
+        targetType: z.enum(["venue_new", "venue_existing", "performer"]).optional(),
+        subjectTemplate: z.string().min(1).optional(),
+        bodyTemplate: z.string().min(1).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+        const { templates } = await import("../drizzle/schema");
+        const { id, ...rest } = input;
+        await db.update(templates).set(rest).where(eq(templates.id, id));
+        return { success: true };
+      }),
+
+    getMicrosoftInboxStatus: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+      const { getStoredConnection } = await import("./services/microsoftAuth");
+      const conn = await getStoredConnection();
+      return { connected: !!conn, connectedEmail: conn?.connectedEmail ?? null };
+    }),
+
+    previewOutreachEmail: protectedProcedure
+      .input(z.object({ leadId: z.number(), templateId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+        const { leads, templates } = await import("../drizzle/schema");
+        const [lead] = await db.select().from(leads).where(eq(leads.id, input.leadId)).limit(1);
+        const [template] = await db.select().from(templates).where(eq(templates.id, input.templateId)).limit(1);
+        if (!lead || !template) throw new TRPCError({ code: "NOT_FOUND", message: "Lead or template not found" });
+        const { renderTemplate } = await import("./services/templateRenderer");
+        const { subject, body } = renderTemplate(
+          { subjectTemplate: template.subjectTemplate, bodyTemplate: template.bodyTemplate },
+          { name: lead.name, businessName: lead.businessName, city: lead.city }
+        );
+        return { subject, body, lead, template };
+      }),
+
+    getOutreachMessages: protectedProcedure
+      .input(z.object({ limit: z.number().default(50) }))
+      .query(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+        const { outreachMessages } = await import("../drizzle/schema");
+        return db.select().from(outreachMessages).orderBy(desc(outreachMessages.sentAt)).limit(input.limit);
+      }),
+
     // ── Live Lead Search (admin: query live web with custom phrase) ─────────────
     runLiveLeadSearch: protectedProcedure
       .input(z.object({

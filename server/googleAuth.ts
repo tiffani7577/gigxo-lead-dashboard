@@ -1,90 +1,105 @@
 /**
- * Google OAuth 2.0 handler
- * Registers /api/auth/google and /api/auth/google/callback routes.
+ * Google OAuth 2.0 — user login only (separate from Microsoft Graph / outreach).
+ * Registers /api/auth/google, /api/auth/google/login, and /api/auth/google/callback.
  *
- * Required env vars:
+ * Env vars (Railway):
  *   GOOGLE_CLIENT_ID
  *   GOOGLE_CLIENT_SECRET
- *
- * If those are not set, the routes return a 501 "not configured" response
- * so the rest of the app still works.
+ *   GOOGLE_REDIRECT_URI (e.g. https://gigxo.com/api/auth/google/callback) — used when set; otherwise derived from request (local dev)
  */
 
 import type { Express, Request, Response } from "express";
-import { loginWithGoogle, generateToken } from "./customAuth";
+import { loginWithGoogle } from "./customAuth";
 import { CUSTOM_AUTH_COOKIE, ONE_YEAR_MS } from "@shared/const";
 
 const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo";
 
-function getGoogleConfig() {
-  const clientId = process.env.GOOGLE_CLIENT_ID;
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-  return { clientId, clientSecret, configured: !!(clientId && clientSecret) };
+function getGoogleConfig(req?: Request) {
+  const clientId = process.env.GOOGLE_CLIENT_ID?.trim();
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim();
+  const redirectUriEnv = process.env.GOOGLE_REDIRECT_URI?.trim();
+  const redirectUri = redirectUriEnv || (req ? `${req.protocol}://${req.get("host")}/api/auth/google/callback` : "");
+  const configured = !!(clientId && clientSecret);
+  return {
+    clientId,
+    clientSecret,
+    redirectUri: redirectUri || undefined,
+    configured,
+    missing: [
+      !clientId && "GOOGLE_CLIENT_ID",
+      !clientSecret && "GOOGLE_CLIENT_SECRET",
+    ].filter(Boolean) as string[],
+  };
+}
+
+function handleGoogleLogin(req: Request, res: Response) {
+  const { clientId, clientSecret, redirectUri, configured, missing } = getGoogleConfig(req);
+  if (!configured) {
+    return res.status(501).json({
+      error: "Google OAuth not configured",
+      message: missing.length ? `Missing in server env: ${missing.join(", ")}. Set them in Railway (or .env locally) and redeploy/restart.` : "Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.",
+    });
+  }
+  if (!redirectUri) {
+    return res.status(501).json({ error: "Google OAuth not configured", message: "Redirect URI could not be determined. Set GOOGLE_REDIRECT_URI in production." });
+  }
+
+  const state = (req.query.origin as string) || req.headers.referer || "";
+
+  const params = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: redirectUri,
+    response_type: "code",
+    scope: "openid email profile",
+    state,
+    access_type: "offline",
+    prompt: "select_account",
+  });
+
+  res.redirect(`${GOOGLE_AUTH_URL}?${params.toString()}`);
 }
 
 export function registerGoogleAuthRoutes(app: Express) {
-  // Step 1: Redirect to Google
-  app.get("/api/auth/google", (req: Request, res: Response) => {
-    const { clientId, configured } = getGoogleConfig();
-    if (!configured) {
-      return res.status(501).json({ error: "Google OAuth not configured" });
-    }
+  // Step 1: Redirect to Google (both paths for flexibility)
+  app.get("/api/auth/google", (req: Request, res: Response) => handleGoogleLogin(req, res));
+  app.get("/api/auth/google/login", (req: Request, res: Response) => handleGoogleLogin(req, res));
 
-    const redirectUri = `${req.protocol}://${req.get("host")}/api/auth/google/callback`;
-    const state = (req.query.origin as string) || req.headers.referer || "";
-
-    const params = new URLSearchParams({
-      client_id: clientId!,
-      redirect_uri: redirectUri,
-      response_type: "code",
-      scope: "openid email profile",
-      state,
-      access_type: "offline",
-      prompt: "select_account",
-    });
-
-    res.redirect(`${GOOGLE_AUTH_URL}?${params.toString()}`);
-  });
-
-  // Step 2: Handle Google callback
+  // Step 2: Handle Google callback — exchange code, fetch profile, find/create user, set session, redirect into app
   app.get("/api/auth/google/callback", async (req: Request, res: Response) => {
-    const { clientId, clientSecret, configured } = getGoogleConfig();
-    if (!configured) {
-      return res.status(501).json({ error: "Google OAuth not configured" });
+    const { clientId, clientSecret, redirectUri, configured } = getGoogleConfig(req);
+    if (!configured || !clientId || !clientSecret || !redirectUri) {
+      return res.redirect("/login?error=google_failed");
     }
 
     const code = req.query.code as string;
     const state = (req.query.state as string) || "";
 
     if (!code) {
-      return res.redirect(`/login?error=google_cancelled`);
+      return res.redirect("/login?error=google_cancelled");
     }
 
     try {
-      const redirectUri = `${req.protocol}://${req.get("host")}/api/auth/google/callback`;
-
-      // Exchange code for tokens
       const tokenRes = await fetch(GOOGLE_TOKEN_URL, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({
           code,
-          client_id: clientId!,
-          client_secret: clientSecret!,
+          client_id: clientId,
+          client_secret: clientSecret,
           redirect_uri: redirectUri,
           grant_type: "authorization_code",
         }),
       });
 
       if (!tokenRes.ok) {
-        throw new Error("Failed to exchange code for token");
+        const err = await tokenRes.text();
+        throw new Error(`Token exchange failed: ${err}`);
       }
 
-      const tokenData = await tokenRes.json() as { access_token: string };
+      const tokenData = (await tokenRes.json()) as { access_token: string };
 
-      // Get user info from Google
       const userInfoRes = await fetch(GOOGLE_USERINFO_URL, {
         headers: { Authorization: `Bearer ${tokenData.access_token}` },
       });
@@ -93,22 +108,20 @@ export function registerGoogleAuthRoutes(app: Express) {
         throw new Error("Failed to get user info from Google");
       }
 
-      const googleUser = await userInfoRes.json() as {
+      const googleUser = (await userInfoRes.json()) as {
         sub: string;
         email: string;
-        name: string;
+        name?: string;
         picture?: string;
       };
 
-      // Create or link user account
       const { token } = await loginWithGoogle({
         googleId: googleUser.sub,
         email: googleUser.email,
-        name: googleUser.name,
+        name: googleUser.name ?? "",
         avatarUrl: googleUser.picture,
       });
 
-      // Set session cookie
       res.cookie(CUSTOM_AUTH_COOKIE, token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
@@ -117,12 +130,11 @@ export function registerGoogleAuthRoutes(app: Express) {
         path: "/",
       });
 
-      // Redirect back to dashboard (or origin)
       const origin = state && state.startsWith("http") ? state : "";
       res.redirect(`${origin}/dashboard`);
     } catch (error) {
       console.error("[Google Auth] Error:", error);
-      res.redirect(`/login?error=google_failed`);
+      res.redirect("/login?error=google_failed");
     }
   });
 }

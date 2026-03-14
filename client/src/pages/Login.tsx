@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Loader2, Music, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
+import { SiteFooter } from "@/components/SiteFooter";
 
 // Simple Google icon SVG
 function GoogleIcon() {
@@ -45,13 +46,14 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-950 via-slate-900 to-slate-950 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-950 via-slate-900 to-slate-950 flex flex-col">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-purple-600/10 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-violet-600/10 rounded-full blur-3xl" />
       </div>
 
+      <div className="flex-1 flex items-center justify-center p-4">
       <div className="w-full max-w-md relative">
         {/* Logo */}
         <div className="text-center mb-8">
@@ -139,9 +141,9 @@ export default function Login() {
                 </div>
               </div>
 
-              {/* Google Sign In */}
+              {/* Google Sign In — user login only (separate from Microsoft Graph / outreach) */}
               <a
-                href={`/api/auth/google?origin=${encodeURIComponent(window.location.origin)}`}
+                href={`/api/auth/google/login?origin=${encodeURIComponent(window.location.origin)}`}
                 className="flex items-center justify-center gap-3 w-full h-11 rounded-md border border-slate-600 bg-slate-700/50 hover:bg-slate-700 text-white text-sm font-medium transition-colors"
               >
                 <GoogleIcon />
@@ -164,6 +166,8 @@ export default function Login() {
           </CardContent>
         </Card>
       </div>
+      </div>
+      <SiteFooter compact />
     </div>
   );
 }
