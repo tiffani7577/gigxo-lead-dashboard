@@ -9,6 +9,17 @@ import { getLoginUrl } from "./const";
 import { getAuthToken } from "./lib/authToken";
 import "./index.css";
 
+// Optional analytics: only inject when both env vars are set (avoids Railway build failure when missing)
+const analyticsEndpoint = import.meta.env.VITE_ANALYTICS_ENDPOINT;
+const analyticsWebsiteId = import.meta.env.VITE_ANALYTICS_WEBSITE_ID;
+if (typeof document !== "undefined" && analyticsEndpoint && analyticsWebsiteId) {
+  const script = document.createElement("script");
+  script.defer = true;
+  script.src = `${analyticsEndpoint}/umami`;
+  script.setAttribute("data-website-id", analyticsWebsiteId);
+  document.body.appendChild(script);
+}
+
 const queryClient = new QueryClient();
 
 const redirectToLoginIfUnauthorized = (error: unknown) => {
