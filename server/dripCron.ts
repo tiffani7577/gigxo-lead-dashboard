@@ -214,12 +214,17 @@ async function sendDailyLeadAlerts() {
   const { users, gigLeads, artistProfiles, dripEmailLog } = await import("../drizzle/schema") as any;
   const { sendNewLeadAlertEmail } = await import("./email");
 
-  // Leads approved in the last 24 hours
+  // Leads approved in the last 24 hours (artist-visible only: exclude venue_intelligence / manual_outreach)
+  const { or, isNull, not, eq, inArray } = await import("drizzle-orm");
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const artistVisibleLead = and(
+    or(isNull(gigLeads.leadType), not(inArray(gigLeads.leadType, ["venue_intelligence", "manual_outreach"]))),
+    or(isNull(gigLeads.leadCategory), not(eq(gigLeads.leadCategory, "venue_intelligence")))
+  );
   const newLeads = await db
     .select()
     .from(gigLeads)
-    .where(and(eq(gigLeads.isApproved, true), eq(gigLeads.isHidden, false), gte(gigLeads.createdAt, since)))
+    .where(and(eq(gigLeads.isApproved, true), eq(gigLeads.isHidden, false), artistVisibleLead, gte(gigLeads.createdAt, since)))
     .limit(50);
 
   if (newLeads.length === 0) {

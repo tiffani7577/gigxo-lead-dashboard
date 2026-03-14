@@ -59,15 +59,17 @@ export function registerSitemapRoute(app: Express) {
       const { getDb } = await import("./db");
       const db = await getDb();
       if (db) {
-        const { artistProfiles } = await import("../drizzle/schema");
-        const { isNotNull } = await import("drizzle-orm");
+        const { artistProfiles, users } = await import("../drizzle/schema");
+        const { isNotNull, eq } = await import("drizzle-orm");
         const profiles = await db
-          .select({ slug: artistProfiles.slug })
+          .select({ slug: artistProfiles.slug, email: users.email })
           .from(artistProfiles)
+          .innerJoin(users, eq(artistProfiles.userId, users.id))
           .where(isNotNull(artistProfiles.slug));
 
+        const isSeedEmail = (email: string | null) => (email ?? "").toLowerCase().endsWith("@gigxo.local");
         artistPages = profiles
-          .filter(p => p.slug)
+          .filter(p => p.slug && !isSeedEmail(p.email))
           .map(p => ({
             url: `/artist/${p.slug}`,
             priority: "0.7",

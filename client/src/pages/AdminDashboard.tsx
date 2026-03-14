@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/lib/trpc";
+import { Link } from "wouter";
 import { useState } from "react";
 import { Loader2, CheckCircle2, XCircle, Plus, TrendingUp, Users, DollarSign, Music, RefreshCw, Send, Bot, UserX, LayoutDashboard, Eye, EyeOff, Bookmark, BookmarkCheck, ExternalLink, Phone, Mail, Megaphone, Bell, Copy, Check, Search } from "lucide-react";
 import GrowthWorksheet from "./GrowthWorksheet";
@@ -91,7 +92,20 @@ export default function AdminDashboard() {
   const [editingPriceId, setEditingPriceId] = useState<number | null>(null);
   const [priceInput, setPriceInput] = useState<string>("");
   const [editingLeadId, setEditingLeadId] = useState<number | null>(null);
-  const [editFormData, setEditFormData] = useState({ title: "", location: "", eventType: "", budget: "", description: "", contactName: "", contactEmail: "" });
+  const [editFormData, setEditFormData] = useState<any>({
+    title: "",
+    location: "",
+    eventType: "",
+    budget: "",
+    description: "",
+    contactName: "",
+    contactEmail: "",
+    leadType: "",
+    leadCategory: "",
+    status: "",
+    notes: "",
+    followUpAt: "",
+  });
 
   // Update lead
   const { mutate: updateLead, isPending: isUpdating } = trpc.admin.updateLead.useMutation({
@@ -113,6 +127,11 @@ export default function AdminDashboard() {
       description: lead.description || "",
       contactName: lead.contactName || "",
       contactEmail: lead.contactEmail || "",
+      leadType: lead.leadType ?? "",
+      leadCategory: lead.leadCategory ?? "",
+      status: (lead as any).status ?? "",
+      notes: (lead as any).notes ?? "",
+      followUpAt: (lead as any).followUpAt ? new Date(lead.followUpAt).toISOString().slice(0, 16) : "",
     });
   };
 
@@ -126,6 +145,11 @@ export default function AdminDashboard() {
       description: editFormData.description || undefined,
       contactName: editFormData.contactName || undefined,
       contactEmail: editFormData.contactEmail || undefined,
+      leadType: editFormData.leadType || undefined,
+      leadCategory: editFormData.leadCategory || undefined,
+      status: editFormData.status || undefined,
+      notes: editFormData.notes || undefined,
+      followUpAt: editFormData.followUpAt ? new Date(editFormData.followUpAt).toISOString() : undefined,
     });
   };
 
@@ -263,6 +287,14 @@ export default function AdminDashboard() {
               <Megaphone className="w-3.5 h-3.5" />
               Outreach
             </button>
+            <Link href="/admin/leads-explorer">
+              <button
+                className="px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-1 text-slate-600 hover:bg-slate-100"
+              >
+                <Search className="w-3.5 h-3.5" />
+                Lead Explorer
+              </button>
+            </Link>
             <div className="w-px h-5 bg-slate-200 mx-1" />
             <Button
               variant="outline"
@@ -1137,6 +1169,79 @@ export default function AdminDashboard() {
                   <Textarea
                     value={editFormData.description}
                     onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                    className="resize-none"
+                    rows={3}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-slate-700 block mb-1">Lead type</label>
+                    <select
+                      value={editFormData.leadType}
+                      onChange={(e) => setEditFormData({ ...editFormData, leadType: e.target.value })}
+                      className="w-full h-9 rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 focus:outline-none focus:ring-1 focus:ring-purple-400"
+                    >
+                      <option value="">—</option>
+                      <option value="event_demand">Event demand</option>
+                      <option value="venue_intelligence">Venue intelligence</option>
+                      <option value="artist_signup">Artist signup</option>
+                      <option value="outreach">Outreach</option>
+                      <option value="trash">Trash</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-slate-700 block mb-1">Lead category</label>
+                    <select
+                      value={editFormData.leadCategory}
+                      onChange={(e) => setEditFormData({ ...editFormData, leadCategory: e.target.value })}
+                      className="w-full h-9 rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 focus:outline-none focus:ring-1 focus:ring-purple-400"
+                    >
+                      <option value="">—</option>
+                      <option value="wedding">Wedding</option>
+                      <option value="corporate">Corporate</option>
+                      <option value="yacht">Yacht</option>
+                      <option value="club">Club</option>
+                      <option value="private_party">Private party</option>
+                      <option value="unknown">Unknown</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <label className="text-sm font-medium text-slate-700 block mb-1">Status</label>
+                    <select
+                      value={editFormData.status}
+                      onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value })}
+                      className="w-full h-9 rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 focus:outline-none focus:ring-1 focus:ring-purple-400"
+                    >
+                      <option value="">—</option>
+                      <option value="new">New</option>
+                      <option value="contacted">Contacted</option>
+                      <option value="interested">Interested</option>
+                      <option value="partner">Partner</option>
+                      <option value="declined">Declined</option>
+                      <option value="dead">Dead</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-slate-700 block mb-1">Follow-up date</label>
+                    <Input
+                      type="datetime-local"
+                      value={editFormData.followUpAt}
+                      onChange={(e) => setEditFormData({ ...editFormData, followUpAt: e.target.value })}
+                      className="h-9"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <label className="text-sm font-medium text-slate-700 block mb-1">Notes</label>
+                  <Textarea
+                    value={editFormData.notes}
+                    onChange={(e) => setEditFormData({ ...editFormData, notes: e.target.value })}
                     className="resize-none"
                     rows={3}
                   />

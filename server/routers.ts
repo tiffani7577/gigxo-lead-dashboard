@@ -566,13 +566,18 @@ export const appRouter = router({
         
         const { gigLeads, leadUnlocks, leadViews } = await import("../drizzle/schema");
         
-        // Get all approved leads that are not hidden, not reserved, and not expired
+        // Get all approved leads that are not hidden, not reserved, not expired, and artist-visible (exclude admin-only venue_intelligence / manual_outreach)
         const now = new Date();
+        const artistVisibleLead = and(
+          or(isNull(gigLeads.leadType), not(inArray(gigLeads.leadType, ["venue_intelligence", "manual_outreach"]))),
+          or(isNull(gigLeads.leadCategory), not(eq(gigLeads.leadCategory, "venue_intelligence")))
+        );
         const leads = await db.select().from(gigLeads)
           .where(and(
             eq(gigLeads.isApproved, true),
             eq(gigLeads.isHidden, false),
             eq(gigLeads.isReserved, false),
+            artistVisibleLead,
             // Only show leads where eventDate is in the future OR eventDate is not set
             or(isNull(gigLeads.eventDate), gte(gigLeads.eventDate, now))
           ))
@@ -657,6 +662,9 @@ export const appRouter = router({
         const lead = await getLeadById(input.id);
         
         if (!lead) throw new Error("Lead not found");
+        if ((lead as any).leadType === "venue_intelligence" || (lead as any).leadType === "manual_outreach" || (lead as any).leadCategory === "venue_intelligence") {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Lead not found" });
+        }
         
         const unlocked = await hasUnlockedLead(ctx.user.id, input.id);
         
@@ -676,8 +684,12 @@ export const appRouter = router({
       
       const { gigLeads, leadUnlocks } = await import("../drizzle/schema");
       
+      const artistVisibleLead = and(
+        or(isNull(gigLeads.leadType), not(inArray(gigLeads.leadType, ["venue_intelligence", "manual_outreach"]))),
+        or(isNull(gigLeads.leadCategory), not(eq(gigLeads.leadCategory, "venue_intelligence")))
+      );
       const [totalLeads] = await db.select({ count: sql<number>`COUNT(*)` }).from(gigLeads)
-        .where(eq(gigLeads.isApproved, true));
+        .where(and(eq(gigLeads.isApproved, true), artistVisibleLead));
       
       const [userUnlocks] = await db.select({ count: sql<number>`COUNT(*)` }).from(leadUnlocks)
         .where(eq(leadUnlocks.userId, ctx.user.id));
@@ -792,7 +804,11 @@ export const appRouter = router({
       const { gigLeads } = await import("../drizzle/schema");
       const { desc, and, eq, isNotNull, gte } = await import("drizzle-orm");
 
-      // Pull top approved, visible, non-reserved leads with a budget, sorted by budget desc
+      // Pull top approved, visible, non-reserved, artist-visible leads with a budget (exclude venue_intelligence / manual_outreach)
+      const artistVisibleLead = and(
+        or(isNull(gigLeads.leadType), not(inArray(gigLeads.leadType, ["venue_intelligence", "manual_outreach"]))),
+        or(isNull(gigLeads.leadCategory), not(eq(gigLeads.leadCategory, "venue_intelligence")))
+      );
       const rows = await db.select({
         id: gigLeads.id,
         title: gigLeads.title,
@@ -808,6 +824,7 @@ export const appRouter = router({
           eq(gigLeads.isApproved, true),
           eq(gigLeads.isHidden, false),
           eq(gigLeads.isReserved, false),
+          artistVisibleLead,
           isNotNull(gigLeads.budget),
           or(isNull(gigLeads.eventDate), gte(gigLeads.eventDate, new Date())),
         ))
@@ -845,6 +862,9 @@ export const appRouter = router({
         if (!lead.isApproved) throw new Error("Lead not available");
         if ((lead as any).isHidden) throw new Error("Lead not available");
         if ((lead as any).isReserved) throw new Error("Lead not available");
+        if ((lead as any).leadType === "venue_intelligence" || (lead as any).leadType === "manual_outreach" || (lead as any).leadCategory === "venue_intelligence") {
+          throw new Error("Lead not available");
+        }
         
         // Dynamic price based on budget
         const DYNAMIC_PRICE = getLeadUnlockPriceCents((lead as any).budget, (lead as any).unlockPriceCents);
@@ -934,6 +954,9 @@ export const appRouter = router({
         
         const lead = await getLeadById(input.leadId);
         if (!lead) throw new Error("Lead not found");
+        if ((lead as any).leadType === "venue_intelligence" || (lead as any).leadType === "manual_outreach" || (lead as any).leadCategory === "venue_intelligence") {
+          throw new Error("Lead not available");
+        }
         
         // Check if already unlocked
         const alreadyUnlocked = await hasUnlockedLead(ctx.user.id, input.leadId);
@@ -1030,6 +1053,9 @@ export const appRouter = router({
         
         const lead = await getLeadById(input.leadId);
         if (!lead) throw new Error("Lead not found");
+        if ((lead as any).leadType === "venue_intelligence" || (lead as any).leadType === "manual_outreach" || (lead as any).leadCategory === "venue_intelligence") {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Lead not found" });
+        }
         
         return {
           contactName: lead.contactName,
@@ -1280,6 +1306,12 @@ export const appRouter = router({
         contactName: z.string().optional(),
         contactEmail: z.string().optional(),
         contactPhone: z.string().optional(),
+        contactedAt: z.string().datetime().optional(),
+        leadType: z.string().optional(),
+        leadCategory: z.string().optional(),
+        status: z.string().optional(),
+        notes: z.string().optional(),
+        followUpAt: z.string().datetime().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         if (ctx.user?.role !== 'admin') throw new Error("Unauthorized");
@@ -1298,6 +1330,12 @@ export const appRouter = router({
         if (input.contactName !== undefined) updateData.contactName = input.contactName;
         if (input.contactEmail !== undefined) updateData.contactEmail = input.contactEmail;
         if (input.contactPhone !== undefined) updateData.contactPhone = input.contactPhone;
+        if (input.contactedAt !== undefined) updateData.contactedAt = input.contactedAt ? new Date(input.contactedAt) : null;
+        if (input.leadType !== undefined) updateData.leadType = input.leadType as any;
+        if (input.leadCategory !== undefined) updateData.leadCategory = input.leadCategory as any;
+        if (input.status !== undefined) updateData.status = input.status || null;
+        if (input.notes !== undefined) updateData.notes = input.notes || null;
+        if (input.followUpAt !== undefined) updateData.followUpAt = input.followUpAt ? new Date(input.followUpAt) : null;
         
         await db.update(gigLeads).set(updateData).where(eq(gigLeads.id, input.leadId));
         return { success: true };
@@ -1611,7 +1649,7 @@ export const appRouter = router({
         if (input.sources?.length) conditions.push(inArray(gigLeads.source, input.sources as any));
         if (input.location?.trim()) conditions.push(like(gigLeads.location, `%${input.location.trim()}%`));
         if (input.performerType) conditions.push(eq(gigLeads.performerType, input.performerType as any));
-        if (input.minIntentScore != null) conditions.push(gte(gigLeads.intentScore, input.minIntentScore));
+        if (typeof input.minIntentScore === "number" && Number.isFinite(input.minIntentScore)) conditions.push(gte(gigLeads.intentScore, input.minIntentScore));
         if (input.status === "pending") conditions.push(and(eq(gigLeads.isApproved, false), eq(gigLeads.isRejected, false)));
         else if (input.status === "approved") conditions.push(eq(gigLeads.isApproved, true));
         else if (input.status === "rejected") conditions.push(eq(gigLeads.isRejected, true));
@@ -1680,6 +1718,10 @@ export const appRouter = router({
           contactPhone: gigLeads.contactPhone,
           leadType: gigLeads.leadType,
           leadCategory: gigLeads.leadCategory,
+          contactedAt: gigLeads.contactedAt,
+          status: gigLeads.status,
+          notes: gigLeads.notes,
+          followUpAt: gigLeads.followUpAt,
         })
           .from(gigLeads)
           .where(where ?? sql`1=1`)
@@ -1699,6 +1741,89 @@ export const appRouter = router({
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
         const { scraperRuns } = await import("../drizzle/schema");
         return db.select().from(scraperRuns).orderBy(desc(scraperRuns.createdAt)).limit(input?.limit ?? 50);
+      }),
+
+    // ── Venue Intelligence CRM (admin-only) ─────────────────────────────────────
+    getVenueIntelligenceLeads: protectedProcedure
+      .input(z.object({
+        limit: z.number().min(1).max(200).default(50),
+        offset: z.number().min(0).default(0),
+        venueStatus: z.enum(["NEW", "CONTACTED", "FOLLOW_UP", "MEETING", "CLIENT", "IGNORED"]).optional(),
+        city: z.string().optional(),
+        licenseType: z.string().optional(),
+        searchText: z.string().optional(),
+      }))
+      .query(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+        const { gigLeads } = await import("../drizzle/schema");
+        const conditions: any[] = [eq(gigLeads.leadType, "venue_intelligence")];
+        if (input.venueStatus) conditions.push(eq(gigLeads.venueStatus, input.venueStatus as any));
+        if (input.city?.trim()) conditions.push(like(gigLeads.location, `%${input.city.trim()}%`));
+        if (input.licenseType?.trim()) conditions.push(like(gigLeads.externalId, `dbpr-${input.licenseType.trim()}-%`));
+        if (input.searchText?.trim()) {
+          const term = `%${input.searchText.trim()}%`;
+          conditions.push(or(like(gigLeads.title, term), like(gigLeads.location, term))!);
+        }
+        const where = and(...conditions);
+        const [totalRow] = await db.select({ count: sql<number>`COUNT(*)` }).from(gigLeads).where(where);
+        const total = Number(totalRow?.count ?? 0);
+        const items = await db.select({
+          id: gigLeads.id,
+          externalId: gigLeads.externalId,
+          title: gigLeads.title,
+          location: gigLeads.location,
+          intentScore: gigLeads.intentScore,
+          venueStatus: gigLeads.venueStatus,
+          lastContactedAt: gigLeads.lastContactedAt,
+          contactName: gigLeads.contactName,
+          contactEmail: gigLeads.contactEmail,
+          contactPhone: gigLeads.contactPhone,
+          venueEmail: gigLeads.venueEmail,
+          venuePhone: gigLeads.venuePhone,
+          venueUrl: gigLeads.venueUrl,
+          notes: gigLeads.notes,
+          sourceLabel: gigLeads.sourceLabel,
+        })
+          .from(gigLeads)
+          .where(where)
+          .orderBy(desc(gigLeads.createdAt))
+          .limit(input.limit)
+          .offset(input.offset);
+        return { items, total };
+      }),
+
+    updateVenueStatus: protectedProcedure
+      .input(z.object({
+        leadId: z.number(),
+        venueStatus: z.enum(["NEW", "CONTACTED", "FOLLOW_UP", "MEETING", "CLIENT", "IGNORED"]),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+        const { gigLeads } = await import("../drizzle/schema");
+        const set: any = { venueStatus: input.venueStatus };
+        if (input.venueStatus === "CONTACTED" || input.venueStatus === "FOLLOW_UP") {
+          set.lastContactedAt = new Date();
+        }
+        await db.update(gigLeads).set(set).where(eq(gigLeads.id, input.leadId));
+        return { success: true };
+      }),
+
+    updateVenueNotes: protectedProcedure
+      .input(z.object({ leadId: z.number(), notes: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+        const { gigLeads } = await import("../drizzle/schema");
+        await db.update(gigLeads).set({ notes: input.notes }).where(eq(gigLeads.id, input.leadId));
+        return { success: true };
       }),
 
     getSourceToggles: protectedProcedure.query(async ({ ctx }) => {
@@ -2196,10 +2321,14 @@ export const appRouter = router({
         })
         .from(artistProfiles)
         .innerJoin(users, eq(artistProfiles.userId, users.id));
+        // Exclude seeded/sample performers (e.g. seed-performer-N@gigxo.local) from public SEO/directory
+        const isSeedEmail = (email: string | null) => (email ?? "").toLowerCase().endsWith("@gigxo.local");
         // Filter in JS (small dataset, avoids complex SQL JSON queries))
         let filtered = profiles.filter((p: typeof profiles[number]) => {
           // Exclude admin accounts from public directory
           if (p.userRole === 'admin') return false;
+          // Exclude seed/sample performers so public SEO pages never show fake profiles
+          if (isSeedEmail(p.userEmail ?? null)) return false;
           // Must have at least a name or DJ name
           if (!p.djName && !p.userName) return false;
 
@@ -2242,12 +2371,15 @@ export const appRouter = router({
         }
 
         return {
-          artists: paginated.map(p => ({
-            ...p,
-            displayName: p.djName || p.userName || "Artist",
-            trackCount: trackCounts[p.userId] ?? 0,
-            isVerified: !!(p.djName && p.bio && p.photoUrl),
-          })),
+          artists: paginated.map(p => {
+            const { userEmail: _e, userRole: _r, ...rest } = p;
+            return {
+              ...rest,
+              displayName: p.djName || p.userName || "Artist",
+              trackCount: trackCounts[p.userId] ?? 0,
+              isVerified: !!(p.djName && p.bio && p.photoUrl),
+            };
+          }),
           total,
         };
       }),
@@ -2277,6 +2409,7 @@ export const appRouter = router({
           mixcloudUrl: artistProfiles.mixcloudUrl,
           userName: users.name,
           avatarUrl: users.avatarUrl,
+          userEmail: users.email,
         })
         .from(artistProfiles)
         .innerJoin(users, eq(artistProfiles.userId, users.id))
@@ -2285,14 +2418,17 @@ export const appRouter = router({
 
         if (profiles.length === 0) throw new Error("Artist not found");
         const profile = profiles[0];
+        // Exclude seeded/sample performers from public profile pages (same rule as searchArtists)
+        if ((profile.userEmail ?? "").toLowerCase().endsWith("@gigxo.local")) throw new Error("Artist not found");
 
         // Get their tracks
         const tracks = await db.select().from(musicTracks)
           .where(eq(musicTracks.userId, profile.userId))
           .orderBy(musicTracks.sortOrder, musicTracks.createdAt);
 
+        const { userEmail: _email, ...profilePublic } = profile;
         return {
-          ...profile,
+          ...profilePublic,
           displayName: profile.djName || profile.userName || "Artist",
           isVerified: !!(profile.djName && profile.bio && profile.photoUrl),
           tracks,

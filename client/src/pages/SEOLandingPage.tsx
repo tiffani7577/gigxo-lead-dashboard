@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardDescription, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -38,15 +38,14 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
   // Parse slug to get service and city
   const parsed = parseSlug(slug);
   const config = parsed ? generatePageConfig(parsed.serviceId, parsed.cityId) : null;
-
-  // Fallback if slug parsing fails
-  const fallbackConfig = generatePageConfig("dj", "miami");
-  const pageConfig = config || fallbackConfig;
+  // Only use config when slug resolved; do not fall back for unknown slugs (avoids wrong page + missing fields)
+  const pageConfig = config ?? null;
 
   const isHirePage = pageConfig?.pageType === "hire";
   const isVenuePage = pageConfig?.pageType === "venue";
   const isHireLikePage = isHirePage || isVenuePage;
   const isBoatContextPage = slug.startsWith("yacht-dj-") || slug.includes("marina") || slug.includes("yacht");
+  const isYachtHirePage = isHirePage && slug.startsWith("yacht-dj-");
 
   // Precompute all SEO configs once for internal linking
   const allConfigs = generateAllPageConfigs();
@@ -77,9 +76,15 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
 
   useEffect(() => {
     if (pageConfig) {
-      document.title = pageConfig.seoTitle;
+      const title = pageConfig.seoTitle ?? pageConfig.heading ?? "";
+      const desc = pageConfig.seoDescription ?? "";
+      document.title = title;
       const metaDescription = document.querySelector('meta[name="description"]');
-      if (metaDescription) metaDescription.setAttribute('content', pageConfig.seoDescription);
+      if (metaDescription) metaDescription.setAttribute('content', desc);
+    } else {
+      document.title = "Gigxo Booking";
+      const metaDescription = document.querySelector('meta[name="description"]');
+      if (metaDescription) metaDescription.setAttribute('content', "Request a quote for your event.");
     }
   }, [pageConfig]);
 
@@ -151,13 +156,14 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
         description: finalDescription,
         contactName: formData.name,
         contactEmail: formData.email,
+        pageSlug: slug,
       });
       setSubmitted(true);
       setTimeout(() => {
         setFormData({
           eventType: (pageConfig?.defaultEventType as "wedding" | "party" | "birthday" | "corporate" | "other") || "party",
           date: "",
-          city: pageConfig?.defaultCity || "Miami, FL",
+          city: pageConfig?.defaultCity ?? "Miami, FL",
           budget: "",
           description: "",
           name: "",
@@ -176,38 +182,124 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
     }
   };
 
+  // Unknown slug: render a simple page with title and minimal quote form (no crash)
   if (!pageConfig) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold">Page not found</h1>
-          <p className="text-gray-600">The service or city you're looking for doesn't exist.</p>
+      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white">
+        <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-12 px-4">
+          <div className="max-w-2xl mx-auto text-center">
+            <h1 className="text-3xl md:text-4xl font-bold mb-2">Gigxo Booking</h1>
+            <p className="text-lg opacity-90">Request a quote for your event</p>
+          </div>
+        </div>
+        <div className="max-w-md mx-auto px-4 py-8">
+          <Card className="p-6">
+            <h2 className="text-xl font-bold mb-4">Tell us about your event</h2>
+            {submitted ? (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                <p className="text-green-800 font-semibold">✓ Thanks for reaching out!</p>
+                <p className="text-green-700 text-sm">We'll be in touch soon.</p>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Event Type</label>
+                  <Select
+                    value={formData.eventType}
+                    onValueChange={(value) => setFormData({ ...formData, eventType: value as FormData["eventType"] })}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="wedding">Wedding</SelectItem>
+                      <SelectItem value="party">Party</SelectItem>
+                      <SelectItem value="birthday">Birthday</SelectItem>
+                      <SelectItem value="corporate">Corporate</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Event Date</label>
+                  <Input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">City</label>
+                  <Input
+                    type="text"
+                    value={formData.city}
+                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                    placeholder="City, State"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Budget ($)</label>
+                  <Input
+                    type="number"
+                    value={formData.budget}
+                    onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+                    placeholder="e.g., 1500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Description</label>
+                  <Textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="Tell us about your event..."
+                    rows={3}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Your Name</label>
+                  <Input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="Your name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Email</label>
+                  <Input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    placeholder="your@email.com"
+                  />
+                </div>
+                <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700" disabled={submitEventRequest.isPending}>
+                  {submitEventRequest.isPending ? "Submitting..." : "Get Matched"}
+                </Button>
+              </form>
+            )}
+          </Card>
         </div>
       </div>
     );
   }
 
-  // Internal linking helpers
+  // Normalize optional config so undefined never crashes render
+  const faq = Array.isArray(pageConfig.faq) ? pageConfig.faq : [];
+  const heading = pageConfig.heading ?? "";
+  const subheading = pageConfig.subheading ?? "";
+  const content = pageConfig.content ?? "";
+  const defaultCity = pageConfig.defaultCity ?? "Miami, FL";
+  const seoTitle = pageConfig.seoTitle ?? heading;
+  const seoDescription = pageConfig.seoDescription ?? "";
+  const calculatorVariant = pageConfig.calculatorVariant ?? null;
+
+  // Internal linking helpers (match by serviceId + "-" + cityId so multi-part slugs work)
   const relatedLinks = (() => {
-    if (!parsed || !pageConfig) return { otherCities: [] as string[], relatedServices: [] as string[] };
+    if (!parsed) return { otherCities: [] as string[], relatedServices: [] as string[] };
     const { serviceId, cityId } = parsed;
+    const currentSlug = `${serviceId}-${cityId}`;
     const otherCities: string[] = [];
     const relatedServices: string[] = [];
 
-    // Same service, other cities
     Object.keys(allConfigs).forEach((key) => {
-      const [svc, city] = key.split("-");
-      if (svc === serviceId && city !== cityId) {
-        otherCities.push(`/${key}`);
-      }
-    });
-
-    // Same city, other services
-    Object.keys(allConfigs).forEach((key) => {
-      const [svc, city] = key.split("-");
-      if (city === cityId && svc !== serviceId) {
-        relatedServices.push(`/${key}`);
-      }
+      if (key === currentSlug) return;
+      if (key.startsWith(serviceId + "-")) otherCities.push(`/${key}`);
+      else if (key.endsWith("-" + cityId)) relatedServices.push(`/${key}`);
     });
 
     return { otherCities, relatedServices };
@@ -215,17 +307,17 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
 
   // Optional JSON-LD structured data for SEO (FAQ + Service/Offer)
   const jsonLdScripts: string[] = [];
-  if (pageConfig.faq && pageConfig.faq.length > 0) {
+  if (faq.length > 0) {
     jsonLdScripts.push(
       JSON.stringify({
         "@context": "https://schema.org",
         "@type": "FAQPage",
-        mainEntity: pageConfig.faq.map((item) => ({
+        mainEntity: faq.map((item) => ({
           "@type": "Question",
-          name: item.question,
+          name: item?.question ?? "",
           acceptedAnswer: {
             "@type": "Answer",
-            text: item.answer,
+            text: item?.answer ?? "",
           },
         })),
       }),
@@ -236,18 +328,18 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
     JSON.stringify({
       "@context": "https://schema.org",
       "@type": "Service",
-      name: pageConfig.heading,
-      description: pageConfig.seoDescription,
+      name: heading,
+      description: seoDescription,
       areaServed: {
         "@type": "City",
-        name: pageConfig.defaultCity,
+        name: defaultCity,
       },
       offers: {
         "@type": "Offer",
         priceCurrency: "USD",
         availability: "https://schema.org/InStock",
-        url: window?.location?.href ?? "",
-        name: isYachtHirePage ? "Yacht DJ hire in Miami" : pageConfig.heading,
+        url: typeof window !== "undefined" ? window.location?.href ?? "" : "",
+        name: isYachtHirePage ? "Yacht DJ hire in Miami" : heading,
       },
     }),
   );
@@ -263,8 +355,8 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-16 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">{pageConfig.heading}</h1>
-          <p className="text-xl md:text-2xl opacity-90">{pageConfig.subheading}</p>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">{heading}</h1>
+          <p className="text-xl md:text-2xl opacity-90">{subheading}</p>
         </div>
       </div>
 
@@ -276,7 +368,7 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
               <h2 className="text-2xl font-bold mb-4">
                 {isHireLikePage ? "About These Performers" : "About This Service"}
               </h2>
-              <p className="text-gray-700 mb-4">{pageConfig.content}</p>
+              <p className="text-gray-700 mb-4">{content}</p>
               {isBoatContextPage && (
                 <p className="text-sm text-gray-600">
                   This page highlights yacht-focused DJs in Miami and nearby marinas. We prioritize performers familiar
@@ -448,14 +540,14 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
             )}
 
             {/* FAQ Section */}
-            {pageConfig.faq && pageConfig.faq.length > 0 && (
+            {faq.length > 0 && (
               <Card className="p-8 mt-8">
                 <h2 className="text-2xl font-bold mb-4">FAQs</h2>
                 <div className="space-y-4">
-                  {pageConfig.faq.map((item, idx) => (
+                  {faq.map((item, idx) => (
                     <div key={idx}>
-                      <h3 className="font-semibold">{item.question}</h3>
-                      <p className="text-gray-700 text-sm">{item.answer}</p>
+                      <h3 className="font-semibold">{item?.question ?? ""}</h3>
+                      <p className="text-gray-700 text-sm">{item?.answer ?? ""}</p>
                     </div>
                   ))}
                 </div>
@@ -467,9 +559,9 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
           <div>
             <Card className="p-6 sticky top-4">
               <h2 className="text-xl font-bold mb-4">
-                {pageConfig.calculatorVariant === "yachtCost"
+                {calculatorVariant === "yachtCost"
                   ? "Yacht DJ pricing calculator"
-                  : pageConfig.calculatorVariant === "boatEntertainment"
+                  : calculatorVariant === "boatEntertainment"
                   ? "Boat entertainment package builder"
                   : "Tell us about your event"}
               </h2>
@@ -496,7 +588,7 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-4">
                   {/* Calculator-specific fields */}
-                  {pageConfig.calculatorVariant === "yachtCost" && (
+                  {calculatorVariant === "yachtCost" && (
                     <>
                       <div>
                         <label className="block text-sm font-medium mb-1">Duration (hours)</label>
@@ -532,7 +624,7 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
                     </>
                   )}
 
-                  {pageConfig.calculatorVariant === "boatEntertainment" && (
+                  {calculatorVariant === "boatEntertainment" && (
                     <>
                       <div>
                         <label className="block text-sm font-medium mb-1">Entertainment package</label>

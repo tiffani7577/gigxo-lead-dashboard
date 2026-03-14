@@ -15,10 +15,11 @@
 import type { RawLeadDoc } from "./raw-lead-doc";
 import * as fs from "fs/promises";
 
-const SUNBIZ_FILE_PATH = process.env.SUNBIZ_FILE_PATH;
-if (!SUNBIZ_FILE_PATH) {
+const _sunbizPath = process.env.SUNBIZ_FILE_PATH;
+if (!_sunbizPath) {
   throw new Error("SUNBIZ_FILE_PATH is not set");
 }
+const SUNBIZ_FILE_PATH: string = _sunbizPath;
 
 // Official fixed-width offsets from Sunbiz Corporate Data File definitions are now wired.
 // See: https://dos.sunbiz.org/data-definitions/cor.html

@@ -22,6 +22,7 @@ import RequestEntertainment from "./pages/RequestEntertainment";
 import BookDj from "./pages/BookDj";
 import { ScraperConfig } from "./pages/ScraperConfig";
 import AdminLeadsExplorer from "./pages/AdminLeadsExplorer";
+import AdminVenueIntelligence from "./pages/AdminVenueIntelligence";
 import LiveLeadSearch from "./pages/LiveLeadSearch";
 import Contracts from "./pages/Contracts";
 import SEOLandingPage from "./pages/SEOLandingPage";
@@ -47,6 +48,7 @@ function Router() {
       <Route path="/admin/event-windows" component={AdminEventWindows} />
       <Route path="/admin/scraper-config" component={ScraperConfig} />
       <Route path="/admin/leads-explorer" component={AdminLeadsExplorer} />
+      <Route path="/admin/venue-intelligence" component={AdminVenueIntelligence} />
       <Route path="/admin/live-lead-search" component={LiveLeadSearch} />
       <Route path="/contracts" component={Contracts} />
       {/* SEO Landing Pages - Dynamic route for all service+city combinations */}

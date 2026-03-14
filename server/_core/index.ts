@@ -37,14 +37,14 @@ async function startServer() {
   const app = express();
   const server = createServer(app);
 
-  // Redirect non-www to www in production (gigxo.com → www.gigxo.com)
+  // Redirect www to root in production (www.gigxo.com → gigxo.com)
   app.use((req, res, next) => {
     const host = req.headers.host ?? "";
     if (
       process.env.NODE_ENV === "production" &&
-      (host === "gigxo.com" || host === "gigxo.com:443")
+      (host === "www.gigxo.com" || host === "www.gigxo.com:443")
     ) {
-      return res.redirect(301, `https://www.gigxo.com${req.originalUrl}`);
+      return res.redirect(301, `https://gigxo.com${req.originalUrl}`);
     }
     next();
   });

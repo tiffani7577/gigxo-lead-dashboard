@@ -84,7 +84,7 @@ export const gigLeads = mysqlTable("gigLeads", {
   id: int("id").autoincrement().primaryKey(),
   externalId: varchar("externalId", { length: 255 }).notNull().unique(),
   source: mysqlEnum("source", ["gigxo", "eventbrite", "thumbtack", "yelp", "craigslist", "nextdoor", "facebook", "manual", "gigsalad", "thebash", "weddingwire", "theknot", "inbound", "reddit", "dbpr", "sunbiz"]).notNull(),
-  leadType: mysqlEnum("leadType", ["scraped_signal", "client_submitted", "venue_intelligence", "referral", "manual_outreach"]).default("scraped_signal").notNull(),
+  leadType: mysqlEnum("leadType", ["scraped_signal", "client_submitted", "venue_intelligence", "referral", "manual_outreach", "event_demand", "artist_signup", "outreach", "trash", "other"]).default("scraped_signal"),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
   eventType: varchar("eventType", { length: 100 }),
@@ -100,7 +100,11 @@ export const gigLeads = mysqlTable("gigLeads", {
   performerType: mysqlEnum("performerType", ["dj", "solo_act", "small_band", "large_band", "singer", "instrumentalist", "immersive_experience", "hybrid_electronic", "photo_video", "photo_booth", "makeup_artist", "emcee", "princess_character", "photographer", "videographer", "audio_engineer", "other"]).default("other"),
 
   // High-level lead category to keep future segmentation flexible
-  leadCategory: mysqlEnum("leadCategory", ["general", "wedding", "corporate", "private_party", "club", "other", "venue_intelligence"]).default("general").notNull(),
+  leadCategory: mysqlEnum("leadCategory", ["general", "wedding", "corporate", "private_party", "club", "other", "venue_intelligence", "yacht", "unknown"]).default("general"),
+  // Lightweight operator pipeline state (separate from approval flags)
+  status: varchar("status", { length: 50 }),
+  notes: text("notes"),
+  followUpAt: timestamp("followUpAt"),
   isApproved: boolean("isApproved").default(false).notNull(),
   isRejected: boolean("isRejected").default(false).notNull(),
   rejectionReason: text("rejectionReason"),
@@ -153,6 +157,17 @@ export const gigLeads = mysqlTable("gigLeads", {
   venueType: varchar("venueType", { length: 100 }),
   /** Estimated guest count */
   estimatedGuestCount: int("estimatedGuestCount"),
+  /** When operator last used outreach helper (mailto) for this lead */
+  contactedAt: timestamp("contactedAt"),
+
+  // ── Venue Intelligence CRM ─────────────────────────────────────────────────
+  venueStatus: mysqlEnum("venueStatus", ["NEW", "CONTACTED", "FOLLOW_UP", "MEETING", "CLIENT", "IGNORED"]).default("NEW"),
+  lastContactedAt: timestamp("lastContactedAt"),
+  contactOwner: varchar("contactOwner", { length: 255 }),
+  website: varchar("website", { length: 2048 }),
+  instagram: varchar("instagram", { length: 255 }),
+  venuePhone: varchar("venuePhone", { length: 32 }),
+  venueEmail: varchar("venueEmail", { length: 320 }),
 
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

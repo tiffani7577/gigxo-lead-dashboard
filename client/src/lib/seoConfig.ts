@@ -298,7 +298,8 @@ const MANUAL_OVERRIDES: Record<string, Partial<PageConfig>> = {
 };
 
 /**
- * Generate page config from service + city combination
+ * Generate page config from service + city combination.
+ * Normalizes the result so SEOLandingPage never receives undefined critical fields.
  */
 export function generatePageConfig(serviceId: string, cityId: string): PageConfig | null {
   const service = SERVICES.find((s) => s.id === serviceId);
@@ -309,7 +310,7 @@ export function generatePageConfig(serviceId: string, cityId: string): PageConfi
   const slug = `${serviceId}-${cityId}`;
   const override = MANUAL_OVERRIDES[slug];
 
-  // Generate default config
+  // Generate default config (all required fields always set)
   const defaultConfig: PageConfig = {
     title: `Hire ${service.plural} in ${city.name} | Gigxo`,
     seoTitle: `${service.name} ${city.name} | Professional ${service.plural} for Events`,
@@ -323,10 +324,24 @@ export function generatePageConfig(serviceId: string, cityId: string): PageConfi
     changefreq: "weekly",
   };
 
-  // Apply manual overrides
-  return {
+  // Merge overrides (override may contain undefined; we normalize below)
+  const merged: PageConfig = {
     ...defaultConfig,
     ...override,
+  };
+
+  // Normalize so no critical field is undefined for SEOLandingPage
+  return {
+    ...merged,
+    title: merged.title ?? defaultConfig.title,
+    seoTitle: merged.seoTitle ?? merged.heading ?? defaultConfig.seoTitle,
+    seoDescription: merged.seoDescription ?? defaultConfig.seoDescription,
+    heading: merged.heading ?? defaultConfig.heading,
+    subheading: merged.subheading ?? defaultConfig.subheading,
+    defaultEventType: merged.defaultEventType ?? defaultConfig.defaultEventType,
+    defaultCity: merged.defaultCity ?? defaultConfig.defaultCity,
+    content: merged.content ?? defaultConfig.content,
+    faq: Array.isArray(merged.faq) ? merged.faq : [],
   };
 }
 

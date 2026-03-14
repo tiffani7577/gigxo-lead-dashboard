@@ -23,6 +23,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import {
   Search,
   ExternalLink,
@@ -35,8 +43,20 @@ import {
   ToggleLeft,
   MessageSquare,
   Target,
+  Mail,
 } from "lucide-react";
 import { toast } from "sonner";
+
+const OUTREACH_DEFAULT_SUBJECT = "Gigxo DJ partnership";
+const OUTREACH_DEFAULT_BODY = `Hi,
+
+I help run Gigxo, a platform connecting venues with DJs and live performers.
+
+We noticed your venue and wanted to see if you'd like to be included on our recommended vendor list.
+
+Best,
+Tiffani
+Gigxo`;
 
 // ─── Search Goal presets: apply multiple filters at once ─────────────────────
 const SEARCH_GOAL_PRESETS = [
@@ -65,6 +85,7 @@ const SEARCH_GOAL_PRESETS = [
   { id: "high_intent_active", label: "High-intent active opportunities", minIntentScore: 75, status: "pending" },
   { id: "venue_intel_all", label: "All venue intelligence leads", leadType: "venue_intelligence" },
   { id: "with_contact_info", label: "Leads with contact info", hasEmail: true, hasPhone: true },
+  { id: "venue_pipeline", label: "Venue Pipeline", leadType: "venue_intelligence" },
 ];
 
 // ─── Include phrase set presets (title/description must match any phrase) ──────
@@ -156,7 +177,7 @@ export default function AdminLeadsExplorer() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [searchText, setSearchText] = useState("");
-  const [searchGoalId, setSearchGoalId] = useState("");
+  const [searchGoalId, setSearchGoalId] = useState("broad");
   const [includePhraseSetId, setIncludePhraseSetId] = useState("");
   const [excludePhraseSetId, setExcludePhraseSetId] = useState("");
   const [customIncludePhrase, setCustomIncludePhrase] = useState("");
@@ -170,6 +191,10 @@ export default function AdminLeadsExplorer() {
   const [hasPhone, setHasPhone] = useState(false);
   const [hasVenueUrl, setHasVenueUrl] = useState(false);
   const [missingContact, setMissingContact] = useState(false);
+  const [outreachLead, setOutreachLead] = useState<{ id: number; contactEmail: string } | null>(null);
+  const [outreachSubject, setOutreachSubject] = useState(OUTREACH_DEFAULT_SUBJECT);
+  const [outreachBody, setOutreachBody] = useState(OUTREACH_DEFAULT_BODY);
+  const [selectedLeadIds, setSelectedLeadIds] = useState<number[]>([]);
 
   const includePhrasesFromSet = useMemo(() => {
     if (!includePhraseSetId) return [];
@@ -287,23 +312,49 @@ export default function AdminLeadsExplorer() {
     },
     onError: (e) => toast.error(e.message),
   });
+  const updateLeadMutation = trpc.admin.updateLead.useMutation({
+    onSuccess: () => refetchExplorer(),
+    onError: (e) => toast.error(e.message),
+  });
+
+  const handleBulkLeadType = async (leadType: "trash" | "event_demand" | "venue_intelligence") => {
+    const ids = [...selectedLeadIds];
+    if (ids.length === 0) return;
+    const labels = { trash: "trash", event_demand: "event demand", venue_intelligence: "venue intelligence" };
+    try {
+      for (const leadId of ids) {
+        await updateLeadMutation.mutateAsync({ leadId, leadType });
+      }
+      setSelectedLeadIds([]);
+      toast.success(`Marked ${ids.length} as ${labels[leadType]}`);
+    } catch {
+      // onError already toasts
+    }
+  };
 
   const applySearchGoal = (goalId: string) => {
     const preset = SEARCH_GOAL_PRESETS.find((g) => g.id === goalId);
     setSearchGoalId(goalId);
-    if (!preset || goalId === "broad") {
-      if (goalId === "broad") {
-        setPerformerType("");
-        setLocation("");
-        setDateFrom("");
-        setDateTo("");
-        setMinIntentScore("");
-        setSearchText("");
-        setIncludePhraseSetId("");
-        setExcludePhraseSetId("");
-        setCustomIncludePhrase("");
-        setCustomExcludePhrase("");
-      }
+    // "None (manual filters)" or "Broad" → reset to least-restrictive state so Explorer shows all leads
+    if (!preset || goalId === "broad" || goalId === "") {
+      setSources([]);
+      setPerformerType("");
+      setLocation("");
+      setDateFrom("");
+      setDateTo("");
+      setMinIntentScore("");
+      setSearchText("");
+      setIncludePhraseSetId("");
+      setExcludePhraseSetId("");
+      setCustomIncludePhrase("");
+      setCustomExcludePhrase("");
+      setLeadType("");
+      setLeadCategory("");
+      setHasEmail(false);
+      setHasPhone(false);
+      setHasVenueUrl(false);
+      setMissingContact(false);
+      setStatus("all");
       setOffset(0);
       return;
     }
@@ -673,9 +724,36 @@ export default function AdminLeadsExplorer() {
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
+                    {selectedLeadIds.length > 0 && (
+                      <div className="flex items-center gap-2 mb-3 py-2 px-3 rounded-md border bg-muted/50 text-sm">
+                        <span className="font-medium">{selectedLeadIds.length} selected</span>
+                        <Button variant="outline" size="sm" onClick={() => handleBulkLeadType("trash")} disabled={updateLeadMutation.isPending}>
+                          Mark as trash
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => handleBulkLeadType("event_demand")} disabled={updateLeadMutation.isPending}>
+                          Mark as event demand
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => handleBulkLeadType("venue_intelligence")} disabled={updateLeadMutation.isPending}>
+                          Mark as venue intelligence
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => setSelectedLeadIds([])}>
+                          Clear
+                        </Button>
+                      </div>
+                    )}
                     <Table>
                       <TableHeader>
                         <TableRow>
+                          <TableHead className="w-10">
+                            <Checkbox
+                              checked={items.length > 0 && items.every((lead) => selectedLeadIds.includes(lead.id))}
+                              onCheckedChange={(checked) => {
+                                if (checked) setSelectedLeadIds(items.map((l) => l.id));
+                                else setSelectedLeadIds([]);
+                              }}
+                              aria-label="Select all"
+                            />
+                          </TableHead>
                           <TableHead>Title</TableHead>
                           <TableHead>Source</TableHead>
                           <TableHead>Location</TableHead>
@@ -684,23 +762,52 @@ export default function AdminLeadsExplorer() {
                           <TableHead>Created</TableHead>
                           <TableHead>Status</TableHead>
                           <TableHead>URL</TableHead>
+                          <TableHead>Outreach</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {items.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                            <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
                               No leads match the current filters.
                             </TableCell>
                           </TableRow>
                         ) : (
                           items.map((lead) => (
                             <TableRow key={lead.id}>
+                              <TableCell className="w-10">
+                                <Checkbox
+                                  checked={selectedLeadIds.includes(lead.id)}
+                                  onCheckedChange={(checked) => {
+                                    setSelectedLeadIds((prev) =>
+                                      checked ? [...prev, lead.id] : prev.filter((id) => id !== lead.id)
+                                    );
+                                  }}
+                                  aria-label={`Select lead ${lead.id}`}
+                                />
+                              </TableCell>
                               <TableCell className="max-w-[200px]">
                                 <span className="font-medium truncate block" title={lead.title}>{lead.title}</span>
                                 {lead.description && (
                                   <span className="text-xs text-muted-foreground truncate block" title={lead.description ?? ""}>
                                     {String(lead.description).slice(0, 80)}…
+                                  </span>
+                                )}
+                                {(lead.contactEmail || lead.contactPhone) && (
+                                  <span className="text-xs text-muted-foreground truncate block">
+                                    {lead.contactEmail && <span>{lead.contactEmail}</span>}
+                                    {lead.contactEmail && lead.contactPhone && " · "}
+                                    {lead.contactPhone && <span>{lead.contactPhone}</span>}
+                                  </span>
+                                )}
+                                {lead.status && (
+                                  <span className="text-xs text-slate-700 truncate block">
+                                    Pipeline: {lead.status}
+                                  </span>
+                                )}
+                                {(lead as { followUpAt?: Date | string | null }).followUpAt && (
+                                  <span className="text-xs text-slate-500 truncate block">
+                                    Follow-up: {formatDate((lead as any).followUpAt)}
                                   </span>
                                 )}
                               </TableCell>
@@ -723,6 +830,27 @@ export default function AdminLeadsExplorer() {
                                     <ExternalLink className="w-4 h-4" />
                                     Link
                                   </a>
+                                ) : (
+                                  "—"
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                {(lead as { contactedAt?: Date | string | null }).contactedAt ? (
+                                  <span className="text-muted-foreground text-sm">Contacted</span>
+                                ) : lead.contactEmail ? (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="gap-1"
+                                    onClick={() => {
+                                      setOutreachLead({ id: lead.id, contactEmail: lead.contactEmail! });
+                                      setOutreachSubject(OUTREACH_DEFAULT_SUBJECT);
+                                      setOutreachBody(OUTREACH_DEFAULT_BODY);
+                                    }}
+                                  >
+                                    <Mail className="w-3 h-3" />
+                                    Outreach
+                                  </Button>
                                 ) : (
                                   "—"
                                 )}
@@ -916,6 +1044,56 @@ export default function AdminLeadsExplorer() {
           </TabsContent>
         </Tabs>
       </div>
+
+      <Dialog open={!!outreachLead} onOpenChange={(open) => !open && setOutreachLead(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Outreach email</DialogTitle>
+          </DialogHeader>
+          {outreachLead && (
+            <>
+              <div className="space-y-2">
+                <Label>Subject</Label>
+                <Input
+                  value={outreachSubject}
+                  onChange={(e) => setOutreachSubject(e.target.value)}
+                  placeholder="Subject"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Message</Label>
+                <textarea
+                  className="flex min-h-[200px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={outreachBody}
+                  onChange={(e) => setOutreachBody(e.target.value)}
+                  placeholder="Body"
+                />
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setOutreachLead(null)}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => {
+                    const mailto = `mailto:${encodeURIComponent(outreachLead.contactEmail)}?subject=${encodeURIComponent(outreachSubject)}&body=${encodeURIComponent(outreachBody)}`;
+                    window.open(mailto);
+                    updateLeadMutation.mutate(
+                      { leadId: outreachLead.id, contactedAt: new Date().toISOString() },
+                      { onSuccess: () => toast.success("Marked as contacted") }
+                    );
+                    setOutreachLead(null);
+                  }}
+                  disabled={updateLeadMutation.isPending}
+                  className="gap-1"
+                >
+                  <Mail className="w-3 h-3" />
+                  Open Email
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }

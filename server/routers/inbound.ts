@@ -25,6 +25,7 @@ export const inboundRouter = router({
         contactName: z.string().min(1, "Name is required"),
         contactEmail: z.string().email("Invalid email"),
         contactPhone: z.string().optional(),
+        pageSlug: z.string().optional(),
       })
     )
     .mutation(async ({ input }) => {
@@ -53,6 +54,7 @@ export const inboundRouter = router({
         await db.insert(gigLeads).values({
           externalId,
           source: "inbound",
+          leadType: "client_submitted",
           title: `${input.eventType.charAt(0).toUpperCase() + input.eventType.slice(1)} Event in ${input.city}`,
           description: input.description || null,
           eventType: input.eventType,
@@ -67,7 +69,7 @@ export const inboundRouter = router({
           isRejected: false,
           intentScore: 85,
           finalScore: 85,
-          sourceLabel: "Inbound Request",
+          sourceLabel: input.pageSlug ? `SEO /${input.pageSlug}` : "Inbound Request",
           sourceTrust: "0.95" as any,
           contactScore: 90,
           buyerType: "private",

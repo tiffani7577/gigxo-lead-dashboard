@@ -18,6 +18,7 @@ import { collectFromEventbrite } from "./eventbrite-collector";
 import { collectFromCraigslistRss } from "./craigslist-collector";
 import { collectFromDbpr } from "./dbpr-collector";
 import { collectFromSunbiz } from "./sunbiz-collector";
+import { collectFromApify } from "./apify-collector";
 import { getEnabledLeadSourceKeys } from "./source-config";
 import type { RawLeadDoc } from "./raw-lead-doc";
 import { extractContactFromRawLeadDoc } from "../contact-extraction";
@@ -119,6 +120,28 @@ const GEAR_SOFTWARE_NEGATIVE_KEYWORDS = [
 ];
 
 const ALL_NEGATIVE_KEYWORDS = [...NEGATIVE_KEYWORDS, ...GEAR_SOFTWARE_NEGATIVE_KEYWORDS];
+
+// Junk doc patterns: Google RSS/article style, URL titles, sports/news hiring (not entertainment)
+function isJunkDoc(doc: RawLeadDoc): boolean {
+  const title = (doc.title ?? "").trim();
+  const text = (doc.rawText ?? "").trim();
+  const combined = `${title} ${text}`.toLowerCase();
+
+  // Title is a URL or mostly a URL
+  if (/^https?:\/\//i.test(title)) return true;
+  if (title.length > 35 && (title.includes(".com") || title.includes(".org") || title.includes(".net")) && title.split(/\s+/).length <= 2) return true;
+
+  // Article/news source suffix in title or text
+  const articleSuffix = /\s*[-|]\s*(Google Alerts|Reuters|ESPN|CNN|Yahoo|Fox News|NBC|CBS|USA Today|Washington Post|NPR|BBC|The Guardian|HuffPost|BuzzFeed|Vice|Axios|Politico|CNBC|MarketWatch|Forbes|Bloomberg|AP News|Associated Press|Sports Illustrated|Bleacher Report)/i;
+  if (articleSuffix.test(title) || articleSuffix.test(text)) return true;
+
+  // Sports/news hiring context (hire + coach, GM, team, reporter, etc.) — not entertainment booking
+  const hasHire = /\bhire(s|d|ing)?\b/.test(combined);
+  const sportsNewsHiring = /\b(coach|gm\b|general manager|assistant coach|head coach|nfl|nba|mlb|quarterback|linebacker|bills\b|dolphins\b|news\b|reporter|editor\b|writer\b|journalist|sport(s)?\b|team\s+hiring|front\s+office)/i.test(combined);
+  if (hasHire && sportsNewsHiring) return true;
+
+  return false;
+}
 
 const DJ_HIRING_PHRASES = [
   "need a dj",
@@ -362,7 +385,8 @@ function rawLeadDocToLead(doc: RawLeadDoc, baseIntentScore: number): ScrapedLead
   if (hasBusinessVenueUrl) intentScore += 5;
 
   // Penalty for missing all contact methods, except for pure venue intelligence
-  const isVenueIntelSource = doc.sourceType === "dbpr" || doc.sourceType === "sunbiz";
+  const isVenueIntelSource =
+    doc.sourceType === "dbpr" || doc.sourceType === "sunbiz" || doc.metadata?.leadType === "venue_intelligence";
   if (!hasAnyContact && !isVenueIntelSource) {
     intentScore -= 15;
   }
@@ -404,12 +428,18 @@ function rawLeadDocToLead(doc: RawLeadDoc, baseIntentScore: number): ScrapedLead
   // Keep some provenance for stats/logging; not persisted to DB.
   (base as any)._venueUrlSource = venueUrlSource;
 
-  if (doc.sourceType === "dbpr" || doc.source === "dbpr" || doc.sourceType === "sunbiz" || doc.source === "sunbiz") {
+  const isVenueIntelDoc =
+    doc.sourceType === "dbpr" ||
+    doc.source === "dbpr" ||
+    doc.sourceType === "sunbiz" ||
+    doc.source === "sunbiz" ||
+    doc.metadata?.leadType === "venue_intelligence";
+  if (isVenueIntelDoc) {
     base.leadType = "venue_intelligence";
     base.leadCategory = "venue_intelligence";
   } else {
-    base.leadType = base.leadType ?? "scraped_signal";
-    base.leadCategory = base.leadCategory ?? "general";
+    base.leadType = (doc.metadata?.leadType as string) ?? base.leadType ?? "scraped_signal";
+    base.leadCategory = (doc.metadata?.leadCategory as string) ?? base.leadCategory ?? "general";
   }
 
   return base;
@@ -491,9 +521,17 @@ export async function runScraperPipeline(city?: string, performerType?: string):
   } else {
     collectorPromises.push(Promise.resolve([]));
   }
+  collectorPromises.push(collectFromApify());
 
-  const [redditDocs, eventbriteDocs, craigslistDocs, dbprDocs, sunbizDocs] = await Promise.all(collectorPromises);
-  const allDocs: RawLeadDoc[] = [...redditDocs, ...eventbriteDocs, ...craigslistDocs, ...dbprDocs, ...sunbizDocs];
+  const [redditDocs, eventbriteDocs, craigslistDocs, dbprDocs, sunbizDocs, apifyDocs] = await Promise.all(collectorPromises);
+  const allDocs: RawLeadDoc[] = [
+    ...redditDocs,
+    ...eventbriteDocs,
+    ...craigslistDocs,
+    ...dbprDocs,
+    ...sunbizDocs,
+    ...apifyDocs,
+  ];
 
   console.log("[scraper-pipeline] Raw docs collected by source (enabled only):", {
     reddit: redditDocs.length,
@@ -501,16 +539,34 @@ export async function runScraperPipeline(city?: string, performerType?: string):
     craigslist: craigslistDocs.length,
     dbpr: dbprDocs.length,
     sunbiz: sunbizDocs.length,
+    apify: apifyDocs.length,
     enabledKeys,
   });
 
   stats.collected = allDocs.length;
 
   // Step 3 — Trash/valid routing: negative filter + intent gate; only valid become leads
+  // Venue intelligence (DBPR, Sunbiz) bypass intent gate — they are records, not demand posts
   const leads: ScrapedLead[] = [];
   for (const doc of allDocs) {
     try {
+      const isVenueIntel =
+        doc.sourceType === "dbpr" ||
+        doc.source === "dbpr" ||
+        doc.sourceType === "sunbiz" ||
+        doc.source === "sunbiz" ||
+        doc.metadata?.leadType === "venue_intelligence";
+      if (isVenueIntel) {
+        const lead = rawLeadDocToLead(doc, 50);
+        leads.push(lead);
+        stats.filtered++;
+        continue;
+      }
       const normalized = normalizeText(doc.rawText);
+      if (isJunkDoc(doc)) {
+        stats.negativeRejected++;
+        continue;
+      }
       if (hasNegativeKeyword(normalized)) {
         stats.negativeRejected++;
         continue;
@@ -532,25 +588,37 @@ export async function runScraperPipeline(city?: string, performerType?: string):
   stats.trashCount = stats.negativeRejected + stats.intentRejected;
   stats.classified = leads.length;
 
+  // Reject leads where eventDate has already passed (stale event)
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const leadsAfterStaleFilter = leads.filter(
+    (l) => l.eventDate == null || l.eventDate >= startOfToday
+  );
+  const staleEventRejected = leads.length - leadsAfterStaleFilter.length;
+  if (staleEventRejected > 0) {
+    console.log("[scraper-pipeline] Rejected", staleEventRejected, "leads for stale event date (event already passed)");
+  }
+  stats.classified = leadsAfterStaleFilter.length;
+
   console.log("[scraper-pipeline] Filter breakdown (trash vs valid):", {
     collected: stats.collected,
     trashCount: stats.trashCount,
     negativeRejected: stats.negativeRejected,
     intentRejected: stats.intentRejected,
-    accepted: leads.length,
+    accepted: leadsAfterStaleFilter.length,
   });
 
-  const contactEmailCount = leads.filter((l) => !!l.contactEmail).length;
-  const contactPhoneCount = leads.filter((l) => !!l.contactPhone).length;
-  const venueUrlCount = leads.filter((l) => !!l.venueUrl).length;
-  const venueUrlFromExtractedCount = leads.filter((l) => (l as any)._venueUrlSource === "extracted").length;
-  const venueUrlFromMetaOrContactCount = leads.filter((l) => {
+  const contactEmailCount = leadsAfterStaleFilter.filter((l) => !!l.contactEmail).length;
+  const contactPhoneCount = leadsAfterStaleFilter.filter((l) => !!l.contactPhone).length;
+  const venueUrlCount = leadsAfterStaleFilter.filter((l) => !!l.venueUrl).length;
+  const venueUrlFromExtractedCount = leadsAfterStaleFilter.filter((l) => (l as any)._venueUrlSource === "extracted").length;
+  const venueUrlFromMetaOrContactCount = leadsAfterStaleFilter.filter((l) => {
     const src = (l as any)._venueUrlSource;
     return src === "contact" || src === "metadata";
   }).length;
-  const highIntentCount = leads.filter((l) => l.intentScore >= 80).length;
-  const mediumIntentCount = leads.filter((l) => l.intentScore >= 50 && l.intentScore < 80).length;
-  const lowIntentCount = leads.filter((l) => l.intentScore < 50).length;
+  const highIntentCount = leadsAfterStaleFilter.filter((l) => l.intentScore >= 80).length;
+  const mediumIntentCount = leadsAfterStaleFilter.filter((l) => l.intentScore >= 50 && l.intentScore < 80).length;
+  const lowIntentCount = leadsAfterStaleFilter.filter((l) => l.intentScore < 50).length;
   console.log("[scraper-pipeline] Contact enrichment:", {
     contactEmailCount,
     contactPhoneCount,
@@ -563,24 +631,26 @@ export async function runScraperPipeline(city?: string, performerType?: string):
   });
 
   const sourceCounts: Record<string, number> = {};
-  for (const lead of leads) {
+  for (const lead of leadsAfterStaleFilter) {
     const key =
-      lead.source === "reddit"
-        ? "reddit"
-        : lead.source === "eventbrite"
-          ? "eventbrite"
-          : lead.source === "craigslist"
-            ? "craigslist"
-            : lead.sourceLabel === "DBPR Venue Record"
-              ? "dbpr"
-              : lead.sourceLabel === "Sunbiz Business Record"
-                ? "sunbiz"
-                : "other";
+      lead.sourceLabel?.startsWith("Apify ")
+        ? "apify"
+        : lead.source === "reddit"
+          ? "reddit"
+          : lead.source === "eventbrite"
+            ? "eventbrite"
+            : lead.source === "craigslist"
+              ? "craigslist"
+              : lead.sourceLabel === "DBPR Venue Record"
+                ? "dbpr"
+                : lead.sourceLabel === "Sunbiz Business Record"
+                  ? "sunbiz"
+                  : "other";
     sourceCounts[key] = (sourceCounts[key] ?? 0) + 1;
   }
 
   const docs: RawDoc[] = allDocs.map(rawLeadDocToLegacyDoc);
-  return { stats, docs, leads, sourceCounts };
+  return { stats, docs, leads: leadsAfterStaleFilter, sourceCounts };
 }
 
 // ─── Live Lead Search (admin tool: query live sources with custom phrase) ──────
