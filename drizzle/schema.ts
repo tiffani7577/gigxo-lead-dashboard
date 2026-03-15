@@ -84,7 +84,7 @@ export type InsertArtistProfile = typeof artistProfiles.$inferInsert;
 export const gigLeads = mysqlTable("gigLeads", {
   id: int("id").autoincrement().primaryKey(),
   externalId: varchar("externalId", { length: 255 }).notNull().unique(),
-  source: mysqlEnum("source", ["gigxo", "eventbrite", "thumbtack", "yelp", "craigslist", "nextdoor", "facebook", "manual", "gigsalad", "thebash", "weddingwire", "theknot", "inbound", "reddit", "dbpr", "sunbiz"]).notNull(),
+  source: mysqlEnum("source", ["gigxo", "eventbrite", "thumbtack", "yelp", "craigslist", "nextdoor", "facebook", "manual", "gigsalad", "thebash", "weddingwire", "theknot", "inbound", "reddit", "dbpr", "sunbiz", "google_maps"]).notNull(),
   leadType: mysqlEnum("leadType", ["scraped_signal", "client_submitted", "venue_intelligence", "referral", "manual_outreach", "event_demand", "artist_signup", "outreach", "trash", "other"]).default("scraped_signal"),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),

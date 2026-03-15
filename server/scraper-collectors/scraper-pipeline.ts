@@ -55,7 +55,7 @@ export interface PipelineResult {
 // Shape that maps to your gigLeads INSERT (same as the old pipeline output)
 export interface ScrapedLead {
   externalId: string;
-  source: "reddit" | "manual" | "gigsalad" | "eventbrite" | "facebook" | "thebash" | "craigslist" | "gigxo" | "dbpr" | "sunbiz";
+  source: "reddit" | "manual" | "gigsalad" | "eventbrite" | "facebook" | "thebash" | "craigslist" | "gigxo" | "dbpr" | "sunbiz" | "google_maps";
   sourceLabel: string;
   title: string;
   description: string;
@@ -422,6 +422,7 @@ export function rawLeadDocToLead(doc: RawLeadDoc, baseIntentScore: number): Scra
   else if (doc.sourceType === "craigslist" || doc.source === "craigslist") source = "craigslist";
   else if (doc.sourceType === "dbpr" || doc.source === "dbpr") source = "dbpr";
   else if (doc.sourceType === "sunbiz" || doc.source === "sunbiz") source = "sunbiz";
+  else if (doc.source === "google_maps") source = "google_maps";
 
   const subredditHint = (doc.metadata?.subreddit as string) ?? (doc.sourceType === "reddit" ? doc.sourceLabel.replace(/^Reddit r\//i, "").trim() : "");
 
@@ -466,7 +467,7 @@ export function rawLeadDocToLead(doc: RawLeadDoc, baseIntentScore: number): Scra
     intentScore += 10; // active need in many cases
   } else if (source === "eventbrite") {
     intentScore += 5; // event-related, but not always direct demand
-  } else if (source === "dbpr" || source === "sunbiz") {
+  } else if (source === "dbpr" || source === "sunbiz" || source === "google_maps") {
     intentScore -= 5; // venue intelligence, not explicit immediate demand
   }
 
@@ -540,10 +541,12 @@ export function rawLeadDocToLead(doc: RawLeadDoc, baseIntentScore: number): Scra
     doc.source === "dbpr" ||
     doc.sourceType === "sunbiz" ||
     doc.source === "sunbiz" ||
+    doc.source === "google_maps" ||
     doc.metadata?.leadType === "venue_intelligence";
   if (isVenueIntelDoc) {
     base.leadType = "venue_intelligence";
     base.leadCategory = "venue_intelligence";
+    base.isApproved = true; // venue intelligence leads (DBPR, Sunbiz, Google Maps) go to Venue Intelligence tab
   } else {
     base.leadType = (doc.metadata?.leadType as string) ?? base.leadType ?? "scraped_signal";
     base.leadCategory = (doc.metadata?.leadCategory as string) ?? base.leadCategory ?? "general";
@@ -827,19 +830,21 @@ export async function runScraperPipeline(
   const sourceCounts: Record<string, number> = {};
   for (const lead of leadsForOutput) {
     const key =
-      lead.sourceLabel?.startsWith("Apify ")
-        ? "apify"
-        : lead.source === "reddit"
-          ? "reddit"
-          : lead.source === "eventbrite"
-            ? "eventbrite"
-            : lead.source === "craigslist"
-              ? "craigslist"
-              : lead.sourceLabel === "DBPR Venue Record"
-                ? "dbpr"
-                : lead.sourceLabel === "Sunbiz Business Record"
-                  ? "sunbiz"
-                  : "other";
+      lead.source === "google_maps"
+        ? "google_maps"
+        : lead.sourceLabel?.startsWith("Apify ")
+          ? "apify"
+          : lead.source === "reddit"
+            ? "reddit"
+            : lead.source === "eventbrite"
+              ? "eventbrite"
+              : lead.source === "craigslist"
+                ? "craigslist"
+                : lead.sourceLabel === "DBPR Venue Record"
+                  ? "dbpr"
+                  : lead.sourceLabel === "Sunbiz Business Record"
+                    ? "sunbiz"
+                    : "other";
     sourceCounts[key] = (sourceCounts[key] ?? 0) + 1;
   }
 

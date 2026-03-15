@@ -1,8 +1,8 @@
 /**
- * Apply launch migrations 0021, 0022, 0023 only. Safe: no reset, no data loss.
+ * Apply launch migrations 0021–0025. Safe: no reset, no data loss.
  * Use when the DB was not built via drizzle-kit migrate (e.g. earlier migrations applied manually).
  *
- * Order: 0021_lead_tier.sql → 0022_user_credits_pro_monthly.sql → 0023_artist_profile_image_url.sql
+ * Order: 0021 → 0022 → 0023 → 0024_scraper_run_cost → 0025_gigleads_source_google_maps
  *
  * Usage: DATABASE_URL=<url> npx tsx scripts/run-migrations.mts
  */
@@ -20,6 +20,8 @@ const MIGRATIONS = [
   "0021_lead_tier.sql",
   "0022_user_credits_pro_monthly.sql",
   "0023_artist_profile_image_url.sql",
+  "0024_scraper_run_cost.sql",
+  "0025_gigleads_source_google_maps.sql",
 ] as const;
 
 async function main() {
@@ -78,7 +80,7 @@ async function main() {
     }
   }
 
-  console.log("Migrations complete (0021, 0022, 0023).");
+  console.log("Migrations complete (0021–0025).");
 }
 
 main().catch((err) => {

@@ -177,58 +177,63 @@ const LINKEDIN_SEARCH_QUERIES = [
   '"product launch" "miami" "entertainment"',
 ];
 
-// Google SERP: apify/google-search-scraper — publicly indexed social posts about DJ hiring (no login, no ToS violation)
+// Google SERP: apify/google-search-scraper — demand-only queries (client requests, not DJ service/directory pages)
 const GOOGLE_SERP_QUERIES = [
-  // Facebook intent
-  'site:facebook.com "need a dj" "miami"',
-  'site:facebook.com "looking for dj" "fort lauderdale"',
-  'site:facebook.com "wedding dj" "south florida"',
-  'site:facebook.com "need entertainment" "miami"',
-  'site:facebook.com "hire a dj" "florida"',
-  'site:facebook.com "need a band" "miami"',
-  'site:facebook.com "looking for live music" "south florida"',
-  'site:facebook.com "event entertainment" "miami" 2026',
-  // Reddit intent
-  'site:reddit.com "need a dj" "miami"',
-  'site:reddit.com "looking for dj" "fort lauderdale"',
-  'site:reddit.com "hire musician" "south florida"',
-  // Nextdoor local intent
-  'site:nextdoor.com "dj" "fort lauderdale"',
-  'site:nextdoor.com "dj" "miami"',
-  'site:nextdoor.com "band" "miami"',
-  'site:nextdoor.com "entertainment" "miami" 2026',
-  // Bark.com — high intent lead requests
-  'site:bark.com "DJ" "Miami" request',
-  'site:bark.com "DJ" "Fort Lauderdale"',
-  'site:bark.com "band" "Miami"',
-  'site:bark.com "wedding entertainment" "Florida"',
-  // Thumbtack — structured lead requests
-  'site:thumbtack.com "DJ" "Miami, FL"',
-  'site:thumbtack.com "DJ" "Fort Lauderdale"',
-  'site:thumbtack.com "wedding DJ" "Florida"',
-  'site:thumbtack.com "event DJ" "Miami"',
-  // WeddingWire / The Knot forums
-  'site:weddingwire.com "DJ" "Miami" recommendations 2026',
-  'site:theknot.com "DJ" "Miami" recommendations 2026',
-  'site:weddingwire.com "looking for DJ" "south florida"',
-  // LinkedIn corporate events
-  'site:linkedin.com "event entertainment" "Miami" "looking for"',
-  'site:linkedin.com "DJ" "corporate event" "Miami" 2026',
-  'site:linkedin.com "entertainment" "Fort Lauderdale" "event"',
-  // General high intent
-  '"need a dj" "miami" -site:gigsalad.com -site:thumbtack.com',
-  '"looking for dj" "fort lauderdale" -site:gigsalad.com',
-  '"wedding dj" "miami" "recommendations"',
-  '"hire dj" "south florida" 2026',
-  '"need entertainment" "miami" "event" 2026',
-  '"looking for band" "south florida" 2026',
-  '"event venue" "miami" "entertainment" "opening" 2026',
-  '"grand opening" "miami" "entertainment" 2026',
-  '"quinceañera" "dj" "miami" 2026',
-  '"sweet 16" "dj" "miami" 2026',
-  '"corporate event" "dj" "miami" 2026',
+  // Facebook group posts (client requests only)
+  'site:facebook.com/groups "need a dj" "miami" 2026',
+  'site:facebook.com/groups "looking for dj" "miami" 2026',
+  'site:facebook.com/groups "need a dj" "fort lauderdale" 2026',
+  'site:facebook.com/groups "looking for dj" "fort lauderdale" 2026',
+  'site:facebook.com/groups "wedding dj" "miami" 2026',
+  'site:facebook.com/groups "need entertainment" "miami" 2026',
+  'site:facebook.com/groups "need a band" "miami" 2026',
+  'site:facebook.com/groups "quinceañera" "dj" "miami" 2026',
+  'site:facebook.com/groups "sweet 16" "dj" "miami" 2026',
+  // Reddit demand posts
+  'site:reddit.com "need a dj" "miami" 2026',
+  'site:reddit.com "looking for dj" "south florida" 2026',
+  'site:reddit.com "hire musician" "miami" 2026',
+  // Nextdoor neighborhood requests
+  'site:nextdoor.com "need a dj" "miami"',
+  'site:nextdoor.com "need a dj" "fort lauderdale"',
+  'site:nextdoor.com "looking for entertainment" "miami"',
+  // Bark and Thumbtack REQUEST pages only
+  'site:bark.com/quotes "dj" "miami"',
+  'site:bark.com/quotes "dj" "fort lauderdale"',
+  'site:thumbtack.com/hire "dj" "miami, fl"',
+  'site:thumbtack.com/hire "dj" "fort lauderdale"',
+  // WeddingWire and Knot forum posts
+  'site:weddingwire.com/discuss "dj" "miami" 2026',
+  'site:theknot.com/forums "dj" "miami" 2026',
+  // High intent general (exclude ALL directory sites)
+  '"need a dj" "miami" 2026 -site:gigsalad.com -site:thumbtack.com -site:aisellr.com -site:bark.com -site:thebash.com -site:gig-salad.com',
+  '"looking for dj" "fort lauderdale" 2026 -site:gigsalad.com -site:aisellr.com -site:bark.com',
+  '"wedding dj" "miami" "recommendations" 2026',
+  '"need entertainment" "miami" "event" 2026 -site:gigsalad.com',
   '"boat party" "dj" "miami" 2026',
   '"yacht" "dj" "miami" 2026',
+  '"corporate event" "dj" "miami" 2026 -site:gigsalad.com',
+  '"grand opening" "entertainment" "miami" 2026',
+];
+
+/** Domains to strip from SERP results (DJ directories/listings, not client demand). */
+const DIRECTORY_BLACKLIST = [
+  "aisellr.com",
+  "gigsalad.com",
+  "thebash.com",
+  "thumbtack.com/pro",
+  "bark.com/near-me",
+  "gig-salad.com",
+  "entertainers.com",
+  "gigmasters.com",
+  "yelp.com",
+  "yellowpages.com",
+  "angieslist.com",
+  "homeadvisor.com",
+  "expertise.com",
+  "toprated.local",
+  "upcity.com",
+  "clutch.co",
 ];
 
 function inferLeadCategory(text: string): "wedding" | "corporate" | "private_party" | "general" {
@@ -590,7 +595,7 @@ function normalizeGoogleMapsItem(item: Record<string, unknown>, index: number): 
 
   return {
     externalId: `apify-gmaps-${slug}`,
-    source: "gigxo",
+    source: "google_maps",
     sourceType: "other",
     sourceLabel: "Apify Google Maps",
     title,
@@ -719,10 +724,20 @@ export async function collectFromApify(): Promise<CollectFromApifyResult> {
     let serpCollected = 0;
     let serpIntentPassed = 0;
     let serpFreshnessPassed = 0;
+    let directoryFiltered = 0;
     for (const page of serpPages.items as Record<string, unknown>[]) {
       const organics = (page.organicResults ?? []) as Record<string, unknown>[];
-      serpCollected += organics.length;
-      for (const r of organics) {
+      const allowed = organics.filter((r) => {
+        const url = String(r.url ?? r.link ?? "").toLowerCase();
+        const isBlacklisted = DIRECTORY_BLACKLIST.some((d) => url.includes(d.toLowerCase()));
+        if (isBlacklisted) {
+          directoryFiltered++;
+          return false;
+        }
+        return true;
+      });
+      serpCollected += allowed.length;
+      for (const r of allowed) {
         if (!serpResultPassesFilter(r)) continue;
         serpIntentPassed++;
         const doc = normalizeGoogleSerpItem(r, serpFreshnessPassed);
@@ -731,6 +746,7 @@ export async function collectFromApify(): Promise<CollectFromApifyResult> {
         docs.push(doc);
       }
     }
+    if (directoryFiltered > 0) console.log("[apify] Filtered", directoryFiltered, "directory listings from SERP results");
     console.log("[apify-collector] Google SERP:", serpCollected, "collected,", serpIntentPassed, "passed intent filter,", serpFreshnessPassed, "passed freshness filter");
   } catch (err) {
     console.warn("[apify-collector] Google SERP actor failed:", err);

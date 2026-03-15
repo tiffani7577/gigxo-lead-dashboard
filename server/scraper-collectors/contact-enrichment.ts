@@ -116,6 +116,7 @@ export async function enrichVenueContact(
   businessName: string,
   city: string
 ): Promise<void> {
+  console.log("[contact-enrichment] API key present:", !!process.env.GOOGLE_PLACES_API_KEY?.trim());
   const apiKey = process.env.GOOGLE_PLACES_API_KEY?.trim();
   if (!apiKey) {
     console.warn("[contact-enrichment] GOOGLE_PLACES_API_KEY not set; skipping enrichment for leadId", leadId);
@@ -237,6 +238,7 @@ export async function enrichVenueContact(
 
   try {
     await db.update(gigLeads).set(updates as any).where(eq(gigLeads.id, leadId));
+    console.log("[contact-enrichment] Enriched leadId", leadId, "→", businessName, "| phone:", !!nationalPhoneNumber, "| website:", !!websiteUri);
   } catch (err) {
     console.warn("[contact-enrichment] Failed to update gigLead", leadId, err);
   }

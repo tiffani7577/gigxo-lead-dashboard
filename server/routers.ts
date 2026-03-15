@@ -1967,6 +1967,22 @@ export const appRouter = router({
                 }
               }
             }
+            // Google Maps venue intelligence: same enrichment as DBPR (Google Places + optional website email scrape)
+            else if (lead.source === "google_maps") {
+              const [insertedRow] = await db.select({ id: gigLeads.id }).from(gigLeads).where(eq(gigLeads.externalId, lead.externalId)).limit(1);
+              if (insertedRow?.id) {
+                const title = lead.title ?? "";
+                const location = lead.location ?? "";
+                const { shouldEnrichVenue } = await import("./scraper-collectors/contact-enrichment");
+                if (!shouldEnrichVenue(lead.title, lead.description)) {
+                  console.log("[contact-enrichment] Skipped enrichment - non-venue type:", title);
+                } else {
+                  setImmediate(() => {
+                    import("./scraper-collectors/contact-enrichment").then((m) => m.enrichVenueContact(insertedRow.id, title, location)).catch(() => {});
+                  });
+                }
+              }
+            }
             // Tier 2: trigger website email scraper when venueUrl is a real website and shouldEnrichVenue passes
             else if (needsEnrichment && lead.venueUrl?.trim()) {
               const { isRealWebsiteUrl } = await import("./scraper-collectors/scraper-pipeline");

@@ -56,7 +56,7 @@ function minimalSitemap(baseUrl: string): string {
 
 export function registerSitemapRoute(app: Express) {
   app.get("/sitemap.xml", async (req, res) => {
-    const baseUrl = "https://gigxo.com";
+    const baseUrl = "https://www.gigxo.com";
     res.setHeader("Content-Type", "application/xml; charset=utf-8");
     res.setHeader("Cache-Control", "public, max-age=3600"); // Cache 1 hour
 
