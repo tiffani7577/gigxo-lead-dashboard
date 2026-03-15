@@ -441,7 +441,6 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {hireArtists.map((artist: any) => {
-                      const genres = (artist.genres as string[]) ?? [];
                       const photo = artist.photoUrl || artist.avatarUrl;
                       const profileUrl = artist.slug ? `/artist/${artist.slug}` : null;
                       return (
@@ -465,30 +464,13 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
                             )}
                           </div>
                           <div className="p-4">
-                            <div className="flex items-start justify-between gap-2 mb-1">
-                              <h3 className="font-semibold text-sm text-slate-900 truncate">
-                                {artist.displayName}
-                              </h3>
-                              <span className="text-xs text-slate-500 flex-shrink-0">
-                                {artist.experienceLevel}
-                              </span>
-                            </div>
+                            <h3 className="font-semibold text-sm text-slate-900 truncate mb-1">
+                              {artist.displayName}
+                            </h3>
                             <div className="flex items-center gap-1 text-slate-500 text-xs mb-3">
                               <MapPin className="w-3 h-3" />
                               <span className="truncate">{artist.location}</span>
                             </div>
-                            {genres.length > 0 && (
-                              <div className="flex flex-wrap gap-1 mb-3">
-                                {genres.slice(0, 3).map((g: string) => (
-                                  <span
-                                    key={g}
-                                    className="px-2 py-0.5 bg-slate-100 text-slate-700 text-xs rounded-full"
-                                  >
-                                    {g}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
                             {profileUrl ? (
                               <Link href={profileUrl}>
                                 <Button
