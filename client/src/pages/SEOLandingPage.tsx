@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { trpc } from "@/lib/trpc";
 import { Link, useLocation } from "wouter";
 import { generateAllPageConfigs, generatePageConfig, parseSlug } from "@/lib/seoConfig";
+import { setMetaTags } from "@/lib/meta-tags";
 import { MapPin, Music, ChevronRight } from "lucide-react";
 import { SiteFooter } from "@/components/SiteFooter";
 
@@ -79,15 +80,21 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
     if (pageConfig) {
       const title = pageConfig.seoTitle ?? pageConfig.heading ?? "";
       const desc = pageConfig.seoDescription ?? "";
-      document.title = title;
-      const metaDescription = document.querySelector('meta[name="description"]');
-      if (metaDescription) metaDescription.setAttribute('content', desc);
+      const url = `https://www.gigxo.com/${slug}`;
+      setMetaTags({
+        title,
+        description: desc,
+        url,
+        image: pageConfig.ogImage,
+      });
     } else {
-      document.title = "Gigxo Booking";
-      const metaDescription = document.querySelector('meta[name="description"]');
-      if (metaDescription) metaDescription.setAttribute('content', "Request a quote for your event.");
+      setMetaTags({
+        title: "Gigxo Booking",
+        description: "Request a quote for your event.",
+        url: `https://www.gigxo.com/${slug}`,
+      });
     }
-  }, [pageConfig]);
+  }, [pageConfig, slug]);
 
   const submitEventRequest = trpc.inbound.submitEventRequest.useMutation();
   const { data: artistsData } = trpc.directory.searchArtists.useQuery(
