@@ -516,17 +516,32 @@ export const appRouter = router({
         mimeType: z.string().default("image/jpeg"),
       }))
       .mutation(async ({ ctx, input }) => {
-        const { storagePut } = await import("./storage");
         const { getDb } = await import("./db");
         const { artistProfiles } = await import("../drizzle/schema");
+        const { ENV } = await import("./_core/env");
 
-        const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+        const MAX_SIZE = 5 * 1024 * 1024; // 5MB (Forge path)
         const buffer = Buffer.from(input.fileBase64, "base64");
         if (buffer.length > MAX_SIZE) throw new Error("Image too large. Max 5MB.");
 
-        const ext = (input.mimeType === "image/png" ? "png" : input.mimeType === "image/webp" ? "webp" : "jpg");
-        const fileKey = `profile-images/${ctx.user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-        const { url } = await storagePut(fileKey, buffer, input.mimeType);
+        const forgeConfigured =
+          !!ENV.forgeApiUrl?.trim() && !!ENV.forgeApiKey?.trim();
+
+        let url: string;
+        if (forgeConfigured) {
+          const { storagePut } = await import("./storage");
+          const ext = (input.mimeType === "image/png" ? "png" : input.mimeType === "image/webp" ? "webp" : "jpg");
+          const fileKey = `profile-images/${ctx.user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+          const result = await storagePut(fileKey, buffer, input.mimeType);
+          url = result.url;
+        } else {
+          const MAX_DATA_URL_BYTES = 500 * 1024; // 500KB for direct storage fallback
+          const base64Length = input.fileBase64.length;
+          if (base64Length > MAX_DATA_URL_BYTES) {
+            throw new Error("Image too large for direct storage. Please use an image under 500KB.");
+          }
+          url = `data:${input.mimeType};base64,${input.fileBase64}`;
+        }
 
         const db = await getDb();
         if (!db) throw new Error("Database not available");

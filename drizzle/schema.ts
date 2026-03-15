@@ -1,4 +1,4 @@
-import { decimal, int, mysqlEnum, mysqlTable, text, timestamp, varchar, json, boolean, index, uniqueIndex } from "drizzle-orm/mysql-core";
+import { decimal, int, mediumtext, mysqlEnum, mysqlTable, text, timestamp, varchar, json, boolean, index, uniqueIndex } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -42,7 +42,7 @@ export const artistProfiles = mysqlTable("artistProfiles", {
   photoUrl: text("photoUrl"), // legacy main photo
   heroImageUrl: text("heroImageUrl"),
   avatarUrl: text("avatarUrl"),
-  profileImageUrl: text("profileImageUrl"), // uploaded profile image (S3/storage)
+  profileImageUrl: mediumtext("profileImageUrl"), // uploaded profile image (S3/storage or data URL)
 
   // Content & metadata
   genres: json("genres").$type<string[]>(), // e.g., ["DJ", "Live Band", "Electronic"]

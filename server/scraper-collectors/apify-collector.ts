@@ -616,6 +616,64 @@ function normalizeGoogleMapsItem(item: Record<string, unknown>, index: number): 
 const EVENTBRITE_CORPORATE_KEYWORDS = ["corporate", "business", "conference", "team building", "product launch", "networking"];
 const EVENTBRITE_PRIVATE_KEYWORDS = ["wedding", "birthday", "quince", "sweet 16", "private party", "family"];
 
+const FACEBOOK_EVENTS_START_URLS = [
+  { url: "https://www.facebook.com/events/search/?q=miami%20party" },
+  { url: "https://www.facebook.com/events/search/?q=miami%20wedding" },
+  { url: "https://www.facebook.com/events/search/?q=fort%20lauderdale%20event" },
+  { url: "https://www.facebook.com/events/search/?q=miami%20corporate%20event" },
+  { url: "https://www.facebook.com/events/search/?q=miami%20quinceañera" },
+  { url: "https://www.facebook.com/events/search/?q=south%20florida%20party" },
+];
+
+function inferFacebookEventLeadCategory(title: string, description: string): "wedding" | "corporate" | "private_party" | "general" {
+  const lower = `${title ?? ""} ${description ?? ""}`.toLowerCase();
+  if (/wedding|bride|groom/.test(lower)) return "wedding";
+  if (/corporate|business|conference/.test(lower)) return "corporate";
+  if (/birthday|quince|sweet\s*16/.test(lower)) return "private_party";
+  return "general";
+}
+
+/** Facebook Events actor: apify/facebook-events-scraper. Maps event to RawLeadDoc; only future events. */
+function normalizeFacebookEventItem(item: Record<string, unknown>, index: number): RawLeadDoc {
+  const eventUrl = String(item.url ?? item.eventUrl ?? item.link ?? item.id ?? "").trim();
+  const slug = eventUrl ? eventUrl.replace(/[^a-z0-9]/gi, "_").slice(0, 80) : `fb-event-${index}`;
+  const title = String(item.name ?? item.title ?? item.eventName ?? "").slice(0, 255) || "Facebook Event";
+  const description = String(item.description ?? item.eventDescription ?? item.summary ?? "").trim();
+  const rawText = `${title}\n\n${description}`.trim();
+  const locationStr = String(item.location ?? item.venue ?? item.place ?? item.city ?? "").trim();
+  const city = locationStr || "Miami, FL";
+  const startDate = safeDate(item.startTime ?? item.start ?? item.eventStartDate ?? item.date ?? Date.now());
+  const organizerName = item.organizerName ?? (item.organizer as Record<string, unknown>)?.name ?? item.ownerName;
+  const organizerEmail = item.organizerEmail ?? (item.organizer as Record<string, unknown>)?.email ?? item.ownerEmail;
+  const contact: RawLeadDoc["contact"] =
+    organizerName || organizerEmail
+      ? {
+          name: organizerName != null ? String(organizerName) : undefined,
+          email: organizerEmail != null ? String(organizerEmail) : undefined,
+        }
+      : undefined;
+  const leadCategory = inferFacebookEventLeadCategory(title, description);
+
+  return {
+    externalId: `apify-fb-event-${slug}`,
+    source: "facebook",
+    sourceType: "other",
+    sourceLabel: "Facebook Event",
+    title,
+    rawText,
+    url: eventUrl || "https://www.facebook.com/events",
+    postedAt: startDate,
+    city: city || "Miami, FL",
+    contact,
+    metadata: {
+      leadType: "scraped_signal",
+      leadCategory,
+      eventDate: startDate,
+      buyerType: "event_planner",
+    },
+  };
+}
+
 /** Eventbrite actor: parseforge/eventbrite-scraper. Output: event title, description, url, start/end date, venue city, organizer. */
 function normalizeEventbriteItem(item: Record<string, unknown>, index: number): RawLeadDoc {
   const eventUrl = String(item.url ?? item.eventUrl ?? item.link ?? "").trim();
@@ -876,6 +934,30 @@ export async function collectFromApify(): Promise<CollectFromApifyResult> {
     console.log("[apify-collector] Eventbrite:", eventbriteItems.items.length, "collected,", eventbriteAdded, "future events added");
   } catch (err) {
     console.warn("[apify-collector] Eventbrite actor failed:", err);
+  }
+
+  // 9) Facebook Events — apify/facebook-events-scraper (only future events)
+  try {
+    const fbEventsInput = {
+      startUrls: FACEBOOK_EVENTS_START_URLS,
+      maxItems: 30,
+    };
+    const run = await client.actor("apify/facebook-events-scraper").call(fbEventsInput as any);
+    if (run?.id) apifyRunIds.push(run.id);
+    const fbEventsItems = await client.dataset(run.defaultDatasetId).listItems();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    let fbEventsAdded = 0;
+    for (let i = 0; i < fbEventsItems.items.length; i++) {
+      const item = fbEventsItems.items[i] as Record<string, unknown>;
+      const startDate = safeDate(item.startTime ?? item.start ?? item.eventStartDate ?? item.date ?? 0);
+      if (startDate < today) continue;
+      docs.push(normalizeFacebookEventItem(item, fbEventsAdded));
+      fbEventsAdded++;
+    }
+    console.log("[apify-collector] Facebook Events:", fbEventsItems.items.length, "collected,", fbEventsAdded, "future events added");
+  } catch (err) {
+    console.warn("[apify-collector] Facebook Events actor failed:", err);
   }
 
   let apifyCostUsd = 0;
