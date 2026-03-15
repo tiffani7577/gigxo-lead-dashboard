@@ -6,19 +6,39 @@ export interface ExtractedContactInfo {
   phone: string | null;
   website: string | null;
 }
-
-// Very conservative email + phone extractors, shared by all sources.
+// Email and phone extractors that handle both structured and natural language formats
 
 const EMAIL_REGEX = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i;
-const PHONE_REGEX = /(\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/;
-
+// Improved phone regex: handles (XXX) XXX-XXXX, XXX-XXX-XXXX, XXX.XXX.XXXX, +1 XXX XXX XXXX, etc.
+const PHONE_REGEX = /(\+?1[-\.\s]?)\(?\d{3}\)?[-\.\s]?\d{3}[-\.\s]?\d{4}\b/;
+// Natural language phone patterns: "call us at", "text", "reach out", "contact", etc.
+const NATURAL_LANGUAGE_PHONE_REGEX = /(?:call|text|call us|reach out|contact|phone|tel|telephone)\s*(?:at|:|us\s+at)?\s*([+]?1[-.]?\(?\d{3}\)?[-.]?\d{3}[-.]?\d{4})/gi;
+// Natural language email patterns: "email us at", "reach out", "contact", etc.
+const NATURAL_LANGUAGE_EMAIL_REGEX = /(?:email|email us|reach out|contact)\s*(?:at|:|us\s+at)?\s*([A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})/gi;
 function extractEmail(text: string): string | null {
-  const match = text.match(EMAIL_REGEX);
-  if (!match) return null;
-  const email = match[0];
-  // Skip obviously fake/example domains
-  if (/@example\.com$/i.test(email)) return null;
-  return email;
+  // Try basic email format first
+  let match = text.match(EMAIL_REGEX);
+  if (match) {
+    const email = match[0];
+    // Skip obviously fake/example domains
+    if (/@example\.com$/i.test(email)) return null;
+    return email;
+  }
+
+  // Try natural language formats: "email us at info@venue.com", "reach out to contact@example.com", etc.
+  const naturalMatch = text.match(NATURAL_LANGUAGE_EMAIL_REGEX);
+  if (naturalMatch) {
+    for (const m of naturalMatch) {
+      // Extract just the email part
+      const emailOnly = m.match(/([A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})/i);
+      if (emailOnly) {
+        const email = emailOnly[0];
+        if (!/@example\.com$/i.test(email)) return email;
+      }
+    }
+  }
+
+  return null;
 }
 
 function isFakePhone(digits: string): boolean {
@@ -29,12 +49,28 @@ function isFakePhone(digits: string): boolean {
 }
 
 function extractPhone(text: string): string | null {
-  const match = text.match(PHONE_REGEX);
-  if (!match) return null;
-  const candidate = match[0];
-  const digits = candidate.replace(/\D/g, "");
-  if (isFakePhone(digits)) return null;
-  return candidate;
+  // Try structured format first
+  let match = text.match(PHONE_REGEX);
+  if (match) {
+    const candidate = match[0];
+    const digits = candidate.replace(/\D/g, "");
+    if (!isFakePhone(digits)) return candidate;
+  }
+
+  // Try natural language formats: "call us at 305-xxx-xxxx", "text 786-488-4211", etc.
+  const naturalMatch = text.match(NATURAL_LANGUAGE_PHONE_REGEX);
+  if (naturalMatch) {
+    for (const m of naturalMatch) {
+      // Extract just the phone number part
+      const phoneOnly = m.match(/(\+?1[-.]?\(?\d{3}\)?[-.]?\d{3}[-.]?\d{4})/);
+      if (phoneOnly) {
+        const digits = phoneOnly[0].replace(/\D/g, "");
+        if (!isFakePhone(digits)) return phoneOnly[0];
+      }
+    }
+  }
+
+  return null;
 }
 
 function extractWebsite(text: string): string | null {
