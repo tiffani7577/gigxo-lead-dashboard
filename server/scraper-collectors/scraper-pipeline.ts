@@ -48,6 +48,8 @@ export interface PipelineResult {
   docs: RawDoc[];        // all raw docs (for admin log view; backward compat)
   leads: ScrapedLead[];  // ready-to-insert lead objects (valid only; trash not inserted)
   sourceCounts: Record<string, number>; // per-source lead counts (reddit, eventbrite, craigslist, other)
+  /** Total Apify run cost in USD (sum of actor run costs). */
+  apifyCostUsd?: number;
 }
 
 // Shape that maps to your gigLeads INSERT (same as the old pipeline output)
@@ -640,10 +642,12 @@ export async function runScraperPipeline(
   if (enabledKeys.includes("apify")) {
     collectorPromises.push(collectFromApify());
   } else {
-    collectorPromises.push(Promise.resolve([]));
+    collectorPromises.push(Promise.resolve({ docs: [], apifyCostUsd: 0 }));
   }
 
-  const [redditDocs, eventbriteDocs, craigslistDocs, dbprDocs, sunbizDocs, apifyDocs] = await Promise.all(collectorPromises);
+  const [redditDocs, eventbriteDocs, craigslistDocs, dbprDocs, sunbizDocs, apifyResult] = await Promise.all(collectorPromises);
+  const apifyDocs = Array.isArray(apifyResult) ? apifyResult : apifyResult.docs;
+  const apifyCostUsd = Array.isArray(apifyResult) ? 0 : (apifyResult.apifyCostUsd ?? 0);
   const allDocs: RawLeadDoc[] = [
     ...redditDocs,
     ...eventbriteDocs,
@@ -840,7 +844,7 @@ export async function runScraperPipeline(
   }
 
   const docs: RawDoc[] = allDocs.map(rawLeadDocToLegacyDoc);
-  return { stats, docs, leads: leadsForOutput, sourceCounts };
+  return { stats, docs, leads: leadsForOutput, sourceCounts, apifyCostUsd };
 }
 
 // ─── Live Lead Search (admin tool: query live sources with custom phrase) ──────

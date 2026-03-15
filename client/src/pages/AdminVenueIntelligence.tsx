@@ -54,6 +54,16 @@ function getLicenseType(externalId: string | null): string {
   return parts[1] ?? "—";
 }
 
+/** Parse license/approval date from DBPR description (e.g. "Date: 2025-03-10" or "Application Approval Date: 2025-03-10"). Returns "Mar 10, 2025" or "—". */
+function getLicenseDateFromDescription(description: string | null | undefined, source: string | null | undefined): string {
+  if (source !== "dbpr" || !description?.trim()) return "—";
+  const match = description.match(/(?:Application Approval Date|Date):\s*(\d{4}-\d{2}-\d{2})/i);
+  if (!match) return "—";
+  const d = new Date(match[1]);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
 type VenueLead = {
   id: number;
   externalId: string | null;
@@ -70,6 +80,8 @@ type VenueLead = {
   venueUrl: string | null;
   notes: string | null;
   sourceLabel: string | null;
+  description?: string | null;
+  source?: string | null;
   leadMonetizationType?: string | null;
   outreachStatus?: string | null;
   outreachAttemptCount?: number | null;
@@ -386,6 +398,7 @@ export default function AdminVenueIntelligence() {
                       <TableRow>
                         <TableHead>Name</TableHead>
                         <TableHead>City</TableHead>
+                        <TableHead>Licensed</TableHead>
                         <TableHead>License</TableHead>
                         <TableHead className="text-right">Intent</TableHead>
                         <TableHead>Status</TableHead>
@@ -401,6 +414,7 @@ export default function AdminVenueIntelligence() {
                         <TableRow key={lead.id}>
                           <TableCell className="font-medium">{lead.title ?? "—"}</TableCell>
                           <TableCell>{lead.location ?? "—"}</TableCell>
+                          <TableCell>{getLicenseDateFromDescription(lead.description, lead.source)}</TableCell>
                           <TableCell>{getLicenseType(lead.externalId)}</TableCell>
                           <TableCell className="text-right">
                             {lead.intentScore != null ? (

@@ -651,16 +651,34 @@ function normalizeEventbriteItem(item: Record<string, unknown>, index: number): 
   };
 }
 
-export async function collectFromApify(): Promise<RawLeadDoc[]> {
+/** Fetch run cost from Apify API (GET /v2/actor-runs/{runId}). Returns cost in USD or 0. */
+async function fetchRunCostUsd(runId: string, token: string): Promise<number> {
+  try {
+    const res = await fetch(`https://api.apify.com/v2/actor-runs/${runId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return 0;
+    const data = (await res.json()) as { stats?: { costUsd?: number }; usageTotalUsd?: number };
+    const cost = data.stats?.costUsd ?? data.usageTotalUsd ?? 0;
+    return typeof cost === "number" ? cost : 0;
+  } catch {
+    return 0;
+  }
+}
+
+export type CollectFromApifyResult = { docs: RawLeadDoc[]; apifyCostUsd: number };
+
+export async function collectFromApify(): Promise<CollectFromApifyResult> {
   console.log("[apify-collector] collectFromApify() called");
   const token = process.env.APIFY_API_TOKEN?.trim();
   if (!token) {
     console.warn("[apify-collector] APIFY_API_TOKEN is not set; skipping Apify.");
-    return [];
+    return { docs: [], apifyCostUsd: 0 };
   }
 
   const client = new ApifyClient({ token });
   const docs: RawLeadDoc[] = [];
+  const apifyRunIds: string[] = [];
 
   // 1) Reddit Search — spry_wholemeal/reddit-scraper (free, no rental). search must be object (e.g. { queries: [] })
   try {
@@ -669,6 +687,7 @@ export async function collectFromApify(): Promise<RawLeadDoc[]> {
       mode: "search",
     };
     const run = await client.actor("spry_wholemeal/reddit-scraper").call(redditInput as any);
+    if (run?.id) apifyRunIds.push(run.id);
     const redditItems = await client.dataset(run.defaultDatasetId).listItems();
     const collected = redditItems.items.length;
     let intentPassed = 0;
@@ -695,6 +714,7 @@ export async function collectFromApify(): Promise<RawLeadDoc[]> {
       resultsPerPage: 10,
     };
     const run = await client.actor("apify/google-search-scraper").call(serpInput as any);
+    if (run?.id) apifyRunIds.push(run.id);
     const serpPages = await client.dataset(run.defaultDatasetId).listItems();
     let serpCollected = 0;
     let serpIntentPassed = 0;
@@ -737,6 +757,7 @@ export async function collectFromApify(): Promise<RawLeadDoc[]> {
       viewOption: "CHRONOLOGICAL",
     };
     const run = await client.actor("apify/facebook-groups-scraper").call(fbInput as any);
+    if (run?.id) apifyRunIds.push(run.id);
     const fbItems = await client.dataset(run.defaultDatasetId).listItems();
     const fbCollected = fbItems.items.length;
     let fbFreshnessPassed = 0;
@@ -761,6 +782,7 @@ export async function collectFromApify(): Promise<RawLeadDoc[]> {
       maxTweets: 100,
     };
     const run = await client.actor("apify/twitter-scraper").call(twitterInput as any);
+    if (run?.id) apifyRunIds.push(run.id);
     const twitterItems = await client.dataset(run.defaultDatasetId).listItems();
     const twitterCollected = twitterItems.items.length;
     let twitterFreshnessPassed = 0;
@@ -782,6 +804,7 @@ export async function collectFromApify(): Promise<RawLeadDoc[]> {
       maxResults: 50,
     };
     const run = await client.actor("apify/linkedin-scraper").call(linkedInInput as any);
+    if (run?.id) apifyRunIds.push(run.id);
     const linkedInItems = await client.dataset(run.defaultDatasetId).listItems();
     for (let i = 0; i < linkedInItems.items.length; i++) {
       docs.push(normalizeLinkedInItem(linkedInItems.items[i] as Record<string, unknown>, i));
@@ -799,6 +822,7 @@ export async function collectFromApify(): Promise<RawLeadDoc[]> {
       language: "en",
     };
     const run = await client.actor("compass/google-maps-extractor").call(gmapsInput as any);
+    if (run?.id) apifyRunIds.push(run.id);
     const gmapsItems = await client.dataset(run.defaultDatasetId).listItems();
     const beforeGmaps = docs.length;
     for (let i = 0; i < gmapsItems.items.length; i++) {
@@ -821,6 +845,7 @@ export async function collectFromApify(): Promise<RawLeadDoc[]> {
       maxItems: 50,
     };
     const run = await client.actor("parseforge/eventbrite-scraper").call(eventbriteInput as any);
+    if (run?.id) apifyRunIds.push(run.id);
     const eventbriteItems = await client.dataset(run.defaultDatasetId).listItems();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -837,6 +862,11 @@ export async function collectFromApify(): Promise<RawLeadDoc[]> {
     console.warn("[apify-collector] Eventbrite actor failed:", err);
   }
 
+  let apifyCostUsd = 0;
+  for (const runId of apifyRunIds) {
+    apifyCostUsd += await fetchRunCostUsd(runId, token);
+  }
+  if (apifyRunIds.length) console.log("[apify-collector] Apify runs cost (USD):", apifyCostUsd.toFixed(4));
   console.log("[apify-collector] Total RawLeadDocs:", docs.length);
-  return docs;
+  return { docs, apifyCostUsd };
 }

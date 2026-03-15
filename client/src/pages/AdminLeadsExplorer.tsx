@@ -1167,35 +1167,56 @@ export default function AdminLeadsExplorer() {
                         <TableHead>Accepted</TableHead>
                         <TableHead>Inserted</TableHead>
                         <TableHead>Skipped (dupes)</TableHead>
+                        <TableHead>Cost</TableHead>
+                        <TableHead>Leads inserted</TableHead>
+                        <TableHead>Cost/lead</TableHead>
                         <TableHead>Source counts</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {!runHistory?.length ? (
                         <TableRow>
-                          <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                          <TableCell colSpan={11} className="text-center text-muted-foreground py-8">
                             No runs yet.
                           </TableCell>
                         </TableRow>
                       ) : (
-                        runHistory.map((run) => (
-                          <TableRow key={run.id}>
-                            <TableCell>{formatDate(run.createdAt)}</TableCell>
-                            <TableCell>{run.collected}</TableCell>
-                            <TableCell>{run.negativeRejected}</TableCell>
-                            <TableCell>{run.intentRejected}</TableCell>
-                            <TableCell>{run.accepted}</TableCell>
-                            <TableCell>{run.inserted}</TableCell>
-                            <TableCell>{run.skipped}</TableCell>
-                            <TableCell>
-                              {run.sourceCounts && typeof run.sourceCounts === "object" ? (
-                                <pre className="text-xs whitespace-pre-wrap">{JSON.stringify(run.sourceCounts)}</pre>
-                              ) : (
-                                "—"
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))
+                        runHistory.map((run) => {
+                          const costUsd = run.apifyCostUsd != null ? Number(run.apifyCostUsd) : null;
+                          const leadsInserted = run.leadsInserted != null ? Number(run.leadsInserted) : null;
+                          const costPerLead = run.costPerLead != null ? Number(run.costPerLead) : null;
+                          const costFormatted = costUsd != null && !Number.isNaN(costUsd) ? `$${costUsd.toFixed(4)}` : "—";
+                          const leadsInsertedFormatted = leadsInserted != null && !Number.isNaN(leadsInserted) ? String(leadsInserted) : "—";
+                          let costPerLeadFormatted = "—";
+                          let costPerLeadClass = "";
+                          if (costPerLead != null && !Number.isNaN(costPerLead)) {
+                            costPerLeadFormatted = `$${costPerLead.toFixed(4)}`;
+                            if (costPerLead < 0.1) costPerLeadClass = "text-green-600 dark:text-green-400";
+                            else if (costPerLead <= 0.5) costPerLeadClass = "text-yellow-600 dark:text-yellow-400";
+                            else costPerLeadClass = "text-red-600 dark:text-red-400";
+                          }
+                          return (
+                            <TableRow key={run.id}>
+                              <TableCell>{formatDate(run.createdAt)}</TableCell>
+                              <TableCell>{run.collected}</TableCell>
+                              <TableCell>{run.negativeRejected}</TableCell>
+                              <TableCell>{run.intentRejected}</TableCell>
+                              <TableCell>{run.accepted}</TableCell>
+                              <TableCell>{run.inserted}</TableCell>
+                              <TableCell>{run.skipped}</TableCell>
+                              <TableCell>{costFormatted}</TableCell>
+                              <TableCell>{leadsInsertedFormatted}</TableCell>
+                              <TableCell className={costPerLeadClass}>{costPerLeadFormatted}</TableCell>
+                              <TableCell>
+                                {run.sourceCounts && typeof run.sourceCounts === "object" ? (
+                                  <pre className="text-xs whitespace-pre-wrap">{JSON.stringify(run.sourceCounts)}</pre>
+                                ) : (
+                                  "—"
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })
                       )}
                     </TableBody>
                   </Table>

@@ -698,6 +698,9 @@ export const scraperRuns = mysqlTable("scraperRuns", {
   inserted: int("inserted").notNull(),
   skipped: int("skipped").notNull(),
   sourceCounts: json("sourceCounts").$type<Record<string, number>>(),
+  apifyCostUsd: decimal("apifyCostUsd", { precision: 8, scale: 4 }),
+  leadsInserted: int("leadsInserted"),
+  costPerLead: decimal("costPerLead", { precision: 8, scale: 4 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 }, (table) => ({
   createdAtIdx: index("scraperRuns_createdAt_idx").on(table.createdAt),

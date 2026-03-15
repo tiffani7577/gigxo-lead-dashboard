@@ -1873,7 +1873,7 @@ export const appRouter = router({
           if (!db) throw new Error("Database not available");
           
           // Pass city and performerType from input to scraper pipeline
-          const { stats, leads, sourceCounts } = await runScraperPipeline(input?.marketId, input?.focusPerformerType);
+          const { stats, leads, sourceCounts, apifyCostUsd } = await runScraperPipeline(input?.marketId, input?.focusPerformerType);
 
         // DBPR leads only enter via admin.runDbprPipeline; skip them here
         const leadsToInsert = leads.filter((l) => l.source !== "dbpr");
@@ -2011,6 +2011,10 @@ export const appRouter = router({
         console.log(`[runScraper] Inserted ${inserted} leads, skipped ${skipped} duplicates`);
 
         const { scraperRuns } = await import("../drizzle/schema");
+        const costPerLead =
+          inserted > 0 && apifyCostUsd != null && typeof apifyCostUsd === "number"
+            ? apifyCostUsd / inserted
+            : null;
         await db.insert(scraperRuns).values({
           collected: stats.collected,
           negativeRejected: stats.negativeRejected,
@@ -2019,6 +2023,9 @@ export const appRouter = router({
           inserted,
           skipped,
           sourceCounts: sourceCounts ?? undefined,
+          apifyCostUsd: apifyCostUsd != null ? String(apifyCostUsd) : null,
+          leadsInserted: inserted,
+          costPerLead: costPerLead != null ? String(costPerLead) : null,
         });
         
         return {
@@ -2305,6 +2312,8 @@ export const appRouter = router({
           externalId: gigLeads.externalId,
           title: gigLeads.title,
           location: gigLeads.location,
+          description: gigLeads.description,
+          source: gigLeads.source,
           intentScore: gigLeads.intentScore,
           venueStatus: gigLeads.venueStatus,
           lastContactedAt: gigLeads.lastContactedAt,
