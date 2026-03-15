@@ -94,7 +94,7 @@ export default function Signup() {
           <CardHeader className="pb-4">
             <CardTitle className="text-white text-xl">Create your account</CardTitle>
             <CardDescription className="text-slate-400">
-              Join 45+ artists already booking gigs through Gigxo
+              Join 50+ artists. First unlock $1 — then $7 standard or $15 premium leads. Go Pro for 5 credits/month.
             </CardDescription>
           </CardHeader>
           <CardContent>

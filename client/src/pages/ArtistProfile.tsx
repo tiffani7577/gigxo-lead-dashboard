@@ -91,6 +91,7 @@ export default function ArtistProfile() {
     photoUrl: "",
     heroImageUrl: "",
     avatarUrl: "",
+    profileImageUrl: "",
     soundcloudUrl: "",
     mixcloudUrl: "",
     youtubeUrl: "",
@@ -105,11 +106,16 @@ export default function ArtistProfile() {
   const [customGenre, setCustomGenre] = useState("");
   const [customEquipment, setCustomEquipment] = useState("");
   const [saving, setSaving] = useState(false);
+  // Allow full clear before typing (avoid parseInt locking to 0/30)
+  const [minBudgetInput, setMinBudgetInput] = useState("");
+  const [maxDistanceInput, setMaxDistanceInput] = useState("");
 
   // Track upload state
   const [uploadingTrack, setUploadingTrack] = useState(false);
   const [trackTitle, setTrackTitle] = useState("");
   const trackFileRef = useRef<HTMLInputElement>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const profileImageRef = useRef<HTMLInputElement>(null);
 
   const { data: myTracks = [], refetch: refetchTracks } = trpc.tracks.getMyTracks.useQuery();
 
@@ -129,6 +135,19 @@ export default function ArtistProfile() {
 
   const deleteTrack = trpc.tracks.deleteTrack.useMutation({
     onSuccess: () => { refetchTracks(); toast.success("Track deleted"); },
+  });
+
+  const uploadProfileImage = trpc.artist.uploadProfileImage.useMutation({
+    onSuccess: (data) => {
+      setForm(f => ({ ...f, profileImageUrl: data.url, photoUrl: data.url, avatarUrl: data.url }));
+      utils.artist.getMyArtistProfile.invalidate();
+      setUploadingPhoto(false);
+      toast.success("Profile photo updated!");
+    },
+    onError: (err) => {
+      toast.error(err.message || "Upload failed");
+      setUploadingPhoto(false);
+    },
   });
 
   const handleTrackUpload = async () => {
@@ -153,19 +172,22 @@ export default function ArtistProfile() {
 
   useEffect(() => {
     if (!profile) return;
+    const minB = profile.minBudget ?? 0;
+    const maxD = profile.maxDistance ?? 30;
     setForm({
       stageName: (profile as any).stageName ?? profile.djName ?? "",
       slug: profile.slug ?? "",
       bio: profile.bio ?? "",
       location: profile.location ?? "Miami, FL",
       experienceLevel: (profile.experienceLevel as any) ?? "intermediate",
-      minBudget: profile.minBudget ?? 0,
-      maxDistance: profile.maxDistance ?? 30,
+      minBudget: minB,
+      maxDistance: maxD,
       genres: (profile.genres as string[]) ?? [],
       equipment: (profile.equipment as string[]) ?? [],
       photoUrl: (profile as any).photoUrl ?? (profile as any).avatarUrl ?? "",
       heroImageUrl: (profile as any).heroImageUrl ?? (profile as any).photoUrl ?? "",
       avatarUrl: (profile as any).avatarUrl ?? (profile as any).photoUrl ?? "",
+      profileImageUrl: (profile as any).profileImageUrl ?? "",
       soundcloudUrl: (profile as any).soundcloudUrl ?? "",
       mixcloudUrl: (profile as any).mixcloudUrl ?? "",
       youtubeUrl: (profile as any).youtubeUrl ?? "",
@@ -175,6 +197,8 @@ export default function ArtistProfile() {
       currentResidencies: ((profile as any).currentResidencies as string[]) ?? [],
       isPublished: (profile as any).isPublished ?? false,
     });
+    setMinBudgetInput(String(minB));
+    setMaxDistanceInput(String(maxD));
   }, [profile]);
 
   const updateProfile = trpc.artist.upsertMyArtistProfile.useMutation({
@@ -190,6 +214,8 @@ export default function ArtistProfile() {
   });
 
   const handleSave = () => {
+    const minB = minBudgetInput === "" ? 0 : parseInt(minBudgetInput, 10);
+    const maxD = maxDistanceInput === "" ? 30 : parseInt(maxDistanceInput, 10);
     setSaving(true);
     updateProfile.mutate({
       stageName: form.stageName || undefined,
@@ -208,6 +234,8 @@ export default function ArtistProfile() {
       instagramUrl: form.instagramUrl || undefined,
       tiktokUrl: form.tiktokUrl || undefined,
       websiteUrl: form.websiteUrl || undefined,
+      minBudget: Number.isNaN(minB) ? 0 : minB,
+      maxDistance: Number.isNaN(maxD) ? 30 : Math.min(200, Math.max(0, maxD)),
     });
   };
 
@@ -248,6 +276,24 @@ export default function ArtistProfile() {
       setForm(f => ({ ...f, equipment: [...f.equipment, customEquipment.trim()] }));
       setCustomEquipment("");
     }
+  };
+
+  const displayPhotoUrl = form.profileImageUrl || form.photoUrl || form.avatarUrl;
+
+  const handleProfileImageUpload = async () => {
+    const file = profileImageRef.current?.files?.[0];
+    if (!file) { toast.error("Please select an image"); return; }
+    if (!file.type.startsWith("image/")) { toast.error("Please select a JPEG, PNG, or WebP image"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("Image must be under 5MB"); return; }
+    setUploadingPhoto(true);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const base64 = (e.target?.result as string)?.split(",")[1];
+      if (base64) uploadProfileImage.mutate({ fileBase64: base64, mimeType: file.type || "image/jpeg" });
+      else { toast.error("Could not read file"); setUploadingPhoto(false); }
+    };
+    reader.readAsDataURL(file);
+    if (profileImageRef.current) profileImageRef.current.value = "";
   };
 
   if (isLoading) {
@@ -309,24 +355,43 @@ export default function ArtistProfile() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Photo preview */}
-            <div className="flex items-center gap-4">
+            {/* Profile photo: upload or URL */}
+            <div className="flex items-center gap-4 flex-wrap">
               <div className="w-20 h-20 rounded-full bg-slate-700 border-2 border-slate-600 overflow-hidden flex items-center justify-center flex-shrink-0">
-                {form.photoUrl ? (
-                  <img src={form.photoUrl} alt="Profile" className="w-full h-full object-cover" />
+                {displayPhotoUrl ? (
+                  <img src={displayPhotoUrl} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
                   <Camera className="w-8 h-8 text-slate-500" />
                 )}
               </div>
-              <div className="flex-1">
-                <Label className="text-slate-300 text-sm">Photo URL</Label>
+              <div className="flex-1 min-w-[200px] space-y-2">
+                <Label className="text-slate-300 text-sm">Profile photo</Label>
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    ref={profileImageRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={handleProfileImageUpload}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent"
+                    onClick={() => profileImageRef.current?.click()}
+                    disabled={uploadingPhoto}
+                  >
+                    {uploadingPhoto ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Uploading...</> : <><Upload className="w-4 h-4 mr-2" /> Upload image</>}
+                  </Button>
+                  <span className="text-xs text-slate-500">or paste URL below</span>
+                </div>
                 <Input
                   placeholder="https://your-photo-url.com/photo.jpg"
                   value={form.photoUrl}
                   onChange={e => setForm(f => ({ ...f, photoUrl: e.target.value }))}
-                  className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 mt-1"
+                  className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
                 />
-                <p className="text-xs text-slate-500 mt-1">Paste a direct link to your photo (Instagram, Dropbox, etc.)</p>
               </div>
             </div>
 
@@ -403,8 +468,14 @@ export default function ArtistProfile() {
                   type="number"
                   min={0}
                   step={50}
-                  value={form.minBudget}
-                  onChange={e => setForm(f => ({ ...f, minBudget: parseInt(e.target.value) || 0 }))}
+                  value={minBudgetInput}
+                  onChange={e => setMinBudgetInput(e.target.value)}
+                  onBlur={() => {
+                    const n = minBudgetInput === "" ? 0 : parseInt(minBudgetInput, 10);
+                    const val = Number.isNaN(n) ? 0 : Math.max(0, n);
+                    setForm(f => ({ ...f, minBudget: val }));
+                    setMinBudgetInput(String(val));
+                  }}
                   className="bg-slate-800 border-slate-600 text-white mt-1"
                 />
               </div>
@@ -414,8 +485,14 @@ export default function ArtistProfile() {
                   type="number"
                   min={0}
                   max={200}
-                  value={form.maxDistance}
-                  onChange={e => setForm(f => ({ ...f, maxDistance: parseInt(e.target.value) || 30 }))}
+                  value={maxDistanceInput}
+                  onChange={e => setMaxDistanceInput(e.target.value)}
+                  onBlur={() => {
+                    const n = maxDistanceInput === "" ? 30 : parseInt(maxDistanceInput, 10);
+                    const val = Number.isNaN(n) ? 30 : Math.min(200, Math.max(0, n));
+                    setForm(f => ({ ...f, maxDistance: val }));
+                    setMaxDistanceInput(String(val));
+                  }}
                   className="bg-slate-800 border-slate-600 text-white mt-1"
                 />
               </div>

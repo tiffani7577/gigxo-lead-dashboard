@@ -42,6 +42,7 @@ export const artistProfiles = mysqlTable("artistProfiles", {
   photoUrl: text("photoUrl"), // legacy main photo
   heroImageUrl: text("heroImageUrl"),
   avatarUrl: text("avatarUrl"),
+  profileImageUrl: text("profileImageUrl"), // uploaded profile image (S3/storage)
 
   // Content & metadata
   genres: json("genres").$type<string[]>(), // e.g., ["DJ", "Live Band", "Electronic"]
@@ -101,6 +102,8 @@ export const gigLeads = mysqlTable("gigLeads", {
 
   // High-level lead category to keep future segmentation flexible
   leadCategory: mysqlEnum("leadCategory", ["general", "wedding", "corporate", "private_party", "club", "other", "venue_intelligence", "yacht", "unknown"]).default("general"),
+  /** Informational segment tag: starter_friendly (small/new venues), standard, premium (high budget/visibility) */
+  leadTier: mysqlEnum("leadTier", ["starter_friendly", "standard", "premium"]),
   // Lightweight operator pipeline state (separate from approval flags)
   status: varchar("status", { length: 50 }),
   notes: text("notes"),
@@ -373,7 +376,7 @@ export const userCredits = mysqlTable("userCredits", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
   amount: int("amount").notNull(), // In cents
-  source: mysqlEnum("source", ["referral", "promo", "refund"]).notNull(),
+  source: mysqlEnum("source", ["referral", "promo", "refund", "pro_monthly"]).notNull(),
   referralId: int("referralId"),
   isUsed: boolean("isUsed").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

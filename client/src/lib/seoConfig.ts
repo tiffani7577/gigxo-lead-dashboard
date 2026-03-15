@@ -129,6 +129,9 @@ export const SERVICES: ServiceConfig[] = [
     eventTypes: ["party", "corporate"],
     keywords: ["boat entertainment", "yacht entertainment package", "dj + sax", "dj + percussion"],
   },
+  { id: "band", name: "Band", plural: "Bands", description: "Live bands and musicians for events", eventTypes: ["wedding", "corporate", "party"], keywords: ["band", "live band", "musicians"] },
+  { id: "dj-gigs", name: "DJ Gigs", plural: "DJ Gigs", description: "DJ gig opportunities and bookings", eventTypes: ["wedding", "party", "corporate"], keywords: ["dj gigs", "dj jobs", "gig opportunities"] },
+  { id: "venues-hiring-djs", name: "Venues Hiring DJs", plural: "Venues Hiring DJs", description: "Venues and events looking for DJs", eventTypes: ["wedding", "party", "corporate", "club"], keywords: ["venues hiring djs", "dj bookings", "event entertainment"] },
 ];
 
 // Master cities list
@@ -284,6 +287,38 @@ const MANUAL_OVERRIDES: Record<string, Partial<PageConfig>> = {
     content:
       "Pier Sixty-Six Marina is a launch point for high-end charters and private events. Use this page to find DJs who are comfortable loading in through marina access points, working around tight decks and keeping sound controlled for nearby vessels. Tell us about your yacht size, itinerary and preferred genres to see the best fits.",
     pageType: "venue",
+  },
+  "dj-orlando": {
+    seoTitle: "Hire DJs in Orlando | Event & Wedding DJs",
+    seoDescription: "Browse professional DJs in Orlando for weddings, events and parties. Request a quote.",
+    heading: "Hire DJs in Orlando",
+    subheading: "Event and wedding DJs across Orlando and Central Florida",
+    content: "Find vetted DJs in Orlando for weddings, corporate events and parties. Compare profiles and request a quote.",
+    pageType: "hire",
+  },
+  "band-miami": {
+    seoTitle: "Hire Bands in Miami | Live Bands for Events",
+    seoDescription: "Book live bands in Miami for weddings, corporate events and parties.",
+    heading: "Hire Bands in Miami",
+    subheading: "Live bands and musicians in Miami",
+    content: "Miami's top live bands for weddings, corporate events and private parties. Browse and request a quote.",
+    pageType: "hire",
+  },
+  "dj-gigs-miami": {
+    seoTitle: "DJ Gigs in Miami | Gig Opportunities for DJs",
+    seoDescription: "Find DJ gig opportunities in Miami. New gigs posted regularly.",
+    heading: "DJ Gigs in Miami",
+    subheading: "Gig opportunities for DJs in South Florida",
+    content: "Gigxo surfaces real DJ gig opportunities in Miami and South Florida. New leads appear daily.",
+    pageType: "hire",
+  },
+  "venues-hiring-djs-miami": {
+    seoTitle: "Venues Hiring DJs in Miami | Event Entertainment",
+    seoDescription: "Venues and events in Miami looking for DJs. Connect with bookers.",
+    heading: "Venues Hiring DJs in Miami",
+    subheading: "Miami venues and events looking for DJ entertainment",
+    content: "Discover Miami venues and events actively looking for DJs. Unlock leads and connect with decision-makers.",
+    pageType: "hire",
   },
   "dj-port-everglades-yacht": {
     seoTitle: "DJ for Port Everglades Yacht Charters | Fort Lauderdale DJs",

@@ -5,7 +5,8 @@
  * Env vars (Railway):
  *   GOOGLE_CLIENT_ID
  *   GOOGLE_CLIENT_SECRET
- *   GOOGLE_REDIRECT_URI (e.g. https://gigxo.com/api/auth/google/callback) — used when set; otherwise derived from request (local dev)
+ *   GOOGLE_REDIRECT_URI — must match Google Cloud Console exactly (e.g. https://www.gigxo.com/api/auth/google/callback if app is on www)
+ *   APP_URL — frontend origin for redirect fallback when state is missing (e.g. https://www.gigxo.com); avoids redirecting to wrong host and "not found"
  */
 
 import type { Express, Request, Response } from "express";
@@ -130,8 +131,10 @@ export function registerGoogleAuthRoutes(app: Express) {
         path: "/",
       });
 
-      const origin = state && state.startsWith("http") ? state : "";
-      res.redirect(`${origin}/dashboard`);
+      // Redirect to frontend dashboard. Prefer state (origin from login page); fallback to APP_URL in production so we never redirect to wrong host (e.g. api host showing "not found").
+      const baseUrl = (state && state.startsWith("http") ? state : null) || process.env.APP_URL?.trim() || "";
+      const redirectTo = baseUrl ? `${baseUrl.replace(/\/+$/, "")}/dashboard` : "/dashboard";
+      res.redirect(redirectTo);
     } catch (error) {
       console.error("[Google Auth] Error:", error);
       res.redirect("/login?error=google_failed");

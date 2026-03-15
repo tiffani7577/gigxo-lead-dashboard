@@ -123,13 +123,10 @@ export async function handleStripeWebhook(req: Request, res: Response) {
       // ── Subscription renewal ───────────────────────────────────────────────
       case "invoice.payment_succeeded": {
         const invoice = event.data.object as import("stripe").Stripe.Invoice;
-        // In Stripe API 2026-02-25+, subscription is nested under invoice.parent.subscription_details.subscription
-        const subId =
-          (invoice.parent?.type === "subscription_details" &&
-            invoice.parent.subscription_details?.subscription) ||
-          undefined;
-        if (subId && invoice.billing_reason === "subscription_cycle") {
-          await handleSubscriptionRenewal(typeof subId === "string" ? subId : subId.id);
+        const raw = invoice as any;
+        const subId = typeof raw.subscription === "string" ? raw.subscription : raw.parent?.subscription_details?.subscription ? (typeof raw.parent.subscription_details.subscription === "string" ? raw.parent.subscription_details.subscription : raw.parent.subscription_details.subscription?.id) : undefined;
+        if (subId && raw.billing_reason === "subscription_cycle") {
+          await handleSubscriptionRenewal(subId);
         }
         break;
       }
@@ -215,11 +212,25 @@ export async function fulfillLeadUnlock({ userId, leadId, paymentIntentId, amoun
 
 /**
  * Activate or create a premium subscription for a user.
+ * Fetches period from Stripe so ensureProMonthlyCredits can grant 5 credits.
  */
 async function fulfillSubscription(userId: number, stripeSubscriptionId: string) {
   const { getDb } = await import("./db");
   const db = await getDb();
   if (!db) return;
+
+  const stripe = getStripe();
+  let currentPeriodStart: Date | null = null;
+  let currentPeriodEnd: Date | null = null;
+  if (stripe) {
+    try {
+      const sub = await stripe.subscriptions.retrieve(stripeSubscriptionId);
+      currentPeriodStart = new Date((sub as any).current_period_start * 1000);
+      currentPeriodEnd = new Date((sub as any).current_period_end * 1000);
+    } catch (e) {
+      console.warn("[Webhook] Could not retrieve subscription period from Stripe:", (e as Error).message);
+    }
+  }
 
   const { subscriptions } = await import("../drizzle/schema");
   const { eq } = await import("drizzle-orm");
@@ -230,17 +241,23 @@ async function fulfillSubscription(userId: number, stripeSubscriptionId: string)
     .where(eq(subscriptions.userId, userId))
     .limit(1);
 
+  const periodPayload = {
+    stripeSubscriptionId,
+    status: "active" as const,
+    tier: "premium" as const,
+    ...(currentPeriodStart && { currentPeriodStart }),
+    ...(currentPeriodEnd && { currentPeriodEnd }),
+  };
+
   if (existing.length > 0) {
     await db
       .update(subscriptions)
-      .set({ stripeSubscriptionId, status: "active", tier: "premium" })
+      .set(periodPayload)
       .where(eq(subscriptions.userId, userId));
   } else {
     await db.insert(subscriptions).values({
       userId,
-      stripeSubscriptionId,
-      status: "active",
-      tier: "premium",
+      ...periodPayload,
     });
   }
 
@@ -270,20 +287,36 @@ async function syncSubscriptionStatus(stripeSubscriptionId: string, status: stri
 }
 
 /**
- * Handle a subscription renewal cycle — reset monthly unlock credits.
+ * Handle a subscription renewal cycle — update period from Stripe so next ensureProMonthlyCredits grants 5 new credits.
  */
 async function handleSubscriptionRenewal(stripeSubscriptionId: string) {
   const { getDb } = await import("./db");
   const db = await getDb();
   if (!db) return;
 
+  const stripe = getStripe();
+  let currentPeriodStart: Date | null = null;
+  let currentPeriodEnd: Date | null = null;
+  if (stripe) {
+    try {
+      const sub = await stripe.subscriptions.retrieve(stripeSubscriptionId);
+      currentPeriodStart = new Date((sub as any).current_period_start * 1000);
+      currentPeriodEnd = new Date((sub as any).current_period_end * 1000);
+    } catch (e) {
+      console.warn("[Webhook] Could not retrieve subscription period on renewal:", (e as Error).message);
+    }
+  }
+
   const { subscriptions } = await import("../drizzle/schema");
   const { eq } = await import("drizzle-orm");
 
-  // Ensure the subscription is still marked active after renewal
+  const updatePayload: Record<string, unknown> = { status: "active" };
+  if (currentPeriodStart) updatePayload.currentPeriodStart = currentPeriodStart;
+  if (currentPeriodEnd) updatePayload.currentPeriodEnd = currentPeriodEnd;
+
   await db
     .update(subscriptions)
-    .set({ status: "active" })
+    .set(updatePayload as any)
     .where(eq(subscriptions.stripeSubscriptionId, stripeSubscriptionId));
 
   console.log(`[Webhook] ✓ Subscription ${stripeSubscriptionId} renewed`);

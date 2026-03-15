@@ -103,17 +103,16 @@ export async function sendWelcomeEmail(
     <h2 style="color: #1f2937; font-size: 22px;">Hey ${name || "there"} 👋</h2>
     
     <p style="color: #374151; line-height: 1.6;">
-      Welcome to Gigxo! You now have access to curated gig leads for Miami and Fort Lauderdale artists — 
-      updated daily from Eventbrite, Thumbtack, local event groups, and our own network of event clients posting directly on Gigxo.
+      Welcome to Gigxo — the performer lead marketplace powered by better intelligence. You now have access to curated gig leads for Miami and Fort Lauderdale, updated daily from Eventbrite, Thumbtack, local event groups, and our network.
     </p>
     
     <div style="background: #f3f0ff; border-radius: 8px; padding: 20px; margin: 24px 0;">
       <h3 style="color: #7c3aed; margin: 0 0 12px;">How it works:</h3>
       <ol style="color: #374151; line-height: 1.8; margin: 0; padding-left: 20px;">
-        <li>Browse available gig leads (title, budget, location, event type visible for free)</li>
-        <li>Find a gig that fits your style and schedule</li>
-        <li>Unlock the contact info for just <strong>$7</strong></li>
-        <li>Reach out directly and book the gig</li>
+        <li>Browse gig leads (title, budget, location visible for free)</li>
+        <li>Your <strong>first unlock is just $1</strong> — try it risk-free</li>
+        <li>After that: <strong>$7</strong> standard or <strong>$15</strong> premium per lead — or go <strong>Pro for $49/mo</strong> and get 5 unlock credits included</li>
+        <li>Reach out directly and book the gig (no commission)</li>
       </ol>
     </div>
     
@@ -172,7 +171,7 @@ export async function sendDailyDigest(
         ${lead.eventDate ? `<span style="color: #6b7280;">📅 ${new Date(lead.eventDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>` : ''}
       </div>
       <a href="https://gigxo.com/dashboard?lead=${lead.id}" style="display: inline-block; margin-top: 12px; background: #7c3aed; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 500;">
-        Unlock for $7 →
+        Unlock from $7 →
       </a>
     </div>
   `).join('');

@@ -647,7 +647,7 @@ export default function ArtistDashboard() {
       {/* Scarcity Banner */}
       {stats && stats.totalAvailable > 0 && (
         <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-center py-2 px-4 text-sm font-medium">
-          <Zap className="w-3.5 h-3.5 inline mr-1.5 mb-0.5" /> Your first unlock is just $1 — try it risk-free. No subscription needed.
+          <Zap className="w-3.5 h-3.5 inline mr-1.5 mb-0.5" /> First unlock $1 — then $7 standard or $15 premium. <Link href="/pricing" className="underline font-medium">Go Pro</Link> for $49/mo and get 5 credits.
         </div>
       )}
 
@@ -1524,8 +1524,26 @@ export default function ArtistDashboard() {
         {/* SUBSCRIPTION / PREMIUM TAB */}
         {activeTab === "packs" && (
           <div className="max-w-2xl">
-            <h2 className="text-xl font-bold text-slate-900 mb-1">Buy Lead Unlock Packs</h2>
-            <p className="text-slate-500 text-sm mb-6">Buy in bulk and save. Credits never expire — use them whenever you find a lead worth unlocking.</p>
+            <h2 className="text-xl font-bold text-slate-900 mb-1">Pro & Unlock Packs</h2>
+            <p className="text-slate-500 text-sm mb-6">Go Pro for 5 credits/month, or buy one-time packs. First unlock is $1; then $7 standard or $15 premium per lead.</p>
+            {/* Pro subscription CTA */}
+            {!mySubscription?.tier && (
+              <Card className="mb-6 border-2 border-purple-400 bg-gradient-to-br from-purple-50 to-pink-50">
+                <CardContent className="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div>
+                    <p className="font-bold text-slate-900 text-lg">Pro — $49/month</p>
+                    <p className="text-sm text-slate-600">5 unlock credits included every month. Use them or pay $7/$15 per lead as needed. Cancel anytime.</p>
+                  </div>
+                  <Button
+                    className="bg-purple-600 hover:bg-purple-700 shrink-0"
+                    disabled={isStartingPremium}
+                    onClick={() => startPremium({ origin: typeof window !== "undefined" ? window.location.origin : undefined })}
+                  >
+                    {isStartingPremium ? "Loading…" : "Go Pro"}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {([
                 { id: "pack_3" as const, label: "3-Pack", unlocks: 3, price: "$18", perLead: "$6/lead", savings: "Save $3", highlighted: false },

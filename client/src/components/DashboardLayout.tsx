@@ -55,6 +55,7 @@ export default function DashboardLayout({
     return saved ? parseInt(saved, 10) : DEFAULT_WIDTH;
   });
   const { loading, user } = useAuth();
+  const [location] = useLocation();
 
   useEffect(() => {
     localStorage.setItem(SIDEBAR_WIDTH_KEY, sidebarWidth.toString());
@@ -84,6 +85,24 @@ export default function DashboardLayout({
             className="w-full shadow-lg hover:shadow-xl transition-all"
           >
             Sign in
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Restrict /admin* routes to admin users only; return 403 for non-admins
+  const isAdminRoute = typeof location === "string" && location.startsWith("/admin");
+  if (isAdminRoute && user.role !== "admin") {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="flex flex-col items-center gap-6 p-8 max-w-md w-full text-center">
+          <h1 className="text-2xl font-semibold tracking-tight">403 Forbidden</h1>
+          <p className="text-muted-foreground text-sm">
+            Admin access only. You don’t have permission to view this page.
+          </p>
+          <Button asChild variant="default">
+            <a href="/dashboard">Go to My Dashboard</a>
           </Button>
         </div>
       </div>

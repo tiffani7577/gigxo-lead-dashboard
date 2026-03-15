@@ -110,7 +110,7 @@ function FeaturedLeads() {
               <div className="px-5 pb-5">
                 <Link href="/signup">
                   <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-sm">
-                    <Lock className="w-3.5 h-3.5 mr-2" /> Unlock for ${lead.unlockPriceCents ? (lead.unlockPriceCents / 100).toFixed(0) : "7"}
+                    <Lock className="w-3.5 h-3.5 mr-2" /> Unlock from ${lead.unlockPriceCents ? (lead.unlockPriceCents / 100).toFixed(0) : "7"}
                   </Button>
                 </Link>
               </div>
@@ -158,6 +158,11 @@ export default function Home() {
                 Browse Artists
               </Button>
             </Link>
+            <Link href="/pricing">
+              <Button variant="ghost" className="text-slate-300 hover:text-white hidden sm:inline-flex">
+                Pricing
+              </Button>
+            </Link>
             <Link href="/login">
               <Button variant="outline" className="border-purple-500 text-purple-400 hover:bg-purple-500/10">
                 Sign In
@@ -186,7 +191,7 @@ export default function Home() {
                   Find Your Next <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">Gig</span>
                 </h1>
                 <p className="text-xl text-slate-300">
-                  Book DJs, bands, and performers across South Florida. Discover verified gig opportunities matched to your style, location, and budget. $7 per lead. No commission.
+                  The performer lead marketplace powered by better intelligence. Get curated gig leads matched to your style and location — first unlock $1, then $7 standard or $15 premium. Go Pro for $49/mo and get 5 unlock credits included.
                 </p>
               </div>
 
@@ -279,7 +284,7 @@ export default function Home() {
               {
                 step: "3",
                 title: "Unlock & Book",
-                description: "Pay $7 to unlock contact info and book directly. No middleman, no commission.",
+                description: "Your first unlock is just $1. After that, standard leads are $7 and premium leads $15 — or get 5 unlocks/month with Pro ($49/mo). No commission.",
                 icon: CheckCircle2,
               },
             ].map((item, i) => {
@@ -308,44 +313,44 @@ export default function Home() {
       <FeaturedLeads />
 
       {/* Pricing */}
-      <section className="py-20">
+      <section className="py-20" id="pricing">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-white mb-4">Simple, Transparent Pricing</h2>
-            <p className="text-lg text-slate-300">No hidden fees. No commission. Just pure value.</p>
+            <p className="text-lg text-slate-300">No hidden fees. No commission. Pay per unlock or go Pro.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {[
               {
-                name: "Single Lead",
-                price: "$7",
-                description: "per unlock",
-                badge: null as string | null,
-                features: ["Unlock contact info", "Direct booking", "No commission", "First unlock just $1"],
+                name: "First Unlock",
+                price: "$1",
+                description: "one-time",
+                badge: "Try risk-free" as string | null,
+                features: ["Your first lead unlock", "Full contact details", "Direct booking", "No commitment"],
                 cta: "Get Started",
                 href: "/signup",
                 highlighted: false,
               },
               {
-                name: "10-Pack",
-                price: "$49",
-                description: "10 unlocks",
-                badge: "Save $21" as string | null,
-                features: ["10 lead unlocks", "$4.90 per lead", "Use anytime", "Never expires"],
-                cta: "Buy 10-Pack",
-                href: "/signup",
-                highlighted: true,
-              },
-              {
-                name: "25-Pack",
-                price: "$99",
-                description: "25 unlocks",
-                badge: "Save $76" as string | null,
-                features: ["25 lead unlocks", "$3.96 per lead", "Use anytime", "Never expires"],
-                cta: "Buy 25-Pack",
+                name: "Pay as you go",
+                price: "$7 / $15",
+                description: "per lead",
+                badge: null as string | null,
+                features: ["$7 standard leads", "$15 premium leads", "Unlock only what you need", "No subscription"],
+                cta: "Browse Gigs",
                 href: "/signup",
                 highlighted: false,
+              },
+              {
+                name: "Pro",
+                price: "$49",
+                description: "/month",
+                badge: "Best value" as string | null,
+                features: ["5 unlock credits included", "Use credits or pay per lead", "Cancel anytime", "South Florida focus"],
+                cta: "Go Pro",
+                href: "/signup",
+                highlighted: true,
               },
             ].map((plan, i) => (
               <Card
@@ -394,7 +399,7 @@ export default function Home() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl font-bold text-white mb-4">Ready to Find Your Next Gig?</h2>
           <p className="text-lg text-slate-300 mb-8">
-            Join 50+ artists already booking through Gigxo. Your first unlock is just $1 — try it risk-free.
+            Join 50+ artists already booking through Gigxo. First unlock $1 — then $7 standard or $15 premium leads. Or go Pro for $49/mo and get 5 credits included.
           </p>
           <Link href="/signup">
             <Button size="lg" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">

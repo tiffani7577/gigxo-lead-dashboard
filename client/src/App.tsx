@@ -31,6 +31,7 @@ import LiveLeadSearch from "./pages/LiveLeadSearch";
 import Contracts from "./pages/Contracts";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
+import Pricing from "./pages/Pricing";
 import SEOLandingPage from "./pages/SEOLandingPage";
 
 function Router() {
@@ -63,6 +64,7 @@ function Router() {
       <Route path="/contracts" component={Contracts} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={Terms} />
+      <Route path="/pricing" component={Pricing} />
       {/* SEO Landing Pages - Dynamic route for all service+city combinations */}
       <Route path="/:slug" component={SEOLandingPage} />
       <Route path="/404" component={NotFound} />

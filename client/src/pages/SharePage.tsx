@@ -17,7 +17,7 @@ const templates = [
     subject: "Post for DJ / Performer Facebook Groups",
     audience: "DJs, performers, musicians in local FB groups",
     body: (link: string) =>
-      `Anyone else tired of paying 20%+ commission on every gig? 🙋‍♂️\n\nI've been using Gigxo — it's a lead marketplace where you pay $7 flat to unlock the client's contact info, then book directly and keep 100% of your fee.\n\nThey have weddings, corporate events, clubs, and private parties in Miami, Fort Lauderdale, and all major US cities.\n\nFirst unlock is FREE. Use my link to sign up: ${link}\n\n#DJLife #GigLife #MiamiDJ`,
+      `Anyone else tired of paying 20%+ commission on every gig? 🙋‍♂️\n\nI've been using Gigxo — it's a lead marketplace where you pay $7 flat to unlock the client's contact info, then book directly and keep 100% of your fee.\n\nThey have weddings, corporate events, clubs, and private parties in Miami, Fort Lauderdale, and all major US cities.\n\nFirst unlock is just $1. Use my link to sign up: ${link}\n\n#DJLife #GigLife #MiamiDJ`,
     suggestedGroups: ["Miami DJs", "South Florida DJs & Performers", "DJ Networking Group", "Gig Workers Unite"],
   },
   {
@@ -29,7 +29,7 @@ const templates = [
     subject: "IG Story or Post Caption",
     audience: "Your Instagram followers",
     body: (link: string) =>
-      `Stop paying 20% commission on every gig 💸\n\nGigxo lets you unlock client contact info for $7 flat — no platform middleman, no bidding wars, no commission.\n\nWeddings • Corporate • Clubs • Private Parties\n📍 All US cities\n\nFirst lead is FREE → ${link}\n\n#DJ #Performer #GigLife #MusicBusiness #DJLife #Miami`,
+      `Stop paying 20% commission on every gig 💸\n\nGigxo lets you unlock client contact info for $7 flat — no platform middleman, no bidding wars, no commission.\n\nWeddings • Corporate • Clubs • Private Parties\n📍 All US cities\n\nFirst unlock $1 → ${link}\n\n#DJ #Performer #GigLife #MusicBusiness #DJLife #Miami`,
     suggestedGroups: ["Your IG feed", "IG Stories with link sticker"],
   },
   {
@@ -53,7 +53,7 @@ const templates = [
     subject: "DM to DJ / Performer Friends",
     audience: "Individual DJ / performer contacts",
     body: (link: string) =>
-      `Hey! Have you heard of Gigxo? It's a gig lead marketplace — clients post events (weddings, corporate, clubs) and you pay $7 flat to unlock their contact info. No commission, no bidding.\n\nI've been using it and it's legit. First lead is free if you sign up with my link: ${link}\n\nLet me know if you try it!`,
+      `Hey! Have you heard of Gigxo? It's a gig lead marketplace — clients post events (weddings, corporate, clubs) and you pay $7 flat to unlock their contact info. No commission, no bidding.\n\nI've been using it and it's legit. First unlock $1 if you sign up with my link: ${link}\n\nLet me know if you try it!`,
     suggestedGroups: ["Instagram DMs", "Facebook Messenger", "iMessage / WhatsApp"],
   },
   {
@@ -65,7 +65,7 @@ const templates = [
     subject: "Nextdoor or Community Board Post",
     audience: "Local community members looking for entertainment",
     body: (link: string) =>
-      `Local performers — are you looking for more gigs in our area? 🎵\n\nGigxo is a new platform where event clients post their entertainment needs and local DJs, bands, and performers can connect directly — no middleman, no big platform fees.\n\nIf you're a performer: sign up free and get your first lead unlocked at no cost → ${link}\n\nIf you're planning an event: you can also post your gig directly on Gigxo to reach local talent.`,
+      `Local performers — are you looking for more gigs in our area? 🎵\n\nGigxo is a new platform where event clients post their entertainment needs and local DJs, bands, and performers can connect directly — no middleman, no big platform fees.\n\nIf you're a performer: sign up free and get your first unlock for just $1 → ${link}\n\nIf you're planning an event: you can also post your gig directly on Gigxo to reach local talent.`,
     suggestedGroups: ["Nextdoor", "Local Facebook community groups", "Ring / Neighbors app"],
   },
   {
@@ -77,7 +77,7 @@ const templates = [
     subject: "Email to Your Network",
     audience: "Your email contacts who are performers",
     body: (link: string) =>
-      `Subject: Found a better way to get gig leads\n\nHey,\n\nI wanted to share something I've been using to find gig leads without paying commission.\n\nIt's called Gigxo — basically a marketplace where event clients post their entertainment needs (weddings, corporate events, clubs, private parties) and you pay $7 flat to unlock their contact info. You reach out directly, negotiate your own rate, and keep 100% of your fee.\n\nNo 20% GigSalad commission. No bidding wars. Just direct access to clients.\n\nThey cover all major US cities and have leads across DJ, live music, photography, makeup, and more.\n\nYour first lead is free if you sign up with my link: ${link}\n\nLet me know if you have questions!\n\nBest,`,
+      `Subject: Found a better way to get gig leads\n\nHey,\n\nI wanted to share something I've been using to find gig leads without paying commission.\n\nIt's called Gigxo — basically a marketplace where event clients post their entertainment needs (weddings, corporate events, clubs, private parties) and you pay $7 flat to unlock their contact info. You reach out directly, negotiate your own rate, and keep 100% of your fee.\n\nNo 20% GigSalad commission. No bidding wars. Just direct access to clients.\n\nThey cover all major US cities and have leads across DJ, live music, photography, makeup, and more.\n\nYour first unlock is $1 if you sign up with my link: ${link}\n\nLet me know if you have questions!\n\nBest,`,
     suggestedGroups: ["Gmail", "Mailchimp", "Your email list"],
   },
 ];
@@ -110,7 +110,7 @@ export default function SharePage() {
   const shareToFacebook = () => {
     // Facebook sharer deep-link — opens the share dialog pre-filled with the referral URL.
     // On mobile this opens the native FB app; on desktop it opens a popup.
-    const fbShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralLink)}&quote=${encodeURIComponent("Stop paying 20% commission on every gig. Gigxo lets you unlock client contact info for $7 flat — no middleman, no bidding wars. First lead is FREE 🎵")}` ;
+    const fbShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralLink)}&quote=${encodeURIComponent("Stop paying 20% commission on every gig. Gigxo lets you unlock client contact info for $7 flat — no middleman, no bidding wars. First unlock $1 🎵")}` ;
     window.open(fbShareUrl, "_blank", "noopener,noreferrer,width=600,height=500");
   };
 

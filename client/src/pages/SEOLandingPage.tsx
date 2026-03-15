@@ -104,6 +104,12 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
           offset: 0,
         },
   );
+  const { data: leadsSummary } = trpc.leads.getPublicSummary.useQuery(
+    pageConfig?.defaultCity
+      ? { location: pageConfig.defaultCity, serviceHint: parsed?.serviceId?.includes("dj") ? "dj" : parsed?.serviceId?.includes("band") ? "band" : undefined }
+      : { location: "", serviceHint: "" },
+    { enabled: !!pageConfig?.defaultCity }
+  );
 
   const hireArtists = (artistsData?.artists ?? []).filter((artist: any) => {
     if (!isBoatContextPage) return true;
@@ -369,6 +375,11 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
               <h2 className="text-2xl font-bold mb-4">
                 {isHireLikePage ? "About These Performers" : "About This Service"}
               </h2>
+              {isHireLikePage && leadsSummary && leadsSummary.count > 0 && (
+                <p className="text-sm text-emerald-700 font-medium mb-3">
+                  {leadsSummary.count} gig{leadsSummary.count !== 1 ? "s" : ""} in this area right now
+                </p>
+              )}
               <p className="text-gray-700 mb-4">{content}</p>
               {isBoatContextPage && (
                 <p className="text-sm text-gray-600">

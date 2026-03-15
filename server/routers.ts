@@ -464,6 +464,9 @@ export const appRouter = router({
         instagramUrl: z.string().url().optional(),
         tiktokUrl: z.string().url().optional(),
         websiteUrl: z.string().url().optional(),
+        minBudget: z.number().min(0).optional(),
+        maxDistance: z.number().min(0).max(200).optional(),
+        profileImageUrl: z.string().url().optional().nullable(),
       }))
       .mutation(async ({ ctx, input }) => {
         const { getDb, getOrCreateArtistProfile } = await import("./db");
@@ -495,6 +498,9 @@ export const appRouter = router({
         if (input.instagramUrl !== undefined) updateData.instagramUrl = input.instagramUrl;
         if (input.tiktokUrl !== undefined) updateData.tiktokUrl = input.tiktokUrl;
         if (input.websiteUrl !== undefined) updateData.websiteUrl = input.websiteUrl;
+        if (input.minBudget !== undefined) updateData.minBudget = input.minBudget;
+        if (input.maxDistance !== undefined) updateData.maxDistance = input.maxDistance;
+        if (input.profileImageUrl !== undefined) updateData.profileImageUrl = input.profileImageUrl;
 
         if (Object.keys(updateData).length > 0) {
           await db.update(artistProfiles).set(updateData).where(eq(artistProfiles.userId, ctx.user.id));
@@ -502,6 +508,31 @@ export const appRouter = router({
 
         const updated = await db.select().from(artistProfiles).where(eq(artistProfiles.userId, ctx.user.id)).limit(1);
         return updated.length > 0 ? updated[0] : null;
+      }),
+
+    uploadProfileImage: protectedProcedure
+      .input(z.object({
+        fileBase64: z.string(),
+        mimeType: z.string().default("image/jpeg"),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { storagePut } = await import("./storage");
+        const { getDb } = await import("./db");
+        const { artistProfiles } = await import("../drizzle/schema");
+
+        const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+        const buffer = Buffer.from(input.fileBase64, "base64");
+        if (buffer.length > MAX_SIZE) throw new Error("Image too large. Max 5MB.");
+
+        const ext = (input.mimeType === "image/png" ? "png" : input.mimeType === "image/webp" ? "webp" : "jpg");
+        const fileKey = `profile-images/${ctx.user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+        const { url } = await storagePut(fileKey, buffer, input.mimeType);
+
+        const db = await getDb();
+        if (!db) throw new Error("Database not available");
+        await db.update(artistProfiles).set({ profileImageUrl: url, photoUrl: url, avatarUrl: url }).where(eq(artistProfiles.userId, ctx.user.id));
+
+        return { url };
       }),
       
     getMyUnlocks: protectedProcedure.query(async ({ ctx }) => {
@@ -645,19 +676,29 @@ export const appRouter = router({
           }
         });
         
-        // Return leads with contact info blurred unless unlocked; expose hints so artists know what they're unlocking
-        return filtered.map(lead => ({
-          ...lead,
-          isUnlocked: unlockedLeadIds.has(lead.id),
-          contactName: unlockedLeadIds.has(lead.id) ? lead.contactName : (lead.contactName ? "Contact info locked" : null),
-          contactEmail: unlockedLeadIds.has(lead.id) ? lead.contactEmail : null,
-          contactPhone: unlockedLeadIds.has(lead.id) ? lead.contactPhone : null,
-          hasContactEmail: !!lead.contactEmail,
-          hasContactPhone: !!lead.contactPhone,
-          hasFacebookProfileLink: !lead.contactEmail && !lead.contactPhone && !!(lead.venueUrl && String(lead.venueUrl).includes("facebook.com")),
-          viewCount: (viewCounts[lead.id] ?? 0) + ((lead.id * 17 + 43) % 67) + 12,
-          unlockCount: unlockCounts[lead.id] ?? 0,
-        }));
+        // Return leads with contact and identity blurred unless unlocked (reduce lead leakage)
+        const LOCKED_TITLE = "Event lead";
+        const LOCKED_LOCATION = "Location locked";
+        const LOCKED_DESCRIPTION = "Details available after unlock";
+        return filtered.map(lead => {
+          const isUnlocked = unlockedLeadIds.has(lead.id);
+          return {
+            ...lead,
+            title: isUnlocked ? lead.title : LOCKED_TITLE,
+            location: isUnlocked ? lead.location : LOCKED_LOCATION,
+            description: isUnlocked ? lead.description : LOCKED_DESCRIPTION,
+            venueUrl: isUnlocked ? lead.venueUrl : null,
+            isUnlocked,
+            contactName: isUnlocked ? lead.contactName : (lead.contactName ? "Contact info locked" : null),
+            contactEmail: isUnlocked ? lead.contactEmail : null,
+            contactPhone: isUnlocked ? lead.contactPhone : null,
+            hasContactEmail: !!lead.contactEmail,
+            hasContactPhone: !!lead.contactPhone,
+            hasFacebookProfileLink: !lead.contactEmail && !lead.contactPhone && !!(lead.venueUrl && String(lead.venueUrl).includes("facebook.com")),
+            viewCount: (viewCounts[lead.id] ?? 0) + ((lead.id * 17 + 43) % 67) + 12,
+            unlockCount: unlockCounts[lead.id] ?? 0,
+          };
+        });
       }),
     
     getById: protectedProcedure
@@ -672,9 +713,16 @@ export const appRouter = router({
         }
         
         const unlocked = await hasUnlockedLead(ctx.user.id, input.id);
-        
+        // Mask identity fields when locked (reduce lead leakage)
+        const LOCKED_TITLE = "Event lead";
+        const LOCKED_LOCATION = "Location locked";
+        const LOCKED_DESCRIPTION = "Details available after unlock";
         return {
           ...lead,
+          title: unlocked ? lead.title : LOCKED_TITLE,
+          location: unlocked ? lead.location : LOCKED_LOCATION,
+          description: unlocked ? lead.description : LOCKED_DESCRIPTION,
+          venueUrl: unlocked ? lead.venueUrl : null,
           isUnlocked: unlocked,
           contactName: unlocked ? lead.contactName : (lead.contactName ? "Contact info locked" : null),
           contactEmail: unlocked ? lead.contactEmail : null,
@@ -850,6 +898,51 @@ export const appRouter = router({
         contactPhone: null,
       }));
     }),
+
+    /** Public summary for SEO pages: count and teasers by location/service (no contact, masked identity). */
+    getPublicSummary: publicProcedure
+      .input(z.object({ location: z.string().optional(), serviceHint: z.string().optional() }))
+      .query(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) return { count: 0, teasers: [] };
+        const { gigLeads } = await import("../drizzle/schema");
+        const { desc, and, eq, isNotNull, gte, or, isNull, not, inArray, like } = await import("drizzle-orm");
+        const now = new Date();
+        const artistVisibleLead = and(
+          or(isNull(gigLeads.leadType), not(inArray(gigLeads.leadType, ["venue_intelligence", "manual_outreach"]))),
+          or(isNull(gigLeads.leadCategory), not(eq(gigLeads.leadCategory, "venue_intelligence")))
+        );
+        const conditions = [
+          eq(gigLeads.isApproved, true),
+          eq(gigLeads.isHidden, false),
+          eq(gigLeads.isReserved, false),
+          artistVisibleLead,
+          or(isNull(gigLeads.eventDate), gte(gigLeads.eventDate, now)),
+        ];
+        if (input.location?.trim()) {
+          conditions.push(like(gigLeads.location, `%${input.location.trim()}%`));
+        }
+        if (input.serviceHint?.toLowerCase() === "dj") {
+          conditions.push(eq(gigLeads.performerType, "dj"));
+        } else if (input.serviceHint?.toLowerCase() === "band") {
+          conditions.push(inArray(gigLeads.performerType, ["small_band", "large_band"]));
+        }
+        const where = and(...conditions);
+        const [countRow] = await db.select({ count: sql<number>`COUNT(*)` }).from(gigLeads).where(where);
+        const count = Number(countRow?.count ?? 0);
+        const rows = await db.select({
+          title: gigLeads.title,
+          budget: gigLeads.budget,
+          eventType: gigLeads.eventType,
+        }).from(gigLeads).where(where).orderBy(desc(gigLeads.createdAt)).limit(3);
+        const teasers = rows.map(r => ({
+          title: "Event lead",
+          budgetDisplay: r.budget ? `$${Math.round(r.budget / 100)}` : "—",
+          eventType: r.eventType ?? "Event",
+        }));
+        return { count, teasers };
+      }),
   }),
 
   // Payment procedures
@@ -903,9 +996,15 @@ export const appRouter = router({
           };
         }
         
-        // Check for available credits
+        // Ensure Pro subscribers have their 5 monthly credits for current period
         const { getDb } = await import("./db");
         const db = await getDb();
+        if (db) {
+          const { ensureProMonthlyCredits } = await import("./proCredits");
+          await ensureProMonthlyCredits(ctx.user.id, db);
+        }
+        
+        // Check for available credits (referral, promo, pro_monthly)
         let creditApplied = 0;
         if (db) {
           const { userCredits } = await import("../drizzle/schema");
@@ -1307,14 +1406,24 @@ export const appRouter = router({
       }),
 
     setLeadPrice: protectedProcedure
-      .input(z.object({ leadId: z.number(), priceDollars: z.number().min(1).max(999) }))
+      .input(z.object({
+        leadId: z.number(),
+        priceDollars: z.number().min(1).max(999).optional(),
+        clearOverride: z.boolean().optional(),
+      }).refine((data) => data.clearOverride === true || (typeof data.priceDollars === "number" && data.priceDollars >= 1), {
+        message: "Provide priceDollars (1–999) or clearOverride: true",
+      }))
       .mutation(async ({ ctx, input }) => {
         if (ctx.user?.role !== 'admin') throw new Error("Unauthorized");
         const { getDb } = await import("./db");
         const db = await getDb();
         if (!db) throw new Error("Database not available");
         const { gigLeads } = await import("../drizzle/schema");
-        await db.update(gigLeads).set({ unlockPriceCents: Math.round(input.priceDollars * 100) }).where(eq(gigLeads.id, input.leadId));
+        if (input.clearOverride === true) {
+          await db.update(gigLeads).set({ unlockPriceCents: null }).where(eq(gigLeads.id, input.leadId));
+        } else {
+          await db.update(gigLeads).set({ unlockPriceCents: Math.round((input.priceDollars ?? 7) * 100) }).where(eq(gigLeads.id, input.leadId));
+        }
         return { success: true };
       }),
 
@@ -1344,6 +1453,7 @@ export const appRouter = router({
         artistUnlockEnabled: z.boolean().optional(),
         premiumOnly: z.boolean().optional(),
         outreachNextFollowUpAt: z.date().optional(),
+        leadTier: z.enum(["starter_friendly", "standard", "premium"]).nullable().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         if (ctx.user?.role !== 'admin') throw new Error("Unauthorized");
@@ -1353,6 +1463,7 @@ export const appRouter = router({
         const { gigLeads } = await import("../drizzle/schema");
         
         const updateData: any = {};
+        if (input.leadTier !== undefined) updateData.leadTier = input.leadTier;
         if (input.title !== undefined) updateData.title = input.title;
         if (input.description !== undefined) updateData.description = input.description;
         if (input.location !== undefined) updateData.location = input.location;
@@ -1986,7 +2097,7 @@ export const appRouter = router({
     }),
 
     sendOutreach: protectedProcedure
-      .input(z.object({ leadId: z.number(), templateId: z.enum(["venue_intro", "follow_up", "performer_supply"]) }))
+      .input(z.object({ leadId: z.number(), templateId: z.enum(["venue_intro", "follow_up", "performer_supply", "venue_outreach", "performer_outreach"]) }))
       .mutation(async ({ ctx, input }) => {
         if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
         const { getDb } = await import("./db");
@@ -2001,7 +2112,12 @@ export const appRouter = router({
         if (!email) return { success: false, noOutreachableEmail: true, message: "No outreachable email" };
         const template = getOutreachTemplate(input.templateId);
         if (!template) throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid template" });
-        const { subject, body } = renderOutreachTemplate(template, lead.title ?? "Venue", lead.location ?? "");
+        const { subject, body } = renderOutreachTemplate(
+          template,
+          lead.title ?? "Venue",
+          lead.location ?? "",
+          { ownerName: lead.contactName ?? undefined, platformLink: process.env.APP_URL ?? "https://gigxo.com", link: process.env.APP_URL ? `${process.env.APP_URL}/dashboard` : "https://gigxo.com/dashboard" }
+        );
         const result = await sendOutreachEmail(email, subject, body);
         const logStatus = result.success ? "sent" : "failed";
         await db.insert(outreachLog).values({
@@ -2028,7 +2144,7 @@ export const appRouter = router({
     sendOutreachBulk: protectedProcedure
       .input(z.object({
         leadIds: z.array(z.number()).min(1).max(100),
-        templateId: z.enum(["venue_intro", "follow_up", "performer_supply"]),
+        templateId: z.enum(["venue_intro", "follow_up", "performer_supply", "venue_outreach", "performer_outreach"]),
       }))
       .mutation(async ({ ctx, input }) => {
         if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
@@ -2048,7 +2164,12 @@ export const appRouter = router({
             results.push({ leadId: lead.id, success: false, noOutreachableEmail: true });
             continue;
           }
-          const { subject, body } = renderOutreachTemplate(template, lead.title ?? "Venue", lead.location ?? "");
+          const { subject, body } = renderOutreachTemplate(
+            template,
+            lead.title ?? "Venue",
+            lead.location ?? "",
+            { ownerName: lead.contactName ?? undefined, platformLink: process.env.APP_URL ?? "https://gigxo.com", link: process.env.APP_URL ? `${process.env.APP_URL}/dashboard` : "https://gigxo.com/dashboard" }
+          );
           const result = await sendOutreachEmail(email, subject, body);
           const logStatus = result.success ? "sent" : "failed";
           await db.insert(outreachLog).values({
@@ -3153,7 +3274,7 @@ export const appRouter = router({
       const rows = await db.select().from(subscriptions).where(eq(subscriptions.userId, ctx.user.id)).limit(1);
       return rows[0] ?? null;
     }),
-    // Start premium subscription ($19/month, 5 unlocks)
+    // Start premium subscription ($49/month, 5 unlocks)
     startPremium: protectedProcedure
       .input(z.object({ origin: z.string().optional() }))
       .mutation(async ({ ctx, input }) => {
@@ -3161,7 +3282,7 @@ export const appRouter = router({
         const db = await getDb();
         if (!db) throw new Error("Database not available");
         const { subscriptions } = await import("../drizzle/schema");
-        const origin = input.origin ?? "https://gigxo.com";
+        const origin = input.origin ?? process.env.APP_URL?.trim() ?? "https://gigxo.com";
         // Check if Stripe is configured
         const stripeKey = process.env.STRIPE_SECRET_KEY;
         const now = new Date();
@@ -3176,7 +3297,7 @@ export const appRouter = router({
           }
           return { success: true, demo: true, checkoutUrl: null };
         }
-        // Real Stripe checkout — create a Stripe Checkout session for $19/month
+        // Real Stripe checkout — $49/month Pro (5 lead unlocks included)
         const stripe = (await import("./stripe")).getStripe();
         if (!stripe) throw new Error("Stripe not configured");
         const session = await stripe.checkout.sessions.create({
@@ -3186,9 +3307,9 @@ export const appRouter = router({
           line_items: [{
             price_data: {
               currency: "usd",
-              unit_amount: 1900,
+              unit_amount: 4900,
               recurring: { interval: "month" },
-              product_data: { name: "Gigxo Premium", description: "5 lead unlocks per month + South Florida Venue Intelligence access" },
+              product_data: { name: "Gigxo Pro", description: "5 lead unlocks per month + South Florida Venue Intelligence access" },
             },
             quantity: 1,
           }],

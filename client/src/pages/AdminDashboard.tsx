@@ -102,6 +102,7 @@ export default function AdminDashboard() {
     contactEmail: "",
     leadType: "",
     leadCategory: "",
+    leadTier: "" as string | null,
     status: "",
     notes: "",
     followUpAt: "",
@@ -129,6 +130,7 @@ export default function AdminDashboard() {
       contactEmail: lead.contactEmail || "",
       leadType: lead.leadType ?? "",
       leadCategory: lead.leadCategory ?? "",
+      leadTier: (lead as any).leadTier ?? "",
       status: (lead as any).status ?? "",
       notes: (lead as any).notes ?? "",
       followUpAt: (lead as any).followUpAt ? new Date(lead.followUpAt).toISOString().slice(0, 16) : "",
@@ -147,6 +149,7 @@ export default function AdminDashboard() {
       contactEmail: editFormData.contactEmail || undefined,
       leadType: editFormData.leadType || undefined,
       leadCategory: editFormData.leadCategory || undefined,
+      leadTier: editFormData.leadTier ? editFormData.leadTier : null,
       status: editFormData.status || undefined,
       notes: editFormData.notes || undefined,
       followUpAt: editFormData.followUpAt ? new Date(editFormData.followUpAt).toISOString() : undefined,
@@ -788,6 +791,13 @@ export default function AdminDashboard() {
                               Venue Intelligence
                             </Badge>
                           )}
+                          {(lead as any).leadTier && (
+                            <Badge variant="outline" className="border-slate-300 text-slate-600 bg-slate-50 text-xs">
+                              {(lead as any).leadTier === "starter_friendly" && "Starter"}
+                              {(lead as any).leadTier === "standard" && "Standard"}
+                              {(lead as any).leadTier === "premium" && "Premium"}
+                            </Badge>
+                          )}
                         </div>
                         <p className="text-sm text-slate-500">
                           {lead.eventType} · {lead.location} · {formatBudget(lead.budget)}
@@ -914,14 +924,25 @@ export default function AdminDashboard() {
                           <button onClick={() => setEditingPriceId(null)} className="text-xs text-slate-400 hover:text-slate-600">✕</button>
                         </div>
                       ) : (
-                        <button
-                          onClick={() => { setEditingPriceId(lead.id); setPriceInput(String(((lead as any).unlockPriceCents ?? 700) / 100)); }}
-                          className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200"
-                          title="Set custom unlock price"
-                        >
-                          <DollarSign className="w-3 h-3" />
-                          {(lead as any).unlockPriceCents ? `$${((lead as any).unlockPriceCents / 100).toFixed(0)}` : "$7"}
-                        </button>
+                        <span className="flex items-center gap-1">
+                          <button
+                            onClick={() => { setEditingPriceId(lead.id); setPriceInput(String(((lead as any).unlockPriceCents ?? 700) / 100)); }}
+                            className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200"
+                            title="Set custom unlock price"
+                          >
+                            <DollarSign className="w-3 h-3" />
+                            {(lead as any).unlockPriceCents ? `$${((lead as any).unlockPriceCents / 100).toFixed(0)}` : "$7"}
+                          </button>
+                          {(lead as any).unlockPriceCents != null && (
+                            <button
+                              onClick={() => setLeadPrice({ leadId: lead.id, clearOverride: true })}
+                              className="text-xs text-slate-400 hover:text-slate-600"
+                              title="Revert to auto price ($7 / $15 by budget)"
+                            >
+                              Use auto
+                            </button>
+                          )}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -1205,6 +1226,19 @@ export default function AdminDashboard() {
                       <option value="club">Club</option>
                       <option value="private_party">Private party</option>
                       <option value="unknown">Unknown</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-slate-700 block mb-1">Lead tier</label>
+                    <select
+                      value={editFormData.leadTier ?? ""}
+                      onChange={(e) => setEditFormData({ ...editFormData, leadTier: e.target.value || null })}
+                      className="w-full h-9 rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 focus:outline-none focus:ring-1 focus:ring-purple-400"
+                    >
+                      <option value="">—</option>
+                      <option value="starter_friendly">Starter friendly</option>
+                      <option value="standard">Standard</option>
+                      <option value="premium">Premium</option>
                     </select>
                   </div>
                 </div>

@@ -127,6 +127,9 @@ export default function AdminEventWindows() {
   const [editTarget, setEditTarget] = useState<EventWindow | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [filterMarket, setFilterMarket] = useState("all");
+  // String state for numeric inputs so they can be cleared/edited without sticky values (same pattern as min budget / max travel)
+  const [eventYearInput, setEventYearInput] = useState("");
+  const [leadDaysInput, setLeadDaysInput] = useState("");
 
   const markets = useMemo(() => {
     const ids = Array.from(new Set((windows as EventWindow[]).map((w) => w.marketId))).sort();
@@ -158,6 +161,8 @@ export default function AdminEventWindows() {
       eventYear: w.eventYear,
       notes: w.notes ?? "",
     });
+    setEventYearInput(String(w.eventYear));
+    setLeadDaysInput(String(w.leadDays));
   }
 
   function handleSubmit(isEdit: boolean) {
@@ -198,7 +203,7 @@ export default function AdminEventWindows() {
               and multiply lead scores automatically.
             </p>
           </div>
-          <Button onClick={() => { setForm(emptyForm); setShowAdd(true); }} className="gap-2">
+          <Button onClick={() => { setForm(emptyForm); setEventYearInput(String(emptyForm.eventYear)); setLeadDaysInput(String(emptyForm.leadDays)); setShowAdd(true); }} className="gap-2">
             <Plus className="w-4 h-4" />
             Add Window
           </Button>
@@ -429,8 +434,17 @@ export default function AdminEventWindows() {
               <Label>Event Year</Label>
               <Input
                 type="number"
-                value={form.eventYear}
-                onChange={(e) => setForm({ ...form, eventYear: parseInt(e.target.value) })}
+                min={2020}
+                max={2030}
+                value={eventYearInput}
+                onChange={(e) => setEventYearInput(e.target.value)}
+                onBlur={() => {
+                  const n = eventYearInput === "" ? new Date().getFullYear() : parseInt(eventYearInput, 10);
+                  const val = Number.isNaN(n) ? new Date().getFullYear() : Math.min(2030, Math.max(2020, n));
+                  setForm((f) => ({ ...f, eventYear: val }));
+                  setEventYearInput(String(val));
+                }}
+                placeholder={String(new Date().getFullYear())}
               />
             </div>
             <div className="space-y-1">
@@ -453,8 +467,17 @@ export default function AdminEventWindows() {
               <Label>Lead Days (visible before start)</Label>
               <Input
                 type="number"
-                value={form.leadDays}
-                onChange={(e) => setForm({ ...form, leadDays: parseInt(e.target.value) })}
+                min={0}
+                max={365}
+                value={leadDaysInput}
+                onChange={(e) => setLeadDaysInput(e.target.value)}
+                onBlur={() => {
+                  const n = leadDaysInput === "" ? 90 : parseInt(leadDaysInput, 10);
+                  const val = Number.isNaN(n) ? 90 : Math.min(365, Math.max(0, n));
+                  setForm((f) => ({ ...f, leadDays: val }));
+                  setLeadDaysInput(String(val));
+                }}
+                placeholder="90"
               />
             </div>
             <div className="space-y-1">

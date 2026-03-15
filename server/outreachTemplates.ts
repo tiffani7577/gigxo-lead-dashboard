@@ -3,7 +3,7 @@
  * Used by one-click and bulk outreach (Phase 3). Copy is editable here.
  */
 
-export type OutreachTemplateId = "venue_intro" | "follow_up" | "performer_supply";
+export type OutreachTemplateId = "venue_intro" | "follow_up" | "performer_supply" | "venue_outreach" | "performer_outreach";
 
 export interface OutreachTemplate {
   id: OutreachTemplateId;
@@ -15,6 +15,11 @@ export interface OutreachTemplate {
 const PLACEHOLDERS = {
   venueName: "{{venueName}}",
   location: "{{location}}",
+  city: "{{city}}",
+  ownerName: "{{ownerName}}",
+  platformLink: "{{platformLink}}",
+  artistName: "{{artistName}}",
+  link: "{{link}}",
 } as const;
 
 export const OUTREACH_TEMPLATES: OutreachTemplate[] = [
@@ -61,23 +66,74 @@ Reply to learn more — no obligation.
 Best,
 The Gigxo Team`,
   },
+  {
+    id: "venue_outreach",
+    label: "Venue outreach (DBPR)",
+    subject: "Congratulations on opening [VENUE_NAME] in [CITY] — Gigxo",
+    body: `Congratulations on opening [VENUE_NAME] in [CITY].
+
+Gigxo connects venues with local DJs and live performers. We have artists actively looking for bookings in your area.
+
+If you're interested, you can connect with talent here:
+[PLATFORM_LINK]`,
+  },
+  {
+    id: "performer_outreach",
+    label: "Performer outreach",
+    subject: "Hey [ARTIST_NAME] — gig opportunities in [CITY]",
+    body: `Hey [ARTIST_NAME],
+
+Gigxo surfaces real gig opportunities for DJs and performers in South Florida.
+
+New gigs appear daily and can be unlocked instantly.
+
+You can check them out here:
+[LINK]`,
+  },
 ];
 
 export function getOutreachTemplate(id: OutreachTemplateId): OutreachTemplate | undefined {
   return OUTREACH_TEMPLATES.find((t) => t.id === id);
 }
 
-/** Replace {{venueName}} and {{location}} in template body/subject. */
+export interface OutreachTemplateVars {
+  venueName?: string;
+  location?: string;
+  city?: string;
+  ownerName?: string;
+  platformLink?: string;
+  artistName?: string;
+  link?: string;
+}
+
+/** Replace placeholders in template body/subject. Supports {{x}} and [X_NAME] style. */
 export function renderOutreachTemplate(
   template: OutreachTemplate,
   venueName: string,
-  location: string
+  location: string,
+  extra: OutreachTemplateVars = {}
 ): { subject: string; body: string } {
-  const subj = template.subject
-    .replace(PLACEHOLDERS.venueName, venueName)
-    .replace(PLACEHOLDERS.location, location);
-  const body = template.body
-    .replace(PLACEHOLDERS.venueName, venueName)
-    .replace(PLACEHOLDERS.location, location);
+  const city = extra.city ?? location.split(",")[0]?.trim() ?? location;
+  const vars: Record<string, string> = {
+    [PLACEHOLDERS.venueName]: venueName,
+    [PLACEHOLDERS.location]: location,
+    [PLACEHOLDERS.city]: city,
+    [PLACEHOLDERS.ownerName]: extra.ownerName ?? "",
+    [PLACEHOLDERS.platformLink]: extra.platformLink ?? "https://gigxo.com",
+    [PLACEHOLDERS.artistName]: extra.artistName ?? "",
+    [PLACEHOLDERS.link]: extra.link ?? "https://gigxo.com/dashboard",
+    "[VENUE_NAME]": venueName,
+    "[CITY]": city,
+    "[OWNER_NAME]": extra.ownerName ?? "",
+    "[PLATFORM_LINK]": extra.platformLink ?? "https://gigxo.com",
+    "[ARTIST_NAME]": extra.artistName ?? "",
+    "[LINK]": extra.link ?? "https://gigxo.com/dashboard",
+  };
+  let subj = template.subject;
+  let body = template.body;
+  for (const [key, value] of Object.entries(vars)) {
+    subj = subj.split(key).join(value);
+    body = body.split(key).join(value);
+  }
   return { subject: subj, body };
 }
