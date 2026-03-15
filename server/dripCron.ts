@@ -200,6 +200,11 @@ let lastDailyVenueOutreachDate = "";
 
 function scheduleDailyVenueOutreach() {
   setInterval(async () => {
+    const outreachEnabled = process.env.VENUE_OUTREACH_ENABLED === "true";
+    if (!outreachEnabled) {
+      console.log("[cron] Venue outreach disabled — set VENUE_OUTREACH_ENABLED=true in Railway to enable");
+      return;
+    }
     const now = new Date();
     const etFormatter = new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York", hour: "numeric", minute: "numeric", hour12: false });
     const etParts = etFormatter.formatToParts(now);

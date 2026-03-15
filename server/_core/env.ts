@@ -13,4 +13,5 @@ export const ENV = {
   resendApiKey: process.env.RESEND_API_KEY ?? "",
   apifyApiToken: process.env.APIFY_API_TOKEN ?? "",
   googlePlacesApiKey: process.env.GOOGLE_PLACES_API_KEY ?? "",
+  gaMeasurementId: process.env.VITE_GA_MEASUREMENT_ID ?? "",
 };

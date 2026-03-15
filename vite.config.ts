@@ -150,7 +150,18 @@ function vitePluginManusDebugCollector(): Plugin {
   };
 }
 
-const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector()];
+/** Replace GA4 placeholder in index.html with VITE_GA_MEASUREMENT_ID at build time */
+function vitePluginGaMeasurementId(): Plugin {
+  return {
+    name: "ga-measurement-id",
+    transformIndexHtml(html) {
+      const id = process.env.VITE_GA_MEASUREMENT_ID ?? "";
+      return html.replace(/__VITE_GA_MEASUREMENT_ID__/g, id);
+    },
+  };
+}
+
+const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector(), vitePluginGaMeasurementId()];
 
 export default defineConfig({
   plugins,
