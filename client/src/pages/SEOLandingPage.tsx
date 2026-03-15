@@ -436,6 +436,46 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
               </div>
             </Card>
 
+            {/* FAQ section — rendered when pageConfig.faq exists */}
+            {pageConfig?.faq && pageConfig.faq.length > 0 && (
+              <>
+                <script
+                  type="application/ld+json"
+                  dangerouslySetInnerHTML={{
+                    __html: JSON.stringify({
+                      "@context": "https://schema.org",
+                      "@type": "FAQPage",
+                      mainEntity: pageConfig.faq.map((item) => ({
+                        "@type": "Question",
+                        name: item.question,
+                        acceptedAnswer: {
+                          "@type": "Answer",
+                          text: item.answer,
+                        },
+                      })),
+                    }),
+                  }}
+                />
+                <section className="mt-12">
+                  <h2 className="text-2xl font-bold text-slate-900 mb-6">
+                    Frequently Asked Questions
+                  </h2>
+                  <div className="space-y-4">
+                    {pageConfig.faq.map((item, i) => (
+                      <div key={i} className="border border-slate-200 rounded-lg p-5">
+                        <h3 className="font-semibold text-slate-900 mb-2">
+                          {item.question}
+                        </h3>
+                        <p className="text-slate-600 text-sm leading-relaxed">
+                          {item.answer}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              </>
+            )}
+
             {/* Hire / venue-specific performer grid */}
             {isHireLikePage && (
               <Card className="p-8 mt-8">

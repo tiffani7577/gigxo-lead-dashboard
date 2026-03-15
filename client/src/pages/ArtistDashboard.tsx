@@ -411,6 +411,13 @@ export default function ArtistDashboard() {
 
   const utils = trpc.useUtils();
 
+  // Require one-time onboarding: no userType → /welcome
+  useEffect(() => {
+    if (isAuthenticated && user && !user.userType) {
+      navigate("/welcome");
+    }
+  }, [isAuthenticated, user, navigate]);
+
   // Fire onLogin once after auth to trigger welcome email + referral attribution
   const { mutate: onLogin } = trpc.auth.onLogin.useMutation();
   const { mutate: logout } = trpc.auth.logout.useMutation({
@@ -907,6 +914,19 @@ export default function ArtistDashboard() {
                                 <span className="flex-shrink-0 flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
                                   <Unlock className="w-3 h-3" />
                                   Unlocked
+                                </span>
+                              )}
+                              {/* Lead tier / unlock price badge — show what they're paying before they click */}
+                              {!lead.isUnlocked && (lead as any).unlockPriceCents != null && (
+                                <span className="flex-shrink-0 text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full">
+                                  Unlock ${((lead as any).unlockPriceCents / 100).toFixed(0)}
+                                </span>
+                              )}
+                              {!lead.isUnlocked && (lead as any).unlockPriceCents == null && (lead as any).leadTier != null && (
+                                <span className="flex-shrink-0 text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full">
+                                  {((lead as any).leadTier === "starter_friendly" && "Unlock $1") ||
+                                    ((lead as any).leadTier === "premium" && "Unlock $15") ||
+                                    "Unlock $7"}
                                 </span>
                               )}
                             </div>

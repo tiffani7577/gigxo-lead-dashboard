@@ -116,7 +116,7 @@ export function registerGoogleAuthRoutes(app: Express) {
         picture?: string;
       };
 
-      const { token } = await loginWithGoogle({
+      const { token, user } = await loginWithGoogle({
         googleId: googleUser.sub,
         email: googleUser.email,
         name: googleUser.name ?? "",
@@ -131,9 +131,11 @@ export function registerGoogleAuthRoutes(app: Express) {
         path: "/",
       });
 
-      // Redirect to frontend dashboard. Prefer state (origin from login page); fallback to APP_URL in production so we never redirect to wrong host (e.g. api host showing "not found").
+      // Redirect: first-time users (no userType) go to onboarding; others to dashboard
       const baseUrl = (state && state.startsWith("http") ? state : null) || process.env.APP_URL?.trim() || "";
-      const redirectTo = baseUrl ? `${baseUrl.replace(/\/+$/, "")}/dashboard` : "/dashboard";
+      const base = baseUrl ? baseUrl.replace(/\/+$/, "") : "";
+      const path = user.userType ? "/dashboard" : "/welcome";
+      const redirectTo = base ? `${base}${path}` : path;
       res.redirect(redirectTo);
     } catch (error) {
       console.error("[Google Auth] Error:", error);

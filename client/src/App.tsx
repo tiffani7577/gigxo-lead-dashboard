@@ -21,6 +21,8 @@ import PipelineBoard from "./pages/PipelineBoard";
 import SharePage from "./pages/SharePage";
 import RequestEntertainment from "./pages/RequestEntertainment";
 import BookDj from "./pages/BookDj";
+import Welcome from "./pages/Welcome";
+import VenueDashboard from "./pages/VenueDashboard";
 import { ScraperConfig } from "./pages/ScraperConfig";
 import AdminLeadsExplorer from "./pages/AdminLeadsExplorer";
 import AdminVenueIntelligence from "./pages/AdminVenueIntelligence";
@@ -46,6 +48,9 @@ function Router() {
       <Route path="/dashboard" component={ArtistDashboard} />
       <Route path="/profile" component={ArtistProfile} />
       <Route path="/verify-email" component={VerifyEmail} />
+      <Route path="/welcome" component={Welcome} />
+      <Route path="/book" component={RequestEntertainment} />
+      <Route path="/venue-dashboard" component={VenueDashboard} />
       <Route path="/artists" component={ArtistDirectory} />
       <Route path="/artist/:slug" component={PublicArtistProfile} />
       <Route path="/pipeline" component={PipelineBoard} />

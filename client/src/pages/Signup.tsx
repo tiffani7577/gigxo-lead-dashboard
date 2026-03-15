@@ -38,7 +38,7 @@ export default function Signup() {
       // Store token in localStorage — works in all browsers including Safari
       if (data.token) setAuthToken(data.token);
       toast.success("Welcome to Gigxo! 🎉");
-      window.location.href = "/dashboard";
+      window.location.href = "/welcome";
     },
     onError: (e) => toast.error(e.message),
   });

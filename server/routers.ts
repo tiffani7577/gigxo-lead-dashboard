@@ -176,6 +176,17 @@ export const appRouter = router({
   
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
+
+    /** One-time onboarding: set userType (performer | client | venue) and skip /welcome next time */
+    setUserType: protectedProcedure
+      .input(z.object({ userType: z.enum(["performer", "client", "venue"]) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB unavailable" });
+        const { users } = await import("../drizzle/schema");
+        await db.update(users).set({ userType: input.userType }).where(eq(users.id, ctx.user.id));
+        return { ok: true };
+      }),
     
     // Email/password signup
     signup: publicProcedure
@@ -989,7 +1000,7 @@ export const appRouter = router({
         if ((lead as any).artistUnlockEnabled === false) throw new Error("Lead not available");
         
         // Dynamic price based on budget
-        const DYNAMIC_PRICE = getLeadUnlockPriceCents((lead as any).budget, (lead as any).unlockPriceCents);
+        const DYNAMIC_PRICE = getLeadUnlockPriceCents((lead as any).budget, (lead as any).unlockPriceCents, (lead as any).leadTier);
         
         // Check if already unlocked
         const alreadyUnlocked = await hasUnlockedLead(ctx.user.id, input.leadId);
@@ -1107,7 +1118,7 @@ export const appRouter = router({
         const lead2 = await getLead2(input.leadId);
         const actualAmount = isFirstUnlock
           ? FIRST_UNLOCK_PRICE_CENTS
-          : getLeadUnlockPriceCents((lead2 as any)?.budget, (lead2 as any)?.unlockPriceCents);
+          : getLeadUnlockPriceCents((lead2 as any)?.budget, (lead2 as any)?.unlockPriceCents, (lead2 as any)?.leadTier);
         
         // Verify payment — skip if fully covered by credits
         if (!input.isFree) {
@@ -1410,6 +1421,52 @@ export const appRouter = router({
           isApproved: false,
           rejectionReason: input.reason ?? "Does not meet quality standards",
         }).where(eq(gigLeads.id, input.leadId));
+        return { success: true };
+      }),
+
+    /** Route a pending lead: Artist Lead, Venue Intel, Client Request, or Reject. Replaces simple approve/reject. */
+    routeLead: protectedProcedure
+      .input(z.object({
+        leadId: z.union([z.number(), z.string()]).pipe(z.coerce.number()),
+        action: z.enum(["artist_lead", "venue_intel", "client_request", "reject"]),
+        reason: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin") throw new Error("Unauthorized");
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) throw new Error("Database not available");
+        const { gigLeads } = await import("../drizzle/schema");
+        if (input.action === "reject") {
+          await db.update(gigLeads).set({
+            isRejected: true,
+            isApproved: false,
+            rejectionReason: input.reason ?? "Does not meet quality standards",
+          }).where(eq(gigLeads.id, input.leadId));
+          return { success: true };
+        }
+        const updates: Record<string, unknown> = {
+          isApproved: true,
+          isRejected: false,
+          rejectionReason: null,
+        };
+        if (input.action === "artist_lead") {
+          updates.leadType = "scraped_signal";
+          updates.leadCategory = null;
+          updates.artistUnlockEnabled = true;
+          updates.leadMonetizationType = "artist_unlock";
+        } else if (input.action === "venue_intel") {
+          updates.leadType = "venue_intelligence";
+          updates.leadCategory = "venue_intelligence";
+          updates.artistUnlockEnabled = false;
+          updates.leadMonetizationType = "venue_outreach";
+        } else if (input.action === "client_request") {
+          updates.leadType = "client_submitted";
+          updates.leadCategory = null;
+          updates.artistUnlockEnabled = true;
+          updates.leadMonetizationType = "artist_unlock";
+        }
+        await db.update(gigLeads).set(updates as any).where(eq(gigLeads.id, input.leadId));
         return { success: true };
       }),
     
@@ -1935,6 +1992,9 @@ export const appRouter = router({
           
           try {
             const needsEnrichment = (lead as any).needsEnrichment === true;
+            const leadTier = (lead as any).leadTier ?? undefined;
+            const { getLeadUnlockPriceCents } = await import("../shared/leadPricing");
+            const unlockPriceCents = getLeadUnlockPriceCents(lead.budget, null, leadTier);
             const insertData: any = {
               externalId:    lead.externalId,
               source:        lead.source as any,
@@ -1955,6 +2015,8 @@ export const appRouter = router({
               intentScore:   lead.intentScore ?? null,
               leadType:      (lead as any).leadType ?? undefined,
               leadCategory:  (lead as any).leadCategory ?? undefined,
+              leadTier:      leadTier ?? null,
+              unlockPriceCents,
               isApproved:    lead.isApproved ?? false,
               isRejected:    false,
               isHidden:      false,

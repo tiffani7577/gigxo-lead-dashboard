@@ -51,23 +51,20 @@ export default function AdminDashboard() {
     enabled: user?.role === "admin",
   });
 
-  // Approve lead
-  const { mutate: approveLead, isPending: isApproving } = trpc.admin.approveLead.useMutation({
-    onSuccess: () => {
+  // Route pending lead (Artist Lead / Venue Intel / Client Request / Reject)
+  const { mutate: routeLead, isPending: isRouting } = trpc.admin.routeLead.useMutation({
+    onSuccess: (_, variables) => {
       refetchLeads();
       refetchAnalytics();
-      toast.success("Lead approved and published!");
+      const msg = variables.action === "reject" ? "Lead rejected" : "Lead routed and published!";
+      toast.success(msg);
     },
     onError: (e) => toast.error(e.message),
   });
 
-  // Reject lead
-  const { mutate: rejectLead, isPending: isRejecting } = trpc.admin.rejectLead.useMutation({
-    onSuccess: () => {
-      refetchLeads();
-      refetchAnalytics();
-      toast.success("Lead rejected");
-    },
+  // Legacy approve/reject still used for "Restore" on rejected leads
+  const { mutate: approveLead, isPending: isApproving } = trpc.admin.approveLead.useMutation({
+    onSuccess: () => { refetchLeads(); refetchAnalytics(); toast.success("Lead restored to pending"); },
     onError: (e) => toast.error(e.message),
   });
 
@@ -749,7 +746,7 @@ export default function AdminDashboard() {
                           >
                             {lead.isApproved ? "Approved" : lead.isRejected ? "Rejected" : "Pending"}
                           </Badge>
-                          {/* SOURCE BADGE — admin-only, prominent for qualifying */}
+                          {/* Source badge — Reddit, Facebook, DBPR, Inbound, etc. */}
                           <Badge
                             variant="outline"
                             className={
@@ -759,35 +756,48 @@ export default function AdminDashboard() {
                               lead.source === 'weddingwire' ? 'border-rose-300 text-rose-700 bg-rose-50 font-semibold' :
                               lead.source === 'thumbtack' ? 'border-blue-300 text-blue-700 bg-blue-50 font-semibold' :
                               lead.source === 'facebook' ? 'border-indigo-300 text-indigo-700 bg-indigo-50 font-semibold' :
+                              lead.source === 'reddit' ? 'border-orange-200 text-orange-700 bg-orange-50 font-semibold' :
                               lead.source === 'nextdoor' ? 'border-teal-300 text-teal-700 bg-teal-50 font-semibold' :
                               lead.source === 'manual' ? 'border-slate-400 text-slate-700 bg-slate-100 font-semibold' :
                               lead.source === 'inbound' ? 'border-green-300 text-green-700 bg-green-50 font-semibold' :
                               lead.source === 'dbpr' ? 'border-emerald-300 text-emerald-700 bg-emerald-50 font-semibold' :
                               lead.source === 'sunbiz' ? 'border-sky-300 text-sky-700 bg-sky-50 font-semibold' :
+                              lead.source === 'google_maps' ? 'border-sky-200 text-sky-700 bg-sky-50 font-semibold' :
                               'border-violet-300 text-violet-700 bg-violet-50 font-semibold'
                             }
                           >
-                            {/* Use rawSource (e.g. 'Reddit r/weddingplanning') when available, else fall back to source enum */}
-                          {(lead as any).rawSource ? `🌐 ${(lead as any).rawSource}` :
-                             lead.source === 'gigxo' ? '🌐 Web Scraped' :
-                             lead.source === 'eventbrite' ? '🎟 Eventbrite' :
-                             lead.source === 'craigslist' ? '📋 Craigslist' :
-                             lead.source === 'theknot' ? '💍 The Knot' :
-                             lead.source === 'weddingwire' ? '💒 WeddingWire' :
-                             lead.source === 'thumbtack' ? '📌 Thumbtack' :
-                             lead.source === 'facebook' ? '👥 Facebook' :
-                             lead.source === 'nextdoor' ? '🏘 Nextdoor' :
-                             lead.source === 'manual' ? '✏️ Manual Entry' :
-                             lead.source === 'inbound' ? '📧 Event Request' :
-                             lead.source === 'dbpr' ? '🏨 DBPR' :
-                             lead.source === 'sunbiz' ? '🏢 Sunbiz' :
-                             lead.source ? `📍 ${lead.source.charAt(0).toUpperCase() + lead.source.slice(1)}` : '❓ Unknown Source'}
+                            {(lead as any).sourceLabel ? String((lead as any).sourceLabel) :
+                             lead.source === 'gigxo' ? 'Web Scraped' :
+                             lead.source === 'eventbrite' ? 'Eventbrite' :
+                             lead.source === 'craigslist' ? 'Craigslist' :
+                             lead.source === 'reddit' ? 'Reddit' :
+                             lead.source === 'facebook' ? 'Facebook' :
+                             lead.source === 'thumbtack' ? 'Thumbtack' :
+                             lead.source === 'inbound' ? 'Inbound' :
+                             lead.source === 'dbpr' ? 'DBPR' :
+                             lead.source === 'manual' ? 'Manual' :
+                             lead.source ? String(lead.source).charAt(0).toUpperCase() + String(lead.source).slice(1) : 'Unknown'}
                           </Badge>
+                          {/* Intent score */}
+                          {(lead as any).intentScore != null && (
+                            <span className="text-xs font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
+                              Score {(lead as any).intentScore}
+                            </span>
+                          )}
+                          {/* Contact info indicator: green dot = has contact, gray = none */}
+                          <span
+                            className="inline-flex items-center gap-1 text-xs"
+                            title={lead.contactEmail || lead.contactPhone ? "Has contact info" : "No contact info"}
+                          >
+                            <span
+                              className={`w-2 h-2 rounded-full shrink-0 ${
+                                lead.contactEmail || lead.contactPhone ? "bg-green-500" : "bg-slate-300"
+                              }`}
+                            />
+                            {lead.contactEmail || lead.contactPhone ? "Contact" : "No contact"}
+                          </span>
                           {(lead as any).leadType === "venue_intelligence" && (
-                            <Badge
-                              variant="outline"
-                              className="border-emerald-300 text-emerald-700 bg-emerald-50 font-semibold"
-                            >
+                            <Badge variant="outline" className="border-emerald-300 text-emerald-700 bg-emerald-50 font-semibold">
                               Venue Intelligence
                             </Badge>
                           )}
@@ -805,27 +815,42 @@ export default function AdminDashboard() {
                       </div>
                       <div className="flex gap-2 flex-shrink-0">
                         {!lead.isApproved && !lead.isRejected && (
-                          <>
+                          <div className="flex flex-wrap gap-1.5">
                             <Button
-                              onClick={() => approveLead({ leadId: lead.id })}
-                              disabled={isApproving}
+                              onClick={() => routeLead({ leadId: lead.id, action: "artist_lead" })}
+                              disabled={isRouting}
                               size="sm"
-                              className="bg-green-600 hover:bg-green-700 h-8"
+                              className="bg-green-600 hover:bg-green-700 h-8 text-xs"
                             >
-                              <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
-                              YES
+                              🎵 Artist Lead
                             </Button>
                             <Button
-                              onClick={() => rejectLead({ leadId: lead.id, reason: "Quality check failed" })}
-                              disabled={isRejecting}
+                              onClick={() => routeLead({ leadId: lead.id, action: "venue_intel" })}
+                              disabled={isRouting}
+                              size="sm"
+                              className="bg-blue-600 hover:bg-blue-700 h-8 text-xs text-white"
+                            >
+                              🏢 Venue Intel
+                            </Button>
+                            <Button
+                              onClick={() => routeLead({ leadId: lead.id, action: "client_request" })}
+                              disabled={isRouting}
+                              size="sm"
+                              className="bg-purple-600 hover:bg-purple-700 h-8 text-xs text-white"
+                            >
+                              📋 Client Request
+                            </Button>
+                            <Button
+                              onClick={() => routeLead({ leadId: lead.id, action: "reject", reason: "Quality check" })}
+                              disabled={isRouting}
                               size="sm"
                               variant="outline"
-                              className="border-red-200 text-red-600 hover:bg-red-50 h-8"
+                              className="border-red-200 text-red-600 hover:bg-red-50 h-8 text-xs"
                             >
-                              <XCircle className="w-3.5 h-3.5 mr-1" />
-                              NO
+                              <XCircle className="w-3.5 h-3.5 mr-0.5" />
+                              Reject
                             </Button>
-                          </>
+                          </div>
                         )}
                         {lead.isRejected && (
                           <Button
@@ -840,8 +865,9 @@ export default function AdminDashboard() {
                         )}
                       </div>
                     </div>
+                    {/* Raw text preview for quick routing decision */}
                     {lead.description && (
-                      <p className="text-sm text-slate-600 line-clamp-2 mb-2">{lead.description}</p>
+                      <p className="text-sm text-slate-600 line-clamp-4 mb-2 bg-slate-50 rounded-lg px-2 py-1.5 font-mono">{lead.description}</p>
                     )}
 
                     {/* Contact info — always visible to admin */}

@@ -19,6 +19,8 @@ export const users = mysqlTable("users", {
   avatarUrl: varchar("avatarUrl", { length: 2048 }), // Profile photo from Google or upload
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  /** One-time onboarding: performer (lead marketplace), client (event request), venue (venue dashboard) */
+  userType: varchar("userType", { length: 32 }),
   hasUsedFreeTrial: boolean("hasUsedFreeTrial").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

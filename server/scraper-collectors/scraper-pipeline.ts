@@ -74,6 +74,8 @@ export interface ScrapedLead {
   isApproved: boolean;           // false = goes to admin approval queue
   leadType?: "scraped_signal" | "client_submitted" | "venue_intelligence" | "referral" | "manual_outreach";
   leadCategory?: "general" | "wedding" | "corporate" | "private_party" | "club" | "other" | "venue_intelligence";
+  /** Auto-assigned from contact + source + intent: starter_friendly ($1), standard ($7), premium ($15) */
+  leadTier?: "starter_friendly" | "standard" | "premium";
 }
 
 // ─── Intent classifier (lightweight local version) ────────────────────────────
@@ -374,6 +376,31 @@ function isTier2Source(lead: ScrapedLead): boolean {
   return false;
 }
 
+/** Auto-assign leadTier from contact, source, and intent. starter_friendly ($1), standard ($7), premium ($15). */
+function assignLeadTier(lead: ScrapedLead): "starter_friendly" | "standard" | "premium" {
+  const src = ((lead as any)._sourceRaw as string) || (lead.source as string) || "";
+  const hasEmail = !!(lead.contactEmail && String(lead.contactEmail).trim());
+  const hasPhone = !!(lead.contactPhone && String(lead.contactPhone).trim());
+  const venueSrc = (lead as any)._venueUrlSource;
+  const hasRealWebsite = !!(lead.venueUrl && String(lead.venueUrl).trim() && isRealWebsiteUrl(lead.venueUrl, venueSrc));
+  const isDbpr = src === "dbpr";
+  const isDbprWithContact = isDbpr && (hasEmail || hasPhone);
+
+  // premium ($15): contactEmail, or bark/thumbtack/inbound, or DBPR with contact; intent >= 70
+  if (lead.intentScore >= 70 && (hasEmail || ["bark", "thumbtack", "inbound"].includes(src) || isDbprWithContact)) {
+    return "premium";
+  }
+  // standard ($7): contactPhone or real venueUrl; intent >= 65
+  if (lead.intentScore >= 65 && (hasPhone || hasRealWebsite)) {
+    return "standard";
+  }
+  // starter_friendly ($1): no email/phone, social/serp source; intent >= 60 — buyer finds post themselves
+  if (lead.intentScore >= 60 && !hasEmail && !hasPhone && ["reddit", "facebook", "twitter", "google_serp"].includes(src)) {
+    return "starter_friendly";
+  }
+  return "standard";
+}
+
 /** True if lead has at least one usable contact signal (for insert gate). DBPR and inbound bypass in caller. */
 function passesContactGate(lead: ScrapedLead): boolean {
   if (lead.contactEmail && String(lead.contactEmail).trim()) return true;
@@ -535,6 +562,9 @@ export function rawLeadDocToLead(doc: RawLeadDoc, baseIntentScore: number): Scra
 
   // Keep some provenance for stats/logging; not persisted to DB.
   (base as any)._venueUrlSource = venueUrlSource;
+  (base as any)._sourceRaw = doc.source;
+
+  base.leadTier = assignLeadTier(base);
 
   const isVenueIntelDoc =
     doc.sourceType === "dbpr" ||
