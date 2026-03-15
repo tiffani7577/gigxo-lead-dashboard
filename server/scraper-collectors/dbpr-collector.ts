@@ -1,28 +1,50 @@
 /**
  * DBPR collector — structured venue/business intelligence source.
  *
- * This collector is intentionally lightweight: it reads a CSV export from
- * DBPR (configured via the DBPR_VENUE_CSV_URL environment variable) and
- * normalizes each row into RawLeadDoc. Supports:
- * - Header-based CSV (columns: DBA, License Number, Location City, etc.)
- * - Positional CSV (e.g. FL daily extract: division, county, license#, class, DBA, entity, address, city, state, zip, date, description)
- *
- * If the environment variable is not set or the fetch fails, the collector
- * returns an empty array so the rest of the pipeline remains stable.
+ * Fetches three feeds: new food (newfood.csv), owner changes (chgownr_food.csv),
+ * and ABT daily activity (daily.csv). Normalizes rows into RawLeadDoc.
+ * Supports header-based and positional CSV. Filtering: license class (per-feed),
+ * South Florida counties only, last 45 days (missing date kept for manual review).
  */
 
 import type { RawLeadDoc } from "./raw-lead-doc";
-import { parse } from "csv-parse/sync";
+import { parse } from "csv-parse";
+
+const DBPR_URL_NEW = "https://www2.myfloridalicense.com/sto/file_download/extracts/newfood.csv";
+const DBPR_URL_OWNER_CHANGE = "https://www2.myfloridalicense.com/sto/file_download/extracts/chgownr_food.csv";
+const DBPR_URL_LIQUOR = "https://www2.myfloridalicense.com/sto/file_download/extracts/daily.csv";
+
+interface ParsedFeed {
+  dataRows: string[][];
+  headerRow: string[] | null;
+  usePositional: boolean;
+  sourceLabel: string;
+  url: string;
+  licenseTokens: readonly string[];
+}
+
+/** License class tokens for new food / owner change feeds (case-insensitive, partial match). */
+const VENUE_LICENSE_TOKENS = [
+  "2COP", "4COP", "1COP", "SRX", "SFS", "COP", "BEER", "WINE", "LIQUOR",
+  "FOOD SERVICE", "RESTAURANT", "HOTEL", "LOUNGE", "BAR", "NIGHTCLUB",
+];
+
+/** License type tokens for ABT liquor license feed. */
+const LIQUOR_LICENSE_TOKENS = [
+  "4COP", "2COP", "1COP", "SRX", "SFS", "COP", "CLUB", "YACHT", "CATERER",
+  "SPECIAL", "EVENT", "VENDOR", "BEER", "WINE", "LIQUOR", "PACKAGE",
+];
+
+/** County tokens for South Florida (case-insensitive, partial match). */
+const SOUTH_FLORIDA_COUNTY_TOKENS = ["DADE", "MIAMI", "BROWARD", "PALM BEACH"];
+
+const STALE_DAYS = 45;
 
 async function safeFetch(url: string): Promise<Response | null> {
   try {
     const res = await fetch(url, {
       headers: { "User-Agent": "GigxoScraper/1.0 (+https://gigxo.com)" },
     });
-    if (!res.ok) {
-      console.warn("[dbpr-collector] Fetch failed", url, res.status);
-      return null;
-    }
     return res;
   } catch (err) {
     console.warn("[dbpr-collector] Fetch error", url, err);
@@ -61,8 +83,37 @@ function getAt(arr: string[], i: number): string {
   return (arr[i] ?? "").trim();
 }
 
+/** Returns true if the license class string matches any of the given tokens (case-insensitive, partial match). */
+function passesLicenseClassFilter(licenseClassCombined: string, tokens: readonly string[] = VENUE_LICENSE_TOKENS): boolean {
+  const lower = (licenseClassCombined || "").toLowerCase();
+  return tokens.some((token) => lower.includes(token.toLowerCase()));
+}
+
+/** Returns true if county string contains a South Florida county token. */
+function passesCountyFilter(countyStr: string): boolean {
+  const upper = (countyStr || "").toUpperCase();
+  return SOUTH_FLORIDA_COUNTY_TOKENS.some((token) => upper.includes(token.toUpperCase()));
+}
+
+/** Parse a date string; returns Date or null if unparseable. */
+function parseDate(value: string | null | undefined): Date | null {
+  const s = (value || "").trim();
+  if (!s) return null;
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+/** Returns true if the row should be rejected for being stale (issue date older than STALE_DAYS). Missing/unparseable date = not stale (keep). */
+function isStaleLicense(dateStr: string | null | undefined): boolean {
+  const d = parseDate(dateStr);
+  if (!d) return false; // keep for manual review
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - STALE_DAYS);
+  return d < cutoff;
+}
+
 /** Build one RawLeadDoc from a positional row (FL daily extract). */
-function normalizePositionalRow(cells: string[], DBPR_URL: string): RawLeadDoc | null {
+function normalizePositionalRow(cells: string[], url: string, sourceLabel: string): RawLeadDoc | null {
   const licenseNumber = getAt(cells, POS.licenseNumber);
   const dba = getAt(cells, POS.dba);
   const ownerEntity = getAt(cells, POS.ownerEntity);
@@ -122,10 +173,10 @@ function normalizePositionalRow(cells: string[], DBPR_URL: string): RawLeadDoc |
     externalId,
     source: "dbpr",
     sourceType: "dbpr",
-    sourceLabel: "DBPR Venue Record",
+    sourceLabel,
     title,
     rawText: rawTextLines.join("\n"),
-    url: DBPR_URL,
+    url,
     postedAt: null as any,
     city: city || null,
     metadata,
@@ -144,101 +195,220 @@ function looksLikeHeaderRow(cells: string[]): boolean {
   );
 }
 
-export async function collectFromDbpr(options?: DbprCollectorOptions): Promise<RawLeadDoc[]> {
-  const DBPR_URL = process.env.DBPR_VENUE_CSV_URL?.trim();
-  if (!DBPR_URL) {
-    console.warn("[dbpr-collector] DBPR_VENUE_CSV_URL is not set; skipping DBPR. Set a downloadable CSV URL to enable venue intelligence.");
-    return [];
+/** Get date string from header row (includes Application Approval Date, Original Issue Date for ABT/daily feed). */
+function getDateFromHeaderRow(row: Record<string, string>): string | null {
+  const keys = [
+    "Date", "Issue Date", "Approval Date", "Effective Date", "Application Approval Date",
+    "Original Issue Date", "Original_Issue_Date",
+  ];
+  for (const k of keys) {
+    const v = (row[k] || "").trim();
+    if (v) return v;
   }
+  return null;
+}
 
-  const maxResults = Math.min(options?.maxResults ?? 200, 1000);
-  const response = await safeFetch(DBPR_URL);
-  if (!response) return [];
+/** Get county string from header row (tries common column names). */
+function getCountyFromHeaderRow(row: Record<string, string>): string {
+  const keys = ["County", "Location County", "License County", "Counties"];
+  for (const k of keys) {
+    const v = (row[k] || "").trim();
+    if (v) return v;
+  }
+  return "";
+}
 
-  console.log("[dbpr-collector] Fetch status:", response.status, "URL:", DBPR_URL);
-
+/** Fetch one DBPR CSV URL, validate, parse; returns ParsedFeed or null. */
+async function fetchAndParseDbprCsv(
+  url: string,
+  sourceLabel: string,
+  licenseTokens: readonly string[] = VENUE_LICENSE_TOKENS
+): Promise<ParsedFeed | null> {
+  const response = await safeFetch(url);
+  if (!response) return null;
+  if (!response.ok) {
+    console.error(`[dbpr-collector] ERROR: HTTP ${response.status} ${response.statusText} from ${url}`);
+    return null;
+  }
   const csvText = await response.text();
-  console.log("[dbpr-collector] CSV length:", csvText.length, "preview:", csvText.slice(0, 300));
-
-  const rawRows = parse(csvText, {
-    bom: true,
-    skip_empty_lines: true,
-    relax_column_count: true,
-  }) as string[][];
-
-  console.log("[dbpr-collector] Rows parsed (raw):", rawRows.length);
-
-  if (!rawRows.length) return [];
-
-  const usePositional = !looksLikeHeaderRow(rawRows[0]);
-  const dataRows: string[][] = usePositional ? rawRows : rawRows.slice(1);
-  const headerRow = usePositional ? null : rawRows[0];
-
-  if (usePositional) {
-    console.log("[dbpr-collector] Using positional column format (no header row detected).");
-  } else {
-    console.log("[dbpr-collector] Using header-based format. Sample header keys:", headerRow?.slice(0, 12));
+  console.log("[dbpr-collector] Response preview:", csvText.slice(0, 200));
+  if (csvText.startsWith("<") || /<html/i.test(csvText)) {
+    console.error(
+      "[dbpr-collector] ERROR: URL returned HTML instead of CSV. The DBPR URL may be invalid, returning a 404, or requiring authentication. URL:",
+      url
+    );
+    return null;
   }
+  let rawRows: string[][];
+  try {
+    rawRows = await new Promise<string[][]>((resolve, reject) => {
+      const records: string[][] = [];
+      const parser = parse({
+        bom: true,
+        skip_empty_lines: true,
+        relax_quotes: true,
+        relax_column_count: true,
+        skip_records_with_error: true,
+        trim: true,
+      });
+      parser.on("readable", function (this: import("stream").Readable) {
+        let record: string[];
+        while ((record = parser.read()) !== null) {
+          records.push(record);
+        }
+      });
+      parser.on("skip", (err: Error) => {
+        console.error(`[dbpr-collector] Skipped malformed row on ${sourceLabel}: ${err.message}`);
+      });
+      parser.on("error", (err) => reject(err));
+      parser.on("end", () => resolve(records));
+      parser.write(csvText);
+      parser.end();
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`[dbpr-collector] Parse error on ${sourceLabel}: ${message}`);
+    return null;
+  }
+  if (!rawRows.length) return null;
+  const usePositional = !looksLikeHeaderRow(rawRows[0]);
+  const dataRows = usePositional ? rawRows : rawRows.slice(1);
+  const headerRow = usePositional ? null : rawRows[0];
+  return { dataRows, headerRow, usePositional, sourceLabel, url, licenseTokens };
+}
+
+export async function collectFromDbpr(options?: DbprCollectorOptions): Promise<RawLeadDoc[]> {
+  console.log("[dbpr-collector] Using DBPR new establishments + owner changes feeds");
+
+  const maxResults = Math.min(options?.maxResults ?? 500, 1000);
+  const [feedNew, feedOwnerChange, feedLiquor] = await Promise.all([
+    fetchAndParseDbprCsv(DBPR_URL_NEW, "DBPR New Establishment"),
+    fetchAndParseDbprCsv(DBPR_URL_OWNER_CHANGE, "DBPR Owner Change"),
+    fetchAndParseDbprCsv(DBPR_URL_LIQUOR, "DBPR Daily Activity", LIQUOR_LICENSE_TOKENS),
+  ]);
 
   const docs: RawLeadDoc[] = [];
+  let newKept = 0;
+  let ownerChangeKept = 0;
+  let liquorKept = 0;
+  let wrongLicenseType = 0;
+  let outOfMarket = 0;
+  let staleLicense = 0;
 
-  if (usePositional) {
-    for (let i = 0; i < dataRows.length && docs.length < maxResults; i++) {
-      const row = dataRows[i];
-      const doc = normalizePositionalRow(row, DBPR_URL);
-      if (doc) docs.push(doc);
-    }
-  } else {
-    const headers = headerRow ?? [];
-    for (let i = 0; i < dataRows.length && docs.length < maxResults; i++) {
-      const cells = dataRows[i];
-      const row: Record<string, string> = {};
-      headers.forEach((h, j) => {
-        row[h ?? ""] = (cells[j] ?? "").trim();
-      });
-      const dba = (row["DBA"] || "").trim();
-      const city = (row["Location City"] || "").trim();
-      const address = (row["Location Address 1"] || "").trim();
-      const licenseNumber = (row["License Number"] || "").trim();
-      const primaryStatus = (row["Primary Status"] || "").trim();
-      const secondaryStatus = (row["Secondary Status"] || "").trim();
-      const division =
-        (row["Division"] || row["Board"] || row["Board Number"] || row["Class Code"] || row["License Type"] || row["License Type Code"] || "").trim();
+  for (const feed of [feedNew, feedOwnerChange, feedLiquor]) {
+    if (!feed) continue;
+    const { dataRows, headerRow, usePositional, sourceLabel, url, licenseTokens } = feed;
 
-      if (!dba || !licenseNumber) continue;
+    if (usePositional) {
+      for (let i = 0; i < dataRows.length && docs.length < maxResults; i++) {
+        const row = dataRows[i];
+        const divisionCode = getAt(row, POS.divisionCode);
+        const county = getAt(row, POS.county);
+        const licenseClass = getAt(row, POS.licenseClass);
+        const dateStr = getAt(row, POS.date);
 
-      const title = `${dba}${city ? " – " + city : ""}`;
-      const rawTextLines = [
-        `Name: ${dba}`,
-        `License: ${licenseNumber}`,
-        `Status: ${primaryStatus}/${secondaryStatus}`,
-        `Address: ${address}`,
-        `City: ${city}`,
-      ];
-      const divisionKey = normalizeDivisionKey(division);
-      const externalId = `dbpr-${divisionKey}-${licenseNumber}`;
-      const metadata: Record<string, unknown> = {
-        dbpr: row,
-        leadCategory: "venue_intelligence",
-        leadType: "venue",
-        source: "dbpr",
-      };
-      docs.push({
-        externalId,
-        source: "dbpr",
-        sourceType: "dbpr",
-        sourceLabel: "DBPR Venue Record",
-        title,
-        rawText: rawTextLines.join("\n"),
-        url: DBPR_URL,
-        postedAt: null as any,
-        city: city || null,
-        metadata,
-      });
+        const licenseCombined = `${divisionCode} ${licenseClass}`.trim();
+        if (!passesLicenseClassFilter(licenseCombined, licenseTokens)) {
+          wrongLicenseType++;
+          continue;
+        }
+        if (!passesCountyFilter(county)) {
+          outOfMarket++;
+          continue;
+        }
+        if (isStaleLicense(dateStr)) {
+          staleLicense++;
+          continue;
+        }
+
+        const doc = normalizePositionalRow(row, url, sourceLabel);
+        if (doc) {
+          docs.push(doc);
+          if (sourceLabel === "DBPR New Establishment") newKept++;
+          else if (sourceLabel === "DBPR Owner Change") ownerChangeKept++;
+          else if (sourceLabel === "DBPR Daily Activity") liquorKept++;
+        }
+      }
+    } else {
+      const headers = headerRow ?? [];
+      for (let i = 0; i < dataRows.length && docs.length < maxResults; i++) {
+        const cells = dataRows[i];
+        const row: Record<string, string> = {};
+        headers.forEach((h, j) => {
+          row[h ?? ""] = (cells[j] ?? "").trim();
+        });
+        const dba = (row["DBA"] || "").trim();
+        const city = (row["Location City"] || "").trim();
+        const address = (row["Location Address 1"] || "").trim();
+        const licenseNumber = (row["License Number"] || "").trim();
+        const primaryStatus = (row["Primary Status"] || "").trim();
+        const secondaryStatus = (row["Secondary Status"] || "").trim();
+        const division =
+          (row["Division"] || row["Board"] || row["Board Number"] || row["Class Code"] || row["License Type"] || row["License Type Code"] || "").trim();
+
+        if (!dba || !licenseNumber) continue;
+
+        // Daily feed only: keep Primary Status Code 10 or 20 (active/new); reject 45, 46, 47, 60, 61
+        if (sourceLabel === "DBPR Daily Activity") {
+          const primaryStatusCode = (row["Primary Status Code"] || row["Primary Status Code "] || row["Primary Status"] || "").trim();
+          if (["45", "46", "47", "60", "61"].includes(primaryStatusCode)) continue;
+          if (primaryStatusCode !== "10" && primaryStatusCode !== "20") continue;
+        }
+
+        if (!passesLicenseClassFilter(division, licenseTokens)) {
+          wrongLicenseType++;
+          continue;
+        }
+        const countyStr = getCountyFromHeaderRow(row);
+        if (!passesCountyFilter(countyStr)) {
+          outOfMarket++;
+          continue;
+        }
+        const dateStr = getDateFromHeaderRow(row);
+        if (isStaleLicense(dateStr)) {
+          staleLicense++;
+          continue;
+        }
+
+        const title = `${dba}${city ? " – " + city : ""}`;
+        const rawTextLines = [
+          `Name: ${dba}`,
+          `License: ${licenseNumber}`,
+          `Status: ${primaryStatus}/${secondaryStatus}`,
+          `Address: ${address}`,
+          `City: ${city}`,
+        ];
+        const divisionKey = normalizeDivisionKey(division);
+        const externalId = `dbpr-${divisionKey}-${licenseNumber}`;
+        const metadata: Record<string, unknown> = {
+          dbpr: row,
+          leadCategory: "venue_intelligence",
+          leadType: "venue",
+          source: "dbpr",
+        };
+        docs.push({
+          externalId,
+          source: "dbpr",
+          sourceType: "dbpr",
+          sourceLabel,
+          title,
+          rawText: rawTextLines.join("\n"),
+          url,
+          postedAt: null as any,
+          city: city || null,
+          metadata,
+        });
+        if (sourceLabel === "DBPR New Establishment") newKept++;
+        else if (sourceLabel === "DBPR Owner Change") ownerChangeKept++;
+        else if (sourceLabel === "DBPR Daily Activity") liquorKept++;
+      }
     }
   }
 
-  console.log("[dbpr-collector] Rows normalized:", docs.length);
+  console.log(
+    `[dbpr-collector] New food: ${newKept} | Owner changes: ${ownerChangeKept} | Daily activity: ${liquorKept} | Filtered: ${staleLicense} stale, ${wrongLicenseType} wrong type, ${outOfMarket} out of market`
+  );
+
   if (docs.length > 0) {
     console.log("[dbpr-collector] Sample normalized doc:", JSON.stringify({
       externalId: docs[0].externalId,
@@ -250,4 +420,3 @@ export async function collectFromDbpr(options?: DbprCollectorOptions): Promise<R
 
   return docs;
 }
-

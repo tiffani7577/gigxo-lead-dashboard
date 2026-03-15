@@ -349,6 +349,27 @@ function redditRawDocToRawLeadDoc(doc: RawDoc): RawLeadDoc {
   };
 }
 
+// ─── Contact completeness (gate + scoring) ──────────────────────────────────────
+
+/** True if venueUrl looks like a real business website, not the source post URL (reddit/facebook/eventbrite etc.). */
+function isRealWebsiteUrl(venueUrl: string, venueUrlSource: string | undefined): boolean {
+  if (!venueUrl || !venueUrl.trim()) return false;
+  if (venueUrlSource === "docUrl") return false;
+  const lower = venueUrl.toLowerCase();
+  const sourceDomains = ["reddit.com", "facebook.com", "eventbrite.com", "craigslist.org", "nextdoor.com", "thebash.com", "gigsalad.com", "thumbtack.com", "yelp.com"];
+  return !sourceDomains.some((d) => lower.includes(d));
+}
+
+/** True if lead has at least one usable contact signal (for insert gate). DBPR and inbound bypass in caller. */
+function passesContactGate(lead: ScrapedLead): boolean {
+  if (lead.contactEmail && String(lead.contactEmail).trim()) return true;
+  if (lead.contactPhone && String(lead.contactPhone).trim()) return true;
+  const venueSrc = (lead as any)._venueUrlSource;
+  if (lead.venueUrl && String(lead.venueUrl).trim() && isRealWebsiteUrl(lead.venueUrl, venueSrc)) return true;
+  if (lead.contactName && String(lead.contactName).trim() && lead.location && String(lead.location).trim()) return true;
+  return false;
+}
+
 // ─── RawLeadDoc → ScrapedLead ──────────────────────────────────────────────────
 
 function rawLeadDocToLead(doc: RawLeadDoc, baseIntentScore: number): ScrapedLead {
@@ -414,12 +435,15 @@ function rawLeadDocToLead(doc: RawLeadDoc, baseIntentScore: number): ScrapedLead
   const hasEmail = !!(doc.contact?.email || extractedContact.email);
   const hasPhone = !!(doc.contact?.phone || extractedContact.phone);
   const hasBusinessVenueUrl = venueUrlSource === "contact" || venueUrlSource === "metadata" || venueUrlSource === "extracted";
+  const hasRealWebsite = !!venueUrl.trim() && isRealWebsiteUrl(venueUrl, venueUrlSource);
+  const hasContactName = !!(doc.contact?.name ?? extractedContact.name);
   const hasAnyContact = hasEmail || hasPhone || hasBusinessVenueUrl;
 
-  // Contactability boosts
-  if (hasEmail) intentScore += 10;
-  if (hasPhone) intentScore += 7;
-  if (hasBusinessVenueUrl) intentScore += 5;
+  // Contact completeness bonus (stacks; enriched leads rise to top)
+  if (hasEmail) intentScore += 15;
+  if (hasPhone) intentScore += 10;
+  if (hasRealWebsite) intentScore += 8;
+  if (hasContactName) intentScore += 5;
 
   // Penalty for missing all contact methods, except for pure venue intelligence
   const isVenueIntelSource =
@@ -626,8 +650,16 @@ export async function runScraperPipeline(city?: string, performerType?: string):
       }
       const baseIntentScore = localIntentScoreFromNormalized(normalized);
       const lead = rawLeadDocToLead(doc, baseIntentScore);
-      leads.push(lead);
-      stats.filtered++;
+      // Contact gate: DBPR and inbound bypass; others must have at least one contact signal
+      if (lead.source === "dbpr" || (lead as { source?: string }).source === "inbound") {
+        leads.push(lead);
+        stats.filtered++;
+      } else if (passesContactGate(lead)) {
+        leads.push(lead);
+        stats.filtered++;
+      } else {
+        console.log("[pipeline] Rejected - no contact info:", lead.title, "from", lead.source);
+      }
     } catch (err) {
       stats.errors++;
       console.error("[scraper-pipeline] Error processing doc:", doc.externalId, err);

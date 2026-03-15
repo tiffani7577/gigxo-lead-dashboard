@@ -1732,6 +1732,23 @@ export const appRouter = router({
             inserted++;
             const { logLeadDiscovered } = await import("./leadConversionLog");
             logLeadDiscovered({ lead_source: lead.source, intent_score: lead.intentScore ?? null });
+            // Fire-and-forget contact enrichment for new DBPR leads (Google Places), only if high-value venue
+            if (lead.externalId.startsWith("dbpr-")) {
+              const [insertedRow] = await db.select({ id: gigLeads.id }).from(gigLeads).where(eq(gigLeads.externalId, lead.externalId)).limit(1);
+              if (insertedRow?.id) {
+                const leadId = insertedRow.id;
+                const title = lead.title ?? "";
+                const location = lead.location ?? "";
+                const { shouldEnrichVenue } = await import("./scraper-collectors/contact-enrichment");
+                if (!shouldEnrichVenue(lead.title, lead.description)) {
+                  console.log("[contact-enrichment] Skipped enrichment - non-venue type:", title);
+                } else {
+                  setImmediate(() => {
+                    import("./scraper-collectors/contact-enrichment").then((m) => m.enrichVenueContact(leadId, title, location)).catch(() => {});
+                  });
+                }
+              }
+            }
           } catch (err) {
             console.error("[runScraper] Insert error:", lead.externalId, err);
           }
