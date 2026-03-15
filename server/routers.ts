@@ -598,11 +598,13 @@ export const appRouter = router({
         const { gigLeads, leadUnlocks, leadViews } = await import("../drizzle/schema");
         
         // Get all approved leads that are not hidden, not reserved, not expired, and artist-visible (exclude admin-only venue_intelligence / manual_outreach)
+        // DBPR and venue_intelligence must never appear in the artist marketplace
         // Monetization: only show leads where artistUnlockEnabled is not false (default true)
         const now = new Date();
         const artistVisibleLead = and(
-          or(isNull(gigLeads.leadType), not(inArray(gigLeads.leadType, ["venue_intelligence", "manual_outreach"]))),
-          or(isNull(gigLeads.leadCategory), not(eq(gigLeads.leadCategory, "venue_intelligence")))
+          not(eq(gigLeads.source, "dbpr")),
+          or(isNull(gigLeads.leadCategory), not(eq(gigLeads.leadCategory, "venue_intelligence"))),
+          or(isNull(gigLeads.leadType), not(inArray(gigLeads.leadType, ["venue_intelligence", "manual_outreach"])))
         );
         const leads = await db.select().from(gigLeads)
           .where(and(
@@ -614,7 +616,7 @@ export const appRouter = router({
             // Only show leads where eventDate is in the future OR eventDate is not set
             or(isNull(gigLeads.eventDate), gte(gigLeads.eventDate, now))
           ))
-          .orderBy(desc(gigLeads.createdAt))
+          .orderBy(desc(sql`COALESCE(${gigLeads.finalScore}, ${gigLeads.intentScore})`), desc(gigLeads.createdAt))
           .limit(input.limit)
           .offset(input.offset);
         
@@ -1661,11 +1663,14 @@ export const appRouter = router({
           
           // Pass city and performerType from input to scraper pipeline
           const { stats, leads, sourceCounts } = await runScraperPipeline(input?.marketId, input?.focusPerformerType);
+
+        // DBPR leads only enter via admin.runDbprPipeline; skip them here
+        const leadsToInsert = leads.filter((l) => l.source !== "dbpr");
         
         let inserted = 0;
         let skipped = 0;
         
-        for (const lead of leads) {
+        for (const lead of leadsToInsert) {
           const [existing] = await db
             .select({ id: gigLeads.id })
             .from(gigLeads)
@@ -1721,18 +1726,18 @@ export const appRouter = router({
               venueUrl:      lead.venueUrl,
               performerType: lead.performerType as any,
               intentScore:   lead.intentScore ?? null,
-              leadType:      (lead as any).leadType ?? undefined,
-              leadCategory:  (lead as any).leadCategory ?? undefined,
-              isApproved:    false,
-              isRejected:    false,
-              isHidden:      false,
-              isReserved:    false,
-            };
-            await db.insert(gigLeads).values(insertData);
-            inserted++;
-            const { logLeadDiscovered } = await import("./leadConversionLog");
-            logLeadDiscovered({ lead_source: lead.source, intent_score: lead.intentScore ?? null });
-            // Fire-and-forget contact enrichment for new DBPR leads (Google Places), only if high-value venue
+            leadType:      (lead as any).leadType ?? undefined,
+            leadCategory:  (lead as any).leadCategory ?? undefined,
+            isApproved:    lead.isApproved ?? false,
+            isRejected:    false,
+            isHidden:      false,
+            isReserved:    false,
+          };
+          await db.insert(gigLeads).values(insertData);
+          inserted++;
+          const { logLeadDiscovered } = await import("./leadConversionLog");
+          logLeadDiscovered({ lead_source: lead.source, intent_score: lead.intentScore ?? null });
+          // Fire-and-forget contact enrichment for new DBPR leads (Google Places), only if high-value venue
             if (lead.externalId.startsWith("dbpr-")) {
               const [insertedRow] = await db.select({ id: gigLeads.id }).from(gigLeads).where(eq(gigLeads.externalId, lead.externalId)).limit(1);
               if (insertedRow?.id) {
@@ -1784,6 +1789,75 @@ export const appRouter = router({
           throw err;
         }
       }),
+
+    // Run only the DBPR collector and insert venue intelligence leads (isApproved = true)
+    runDbprPipeline: protectedProcedure.mutation(async ({ ctx }) => {
+      if (ctx.user?.role !== "admin") throw new Error("Unauthorized");
+      const { collectFromDbpr } = await import("./scraper-collectors/dbpr-collector");
+      const { rawLeadDocToLead } = await import("./scraper-collectors/scraper-pipeline");
+      const { gigLeads } = await import("../drizzle/schema");
+      const { getDb } = await import("./db");
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+      const docs = await collectFromDbpr();
+      const baseIntentScore = 50;
+      const leads = docs.map((doc) => rawLeadDocToLead(doc, baseIntentScore)).filter((l) => l.source === "dbpr");
+      let inserted = 0;
+      let skipped = 0;
+      for (const lead of leads) {
+        const [existing] = await db.select({ id: gigLeads.id }).from(gigLeads).where(eq(gigLeads.externalId, lead.externalId)).limit(1);
+        if (existing) {
+          skipped++;
+          continue;
+        }
+        try {
+          const insertData: any = {
+            externalId:    lead.externalId,
+            source:        lead.source as any,
+            sourceLabel:   lead.sourceLabel ?? null,
+            title:         lead.title,
+            description:   lead.description,
+            eventType:     lead.eventType,
+            budget:        lead.budget,
+            location:      lead.location,
+            latitude:      lead.latitude ? parseFloat(lead.latitude.toString()) : null,
+            longitude:     lead.longitude ? parseFloat(lead.longitude.toString()) : null,
+            eventDate:     lead.eventDate,
+            contactName:   lead.contactName,
+            contactEmail:  lead.contactEmail,
+            contactPhone:  lead.contactPhone,
+            venueUrl:      lead.venueUrl,
+            performerType: lead.performerType as any,
+            intentScore:   lead.intentScore ?? null,
+            leadType:      (lead as any).leadType ?? undefined,
+            leadCategory:  (lead as any).leadCategory ?? undefined,
+            isApproved:    true,
+            isRejected:    false,
+            isHidden:      false,
+            isReserved:    false,
+          };
+          await db.insert(gigLeads).values(insertData);
+          inserted++;
+          const { logLeadDiscovered } = await import("./leadConversionLog");
+          logLeadDiscovered({ lead_source: lead.source, intent_score: lead.intentScore ?? null });
+          const [insertedRow] = await db.select({ id: gigLeads.id }).from(gigLeads).where(eq(gigLeads.externalId, lead.externalId)).limit(1);
+          if (insertedRow?.id) {
+            const leadId = insertedRow.id;
+            const title = lead.title ?? "";
+            const location = lead.location ?? "";
+            const { shouldEnrichVenue } = await import("./scraper-collectors/contact-enrichment");
+            if (shouldEnrichVenue(lead.title, lead.description)) {
+              setImmediate(() => {
+                import("./scraper-collectors/contact-enrichment").then((m) => m.enrichVenueContact(leadId, title, location)).catch(() => {});
+              });
+            }
+          }
+        } catch (err) {
+          console.error("[runDbprPipeline] Insert error:", lead.externalId, err);
+        }
+      }
+      return { inserted, skipped };
+    }),
 
     // Get list of available city markets for the scraper UI
     getMarkets: protectedProcedure.query(async ({ ctx }) => {

@@ -370,9 +370,33 @@ function passesContactGate(lead: ScrapedLead): boolean {
   return false;
 }
 
+/** South Florida geo tokens for non-DBPR leads; location must contain one of these if populated. */
+const SOUTH_FLORIDA_GEO_TOKENS = [
+  "miami", "fort lauderdale", "broward", "boca raton", "palm beach", "west palm", "doral", "hialeah",
+  "coral gables", "wynwood", "brickell", "aventura", "pompano", "hollywood", "hallandale", "kendall",
+  "homestead", "coral springs", "pembroke pines", "sunrise", "plantation", "davie", "weston",
+  "miramar", "deerfield", "delray", "boynton",
+];
+
+function passesGeoFilter(location: string | null | undefined): boolean {
+  const loc = (location ?? "").trim();
+  if (!loc) return true;
+  const lower = loc.toLowerCase();
+  return SOUTH_FLORIDA_GEO_TOKENS.some((token) => lower.includes(token));
+}
+
+function postedAtWithin30OrNull(postedAt: Date | string | null | undefined): boolean {
+  if (postedAt == null) return true;
+  const d = new Date(postedAt);
+  if (isNaN(d.getTime())) return true;
+  const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+  return Date.now() - d.getTime() <= thirtyDaysMs;
+}
+
 // ─── RawLeadDoc → ScrapedLead ──────────────────────────────────────────────────
 
-function rawLeadDocToLead(doc: RawLeadDoc, baseIntentScore: number): ScrapedLead {
+/** Exported for admin.runDbprPipeline: convert RawLeadDoc (e.g. from collectFromDbpr) to ScrapedLead for gigLeads insert. */
+export function rawLeadDocToLead(doc: RawLeadDoc, baseIntentScore: number): ScrapedLead {
   // Only use Miami/Fort Lauderdale when post text contains a South Florida keyword; otherwise null so it doesn't show as a Miami lead.
   const effectiveCity = cityFromPostText(doc.rawText);
   const location = effectiveCity ?? "";
@@ -541,9 +565,18 @@ function rawLeadDocToLegacyDoc(doc: RawLeadDoc): RawDoc {
   };
 }
 
+/** Optional pipeline config (e.g. excludeSources for cron that should not run DBPR). */
+export interface RunScraperPipelineOptions {
+  excludeSources?: string[];
+}
+
 // ─── Main pipeline entry point ────────────────────────────────────────────────
 
-export async function runScraperPipeline(city?: string, performerType?: string): Promise<PipelineResult> {
+export async function runScraperPipeline(
+  city?: string,
+  performerType?: string,
+  options?: RunScraperPipelineOptions
+): Promise<PipelineResult> {
   const stats: PipelineStats = {
     collected: 0,
     filtered: 0,
@@ -558,8 +591,10 @@ export async function runScraperPipeline(city?: string, performerType?: string):
     trashCount: 0,
   };
 
-  // Step 1 — Which sources are enabled (source config)
-  const enabledKeys = await getEnabledLeadSourceKeys();
+  // Step 1 — Which sources are enabled (source config), minus any excluded by options
+  const enabledKeysRaw = await getEnabledLeadSourceKeys();
+  const excludeSet = new Set(options?.excludeSources ?? []);
+  const enabledKeys = enabledKeysRaw.filter((k) => !excludeSet.has(k));
 
   // Step 2 — Collect only from enabled sources (modular collectors → RawLeadDoc)
   const collectorPromises: Promise<RawLeadDoc[]>[] = [];
@@ -650,11 +685,40 @@ export async function runScraperPipeline(city?: string, performerType?: string):
       }
       const baseIntentScore = localIntentScoreFromNormalized(normalized);
       const lead = rawLeadDocToLead(doc, baseIntentScore);
+
+      // Non-DBPR only: age filter — skip if postedAt older than 60 days
+      const postedAt = doc.postedAt != null ? new Date(doc.postedAt) : null;
+      if (postedAt && !isNaN(postedAt.getTime())) {
+        const sixtyDaysMs = 60 * 24 * 60 * 60 * 1000;
+        if (Date.now() - postedAt.getTime() > sixtyDaysMs) {
+          console.log("[pipeline] Rejected stale:", lead.title);
+          continue;
+        }
+      }
+
+      // Non-DBPR only: geo filter — skip if location populated and not in South Florida
+      if (lead.location && String(lead.location).trim() && !passesGeoFilter(lead.location)) {
+        console.log("[pipeline] Rejected out of market:", lead.title);
+        continue;
+      }
+
       // Contact gate: DBPR and inbound bypass; others must have at least one contact signal
       if (lead.source === "dbpr" || (lead as { source?: string }).source === "inbound") {
         leads.push(lead);
         stats.filtered++;
       } else if (passesContactGate(lead)) {
+        // Auto-approve high confidence: intent >= 65, not duckduckgo, geo passed or null, postedAt within 30 days or null, contact gate passed
+        const sourceStr = (lead as { source?: string }).source;
+        const autoApprove =
+          lead.intentScore >= 65 &&
+          sourceStr !== "duckduckgo" &&
+          (passesGeoFilter(lead.location)) &&
+          postedAtWithin30OrNull(doc.postedAt) &&
+          passesContactGate(lead);
+        if (autoApprove) {
+          lead.isApproved = true;
+          (lead as any).autoApproved = true;
+        }
         leads.push(lead);
         stats.filtered++;
       } else {

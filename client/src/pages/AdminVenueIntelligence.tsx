@@ -28,7 +28,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Search, RefreshCw, Phone, Mail, ExternalLink, MessageSquare, Send, Users, CreditCard, Building2 } from "lucide-react";
+import { Search, RefreshCw, Phone, Mail, ExternalLink, MessageSquare, Send, Users, CreditCard, Building2, Download } from "lucide-react";
 import { toast } from "sonner";
 
 const VENUE_STATUS_OPTIONS = [
@@ -221,6 +221,13 @@ export default function AdminVenueIntelligence() {
     onError: (e) => toast.error(e.message),
   });
   const { data: outreachTemplates } = trpc.admin.getOutreachTemplates.useQuery(undefined, { enabled: !!outreachLead });
+  const runDbprMutation = trpc.admin.runDbprPipeline.useMutation({
+    onSuccess: (result) => {
+      refetch();
+      toast.success(`${result.inserted} new venues added`);
+    },
+    onError: (e) => toast.error(e.message),
+  });
 
   const openNotes = (lead: VenueLead) => {
     setNotesLead(lead);
@@ -337,6 +344,19 @@ export default function AdminVenueIntelligence() {
               </Select>
               <Input placeholder="City" value={city} onChange={(e) => setCity(e.target.value)} className="w-40" />
               <Input placeholder="License type (e.g. 400)" value={licenseType} onChange={(e) => setLicenseType(e.target.value)} className="w-36" />
+              <Button
+                variant="outline"
+                size="default"
+                onClick={() => runDbprMutation.mutate()}
+                disabled={runDbprMutation.isPending || isLoading}
+              >
+                {runDbprMutation.isPending ? (
+                  <RefreshCw className="h-4 w-4 animate-spin shrink-0" />
+                ) : (
+                  <Download className="h-4 w-4 shrink-0" />
+                )}
+                <span className="ml-2">Fetch New Licenses</span>
+              </Button>
               <Button variant="outline" size="icon" onClick={() => refetch()} disabled={isLoading}>
                 <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
               </Button>

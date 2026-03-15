@@ -27,6 +27,9 @@ export async function startDripCron() {
 
   // Daily lead alert at 9am — check every hour if it's time
   scheduleDailyLeadAlerts();
+
+  // Daily scraper at 6am Eastern (no DBPR); does not run on startup, only on schedule
+  scheduleDailyScraper();
 }
 
 async function runDripChecks() {
@@ -185,6 +188,71 @@ async function sendDay7Drips() {
 }
 
 let lastLeadAlertDate = "";
+let lastDailyScraperDate = "";
+
+function scheduleDailyScraper() {
+  setInterval(async () => {
+    const now = new Date();
+    const etFormatter = new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York", hour: "numeric", minute: "numeric", hour12: false });
+    const etParts = etFormatter.formatToParts(now);
+    const hour = parseInt(etParts.find((p) => p.type === "hour")?.value ?? "0", 10);
+    const minute = parseInt(etParts.find((p) => p.type === "minute")?.value ?? "0", 10);
+    const dateFormatter = new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" });
+    const todayET = dateFormatter.format(now);
+    if (hour !== 6 || minute >= 30 || lastDailyScraperDate === todayET) return;
+    lastDailyScraperDate = todayET;
+    console.log("[cron] Daily scraper started");
+    try {
+      const { runScraperPipeline } = await import("./scraper-collectors/scraper-pipeline");
+      const { gigLeads } = await import("../drizzle/schema");
+      const { getDb } = await import("./db");
+      const { eq } = await import("drizzle-orm");
+      const { leads } = await runScraperPipeline(undefined, undefined, { excludeSources: ["dbpr"] });
+      const db = await getDb();
+      let inserted = 0;
+      if (db) {
+        const leadsToInsert = leads.filter((l) => l.source !== "dbpr");
+        for (const lead of leadsToInsert) {
+          try {
+            const [existing] = await db.select({ id: gigLeads.id }).from(gigLeads).where(eq(gigLeads.externalId, lead.externalId)).limit(1);
+            if (existing) continue;
+            await db.insert(gigLeads).values({
+              externalId: lead.externalId,
+              source: lead.source as any,
+              sourceLabel: lead.sourceLabel ?? null,
+              title: lead.title,
+              description: lead.description,
+              eventType: lead.eventType,
+              budget: lead.budget,
+              location: lead.location,
+              latitude: lead.latitude != null ? parseFloat(lead.latitude.toString()) : null,
+              longitude: lead.longitude != null ? parseFloat(lead.longitude.toString()) : null,
+              eventDate: lead.eventDate,
+              contactName: lead.contactName,
+              contactEmail: lead.contactEmail,
+              contactPhone: lead.contactPhone,
+              venueUrl: lead.venueUrl,
+              performerType: lead.performerType as any,
+              intentScore: lead.intentScore ?? null,
+              leadType: (lead as any).leadType ?? undefined,
+              leadCategory: (lead as any).leadCategory ?? undefined,
+              isApproved: lead.isApproved ?? false,
+              isRejected: false,
+              isHidden: false,
+              isReserved: false,
+            });
+            inserted++;
+          } catch {
+            // swallow per-lead errors
+          }
+        }
+      }
+      console.log("[cron] Daily scraper complete:", inserted, "leads inserted");
+    } catch {
+      // swallow all errors so drip emails are not affected
+    }
+  }, 30 * 60 * 1000);
+}
 
 function scheduleDailyLeadAlerts() {
   // Check every 30 minutes if it's between 9:00–9:30am and we haven't sent today
