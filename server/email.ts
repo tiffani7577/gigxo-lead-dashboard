@@ -210,6 +210,39 @@ export async function sendDailyDigest(
   return sendEmail(email, subject, html);
 }
 
+const ADMIN_EMAIL = "teryn@gigxo.com";
+
+/**
+ * Notify admin when a new inbound lead is submitted (SEO form).
+ * Subject: "New inbound lead: {title}", body: name, email, phone, event type, event date, location, budget.
+ */
+export async function sendInboundLeadNotification(lead: {
+  title: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone: string | null;
+  eventType: string;
+  eventDate: string;
+  location: string;
+  budget: number | null;
+  description?: string | null;
+}): Promise<boolean> {
+  const subject = `New inbound lead: ${lead.title}`;
+  const budgetDisplay = lead.budget != null ? `$${(lead.budget / 100).toLocaleString()}` : "Not specified";
+  const body = [
+    `Name: ${lead.contactName}`,
+    `Email: ${lead.contactEmail}`,
+    `Phone: ${lead.contactPhone ?? "Not provided"}`,
+    `Event type: ${lead.eventType}`,
+    `Event date: ${lead.eventDate}`,
+    `Location: ${lead.location}`,
+    `Budget: ${budgetDisplay}`,
+    lead.description ? `\nDescription:\n${lead.description}` : "",
+  ].filter(Boolean).join("\n");
+  const html = `<!DOCTYPE html><html><body style="font-family: sans-serif; white-space: pre-wrap;">${body.replace(/\n/g, "<br>")}</body></html>`;
+  return sendEmail(ADMIN_EMAIL, subject, html);
+}
+
 /**
  * Lead unlock confirmation email with contact details
  */

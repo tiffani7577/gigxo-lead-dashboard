@@ -3,7 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
-import { eq, and, desc, not, sql, gte, lte, or, isNull, like, inArray } from "drizzle-orm";
+import { eq, and, desc, not, sql, gte, lte, lt, or, isNull, like, inArray } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import {
   getActiveEventWindows,
@@ -1305,6 +1305,21 @@ export const appRouter = router({
       if (!db) throw new Error("Database not available");
       
       const { gigLeads } = await import("../drizzle/schema");
+      // Auto-reject stale low-score leads: pending > 72h and intentScore < 50
+      const seventyTwoHoursAgo = new Date(Date.now() - 72 * 60 * 60 * 1000);
+      const toAutoReject = await db
+        .select({ id: gigLeads.id, title: gigLeads.title })
+        .from(gigLeads)
+        .where(and(
+          eq(gigLeads.isApproved, false),
+          eq(gigLeads.isRejected, false),
+          lt(gigLeads.createdAt, seventyTwoHoursAgo),
+          or(lt(gigLeads.intentScore, 50), isNull(gigLeads.intentScore))
+        ));
+      for (const row of toAutoReject) {
+        await db.update(gigLeads).set({ isRejected: true }).where(eq(gigLeads.id, row.id));
+        console.log("[auto-reject] Rejected stale low-score lead:", row.title ?? "(no title)");
+      }
       // Priority queue: intent_score >= 70 first, then by score, then by created
       return await db.select().from(gigLeads)
         .where(and(eq(gigLeads.isApproved, false), eq(gigLeads.isRejected, false)))
@@ -1604,6 +1619,202 @@ export const appRouter = router({
         lastSignedIn: u.lastSignedIn,
       }));
     }),
+
+    /** Unified admin command center: business metrics for overview page */
+    getAdminOverview: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user?.role !== "admin") throw new Error("Unauthorized");
+      const { getDb } = await import("./db");
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+      const { users, gigLeads, transactions, leadUnlocks, subscriptions } = await import("../drizzle/schema");
+      const now = new Date();
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - 7);
+      const [userAgg] = await db.select({
+        total: sql<number>`COUNT(*)`,
+        verified: sql<number>`SUM(CASE WHEN ${users.emailVerified} = 1 THEN 1 ELSE 0 END)`,
+        signupsToday: sql<number>`SUM(CASE WHEN ${users.createdAt} >= ${startOfToday} THEN 1 ELSE 0 END)`,
+        signupsWeek: sql<number>`SUM(CASE WHEN ${users.createdAt} >= ${startOfWeek} THEN 1 ELSE 0 END)`,
+      }).from(users);
+      const [unlockAgg] = await db.select({
+        withUnlocks: sql<number>`COUNT(DISTINCT ${leadUnlocks.userId})`,
+      }).from(leadUnlocks);
+      const [leadAgg] = await db.select({
+        total: sql<number>`COUNT(*)`,
+        approved: sql<number>`SUM(CASE WHEN ${gigLeads.isApproved} = 1 THEN 1 ELSE 0 END)`,
+        pending: sql<number>`SUM(CASE WHEN ${gigLeads.isApproved} = 0 AND ${gigLeads.isRejected} = 0 THEN 1 ELSE 0 END)`,
+      }).from(gigLeads);
+      const [revAgg] = await db.select({
+        totalCents: sql<number>`COALESCE(SUM(CASE WHEN ${transactions.status} = 'completed' THEN ${transactions.amount} ELSE 0 END), 0)`,
+        txCount: sql<number>`COUNT(*)`,
+      }).from(transactions);
+      const userCount = Number(userAgg?.total ?? 0);
+      const revenueCents = Number(revAgg?.totalCents ?? 0);
+      const [proCount] = await db.select({
+        count: sql<number>`COUNT(DISTINCT ${subscriptions.userId})`,
+      }).from(subscriptions).where(and(eq(subscriptions.tier, "premium"), eq(subscriptions.status, "active")));
+      return {
+        users: {
+          total: userCount,
+          verified: Number(userAgg?.verified ?? 0),
+          withUnlocks: Number(unlockAgg?.withUnlocks ?? 0),
+          signupsToday: Number(userAgg?.signupsToday ?? 0),
+          signupsWeek: Number(userAgg?.signupsWeek ?? 0),
+        },
+        revenue: {
+          totalDollars: revenueCents / 100,
+          avgPerUser: userCount > 0 ? revenueCents / 100 / userCount : 0,
+        },
+        leads: {
+          total: Number(leadAgg?.total ?? 0),
+          approved: Number(leadAgg?.approved ?? 0),
+          pending: Number(leadAgg?.pending ?? 0),
+        },
+        proSubscribers: Number(proCount?.count ?? 0),
+      };
+    }),
+
+    /** Recent signups for admin overview: filter 7d | 30d | all */
+    getRecentSignups: protectedProcedure
+      .input(z.object({ filter: z.enum(["7d", "30d", "all"]).default("7d") }))
+      .query(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin") throw new Error("Unauthorized");
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) throw new Error("Database not available");
+        const { users, leadUnlocks, transactions, subscriptions } = await import("../drizzle/schema");
+        let since: Date | null = null;
+        if (input.filter === "7d") since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        else if (input.filter === "30d") since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        const list = since
+          ? await db.select({
+              id: users.id,
+              email: users.email,
+              name: users.name,
+              createdAt: users.createdAt,
+              emailVerified: users.emailVerified,
+            }).from(users).where(gte(users.createdAt, since)).orderBy(desc(users.createdAt)).limit(200)
+          : await db.select({
+              id: users.id,
+              email: users.email,
+              name: users.name,
+              createdAt: users.createdAt,
+              emailVerified: users.emailVerified,
+            }).from(users).orderBy(desc(users.createdAt)).limit(200);
+        const userIds = list.map((u) => u.id);
+        const unlockMap: Record<number, number> = {};
+        if (userIds.length > 0) {
+          const unlockRows = await db.select({
+            userId: leadUnlocks.userId,
+            count: sql<number>`COUNT(*)`,
+          }).from(leadUnlocks).where(inArray(leadUnlocks.userId, userIds)).groupBy(leadUnlocks.userId);
+          unlockRows.forEach((r: any) => { unlockMap[r.userId] = Number(r.count); });
+        }
+        const spentMap: Record<number, number> = {};
+        if (userIds.length > 0) {
+          const spentRows = await db.select({
+            userId: transactions.userId,
+            total: sql<number>`COALESCE(SUM(CASE WHEN ${transactions.status} = 'completed' THEN ${transactions.amount} ELSE 0 END), 0)`,
+          }).from(transactions).where(inArray(transactions.userId, userIds)).groupBy(transactions.userId);
+          spentRows.forEach((r: any) => { spentMap[r.userId] = Number(r.total ?? 0) / 100; });
+        }
+        const subRows = await db.select({ userId: subscriptions.userId, tier: subscriptions.tier, status: subscriptions.status })
+          .from(subscriptions).where(inArray(subscriptions.userId, userIds));
+        const subMap: Record<number, string> = {};
+        subRows.forEach((r) => { subMap[r.userId] = r.status === "active" && r.tier === "premium" ? "Pro" : r.tier === "premium" ? "Premium (inactive)" : "Free"; });
+        return list.map((u) => ({
+          id: u.id,
+          email: u.email ?? "",
+          name: u.name ?? "",
+          joinedAt: u.createdAt,
+          emailVerified: !!u.emailVerified,
+          leadsUnlocked: unlockMap[u.id] ?? 0,
+          totalSpentDollars: spentMap[u.id] ?? 0,
+          subscriptionStatus: subMap[u.id] ?? "Free",
+        }));
+      }),
+
+    /** Lead quality snapshot: by source, approved vs pending, contact info, avg intent */
+    getLeadQualitySnapshot: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user?.role !== "admin") throw new Error("Unauthorized");
+      const { getDb } = await import("./db");
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+      const { gigLeads } = await import("../drizzle/schema");
+      const bySource = await db.select({
+        source: gigLeads.source,
+        count: sql<number>`COUNT(*)`,
+      }).from(gigLeads).groupBy(gigLeads.source);
+      const [counts] = await db.select({
+        approved: sql<number>`SUM(CASE WHEN ${gigLeads.isApproved} = 1 THEN 1 ELSE 0 END)`,
+        pending: sql<number>`SUM(CASE WHEN ${gigLeads.isApproved} = 0 AND ${gigLeads.isRejected} = 0 THEN 1 ELSE 0 END)`,
+        withContact: sql<number>`SUM(CASE WHEN (${gigLeads.contactEmail} IS NOT NULL AND ${gigLeads.contactEmail} != '') OR (${gigLeads.contactPhone} IS NOT NULL AND ${gigLeads.contactPhone} != '') THEN 1 ELSE 0 END)`,
+        total: sql<number>`COUNT(*)`,
+        avgIntent: sql<number>`AVG(${gigLeads.intentScore})`,
+      }).from(gigLeads);
+      return {
+        bySource: bySource.map((r) => ({ source: String(r.source), count: Number(r.count) })),
+        approved: Number(counts?.approved ?? 0),
+        pending: Number(counts?.pending ?? 0),
+        withContact: Number(counts?.withContact ?? 0),
+        withoutContact: Number(counts?.total ?? 0) - Number(counts?.withContact ?? 0),
+        avgIntentScore: counts?.avgIntent != null ? Math.round(Number(counts.avgIntent)) : null,
+      };
+    }),
+
+    /** Venue intelligence status for admin overview */
+    getVenueIntelligenceStatus: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user?.role !== "admin") throw new Error("Unauthorized");
+      const { getDb } = await import("./db");
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+      const { gigLeads, outreachLog } = await import("../drizzle/schema");
+      const venueCondition = eq(gigLeads.leadType, "venue_intelligence");
+      const [totalRow] = await db.select({ count: sql<number>`COUNT(*)` }).from(gigLeads).where(venueCondition);
+      const total = Number(totalRow?.count ?? 0);
+      const startOfToday = new Date();
+      startOfToday.setHours(0, 0, 0, 0);
+      const startOfWeek = new Date();
+      startOfWeek.setDate(startOfWeek.getDate() - 7);
+      const venueIds = await db.select({ id: gigLeads.id }).from(gigLeads).where(venueCondition);
+      const ids = venueIds.map((r) => r.id);
+      let outreachToday = 0;
+      let outreachWeek = 0;
+      if (ids.length > 0) {
+        const [todayRow] = await db.select({ count: sql<number>`COUNT(*)` }).from(outreachLog).where(and(inArray(outreachLog.leadId, ids), gte(outreachLog.sentAt, startOfToday)));
+        const [weekRow] = await db.select({ count: sql<number>`COUNT(*)` }).from(outreachLog).where(and(inArray(outreachLog.leadId, ids), gte(outreachLog.sentAt, startOfWeek)));
+        outreachToday = Number(todayRow?.count ?? 0);
+        outreachWeek = Number(weekRow?.count ?? 0);
+      }
+      const [contactRows] = await db.select({
+        withEmail: sql<number>`SUM(CASE WHEN (${gigLeads.venueEmail} IS NOT NULL AND ${gigLeads.venueEmail} != '') OR (${gigLeads.contactEmail} IS NOT NULL AND ${gigLeads.contactEmail} != '') THEN 1 ELSE 0 END)`,
+        total: sql<number>`COUNT(*)`,
+      }).from(gigLeads).where(venueCondition);
+      const withEmail = Number(contactRows?.withEmail ?? 0);
+      const totalVenue = Number(contactRows?.total ?? 0);
+      const replyList = await db.select({
+        id: gigLeads.id,
+        title: gigLeads.title,
+        location: gigLeads.location,
+        outreachStatus: gigLeads.outreachStatus,
+        outreachLastSentAt: gigLeads.outreachLastSentAt,
+      }).from(gigLeads).where(and(venueCondition, inArray(gigLeads.outreachStatus, ["replied", "interested"] as const))).orderBy(desc(gigLeads.outreachLastSentAt)).limit(10);
+      return {
+        totalDbprVenues: total,
+        outreachSentToday: outreachToday,
+        outreachSentThisWeek: outreachWeek,
+        withContactEmail: withEmail,
+        missingContactInfo: totalVenue - withEmail,
+        recentReplies: replyList.map((r) => ({
+          id: r.id,
+          title: r.title,
+          location: r.location,
+          outreachStatus: r.outreachStatus,
+          lastSentAt: r.outreachLastSentAt ?? null,
+        })),
+      };
+    }),
     
     triggerDailyDigest: protectedProcedure.mutation(async ({ ctx }) => {
       if (ctx.user?.role !== 'admin') throw new Error("Unauthorized");
@@ -1708,6 +1919,7 @@ export const appRouter = router({
           }
           
           try {
+            const needsEnrichment = (lead as any).needsEnrichment === true;
             const insertData: any = {
               externalId:    lead.externalId,
               source:        lead.source as any,
@@ -1726,18 +1938,19 @@ export const appRouter = router({
               venueUrl:      lead.venueUrl,
               performerType: lead.performerType as any,
               intentScore:   lead.intentScore ?? null,
-            leadType:      (lead as any).leadType ?? undefined,
-            leadCategory:  (lead as any).leadCategory ?? undefined,
-            isApproved:    lead.isApproved ?? false,
-            isRejected:    false,
-            isHidden:      false,
-            isReserved:    false,
-          };
-          await db.insert(gigLeads).values(insertData);
-          inserted++;
-          const { logLeadDiscovered } = await import("./leadConversionLog");
-          logLeadDiscovered({ lead_source: lead.source, intent_score: lead.intentScore ?? null });
-          // Fire-and-forget contact enrichment for new DBPR leads (Google Places), only if high-value venue
+              leadType:      (lead as any).leadType ?? undefined,
+              leadCategory:  (lead as any).leadCategory ?? undefined,
+              isApproved:    lead.isApproved ?? false,
+              isRejected:    false,
+              isHidden:      false,
+              isReserved:    false,
+              notes:         needsEnrichment ? "needs_enrichment" : undefined,
+            };
+            await db.insert(gigLeads).values(insertData);
+            inserted++;
+            const { logLeadDiscovered } = await import("./leadConversionLog");
+            logLeadDiscovered({ lead_source: lead.source, intent_score: lead.intentScore ?? null });
+            // Fire-and-forget contact enrichment for new DBPR leads (Google Places), only if high-value venue — unchanged
             if (lead.externalId.startsWith("dbpr-")) {
               const [insertedRow] = await db.select({ id: gigLeads.id }).from(gigLeads).where(eq(gigLeads.externalId, lead.externalId)).limit(1);
               if (insertedRow?.id) {
@@ -1751,6 +1964,42 @@ export const appRouter = router({
                   setImmediate(() => {
                     import("./scraper-collectors/contact-enrichment").then((m) => m.enrichVenueContact(leadId, title, location)).catch(() => {});
                   });
+                }
+              }
+            }
+            // Tier 2: trigger website email scraper when venueUrl is a real website and shouldEnrichVenue passes
+            else if (needsEnrichment && lead.venueUrl?.trim()) {
+              const { isRealWebsiteUrl } = await import("./scraper-collectors/scraper-pipeline");
+              const venueSrc = (lead as any)._venueUrlSource;
+              if (isRealWebsiteUrl(lead.venueUrl, venueSrc)) {
+                const [insertedRow] = await db.select({ id: gigLeads.id }).from(gigLeads).where(eq(gigLeads.externalId, lead.externalId)).limit(1);
+                if (insertedRow?.id) {
+                  const { shouldEnrichVenue } = await import("./scraper-collectors/contact-enrichment");
+                  if (shouldEnrichVenue(lead.title, lead.description)) {
+                    setImmediate(() => {
+                      import("./scraper-collectors/contact-enrichment").then((m) => m.enrichVenueContact(insertedRow.id, lead.title ?? "", lead.location ?? "")).catch(() => {});
+                    });
+                  }
+                }
+              }
+            }
+            // Any lead (non-DBPR) with a real website URL: fire enrichment after insert (Google Places + email scraper)
+            if (!lead.externalId.startsWith("dbpr-") && lead.venueUrl?.trim()) {
+              const enrichedDomains = ["reddit.com", "facebook.com", "twitter.com", "linkedin.com", "apify.com", "google.com", "duckduckgo.com"];
+              const urlLower = lead.venueUrl.toLowerCase();
+              const isRealWebsite = !enrichedDomains.some((d) => urlLower.includes(d));
+              if (isRealWebsite) {
+                const [insertedRow] = await db.select({ id: gigLeads.id }).from(gigLeads).where(eq(gigLeads.externalId, lead.externalId)).limit(1);
+                if (insertedRow?.id) {
+                  const rawTitle = (lead.title ?? "").trim();
+                  const businessName = rawTitle.replace(/\s*[–-]\s*[^–-]+$/, "").trim() || rawTitle;
+                  const city = (lead.location ?? "").trim();
+                  const { shouldEnrichVenue } = await import("./scraper-collectors/contact-enrichment");
+                  if (shouldEnrichVenue(lead.title, lead.description)) {
+                    setImmediate(() => {
+                      import("./scraper-collectors/contact-enrichment").then((m) => m.enrichVenueContact(insertedRow.id, businessName, city)).catch(() => {});
+                    });
+                  }
                 }
               }
             }

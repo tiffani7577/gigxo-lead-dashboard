@@ -87,13 +87,20 @@ const GOOGLE_MAPS_SEARCHES = [
   "yacht charters miami",
 ];
 
-// Facebook Groups: apify/facebook-groups-scraper — startUrls are group URLs (replace with real group URLs if needed)
+// Facebook Groups: apify/facebook-groups-scraper — startUrls are group URLs
 const FACEBOOK_GROUP_URLS = [
   "https://www.facebook.com/groups/miamiweddingplanning",
   "https://www.facebook.com/groups/fortlauderdaleevents",
   "https://www.facebook.com/groups/southfloridaweddings",
   "https://www.facebook.com/groups/miamipartyplanning",
   "https://www.facebook.com/groups/fortlauderdaleweddingvendors",
+  "https://www.facebook.com/groups/miamieventplanning",
+  "https://www.facebook.com/groups/southfloridaevents",
+  "https://www.facebook.com/groups/miamiquinceaneras",
+  "https://www.facebook.com/groups/browardcountyevents",
+  "https://www.facebook.com/groups/miamicorporateevents",
+  "https://www.facebook.com/groups/djjobsdjneeddj",
+  "https://www.facebook.com/groups/southfloridaweddingvendors",
 ];
 
 const FACEBOOK_POST_KEYWORDS = ["dj", "entertainment", "performer", "band", "musician"];
@@ -147,35 +154,81 @@ export function cityFromPostText(text: string): "Miami, FL" | "Fort Lauderdale, 
   return null;
 }
 
-// Twitter/X: apify/twitter-scraper — search queries
+// Twitter/X: apify/twitter-scraper — search queries (with date filter)
 const TWITTER_SEARCH_QUERIES = [
-  "need dj miami",
-  "looking for dj fort lauderdale",
-  "hire dj florida",
-  "wedding dj miami",
+  '"need a dj" miami since:2026-02-01',
+  '"looking for dj" "miami" since:2026-02-01',
+  '"need dj" "fort lauderdale" since:2026-02-01',
+  '"hire a dj" "south florida" since:2026-02-01',
+  '"need entertainment" "miami" since:2026-02-01',
+  '"looking for band" "miami" since:2026-02-01',
+  '"event dj" "miami" since:2026-02-01',
+  '"wedding dj" "miami" since:2026-02-01',
 ];
 
-// LinkedIn: apify/linkedin-scraper — people search (event planners / wedding coordinators in South Florida)
+// LinkedIn: apify/linkedin-scraper — corporate events / event planners
 const LINKEDIN_SEARCH_QUERIES = [
-  "event planner South Florida",
-  "wedding coordinator South Florida",
+  '"looking for entertainment" "miami" event',
+  '"need a dj" "miami" event 2026',
+  '"corporate event" "miami" "entertainment" recommendations',
+  '"event planner" "miami" "dj" "looking for"',
+  '"team building" "miami" "entertainment" 2026',
+  '"holiday party" "miami" "dj" 2026',
+  '"product launch" "miami" "entertainment"',
 ];
 
 // Google SERP: apify/google-search-scraper — publicly indexed social posts about DJ hiring (no login, no ToS violation)
 const GOOGLE_SERP_QUERIES = [
+  // Facebook intent
   'site:facebook.com "need a dj" "miami"',
   'site:facebook.com "looking for dj" "fort lauderdale"',
   'site:facebook.com "wedding dj" "south florida"',
   'site:facebook.com "need entertainment" "miami"',
   'site:facebook.com "hire a dj" "florida"',
+  'site:facebook.com "need a band" "miami"',
+  'site:facebook.com "looking for live music" "south florida"',
+  'site:facebook.com "event entertainment" "miami" 2026',
+  // Reddit intent
   'site:reddit.com "need a dj" "miami"',
   'site:reddit.com "looking for dj" "fort lauderdale"',
+  'site:reddit.com "hire musician" "south florida"',
+  // Nextdoor local intent
   'site:nextdoor.com "dj" "fort lauderdale"',
-  'site:groups.google.com "need dj" "miami"',
+  'site:nextdoor.com "dj" "miami"',
+  'site:nextdoor.com "band" "miami"',
+  'site:nextdoor.com "entertainment" "miami" 2026',
+  // Bark.com — high intent lead requests
+  'site:bark.com "DJ" "Miami" request',
+  'site:bark.com "DJ" "Fort Lauderdale"',
+  'site:bark.com "band" "Miami"',
+  'site:bark.com "wedding entertainment" "Florida"',
+  // Thumbtack — structured lead requests
+  'site:thumbtack.com "DJ" "Miami, FL"',
+  'site:thumbtack.com "DJ" "Fort Lauderdale"',
+  'site:thumbtack.com "wedding DJ" "Florida"',
+  'site:thumbtack.com "event DJ" "Miami"',
+  // WeddingWire / The Knot forums
+  'site:weddingwire.com "DJ" "Miami" recommendations 2026',
+  'site:theknot.com "DJ" "Miami" recommendations 2026',
+  'site:weddingwire.com "looking for DJ" "south florida"',
+  // LinkedIn corporate events
+  'site:linkedin.com "event entertainment" "Miami" "looking for"',
+  'site:linkedin.com "DJ" "corporate event" "Miami" 2026',
+  'site:linkedin.com "entertainment" "Fort Lauderdale" "event"',
+  // General high intent
   '"need a dj" "miami" -site:gigsalad.com -site:thumbtack.com',
   '"looking for dj" "fort lauderdale" -site:gigsalad.com',
   '"wedding dj" "miami" "recommendations"',
-  '"hire dj" "south florida" 2025',
+  '"hire dj" "south florida" 2026',
+  '"need entertainment" "miami" "event" 2026',
+  '"looking for band" "south florida" 2026',
+  '"event venue" "miami" "entertainment" "opening" 2026',
+  '"grand opening" "miami" "entertainment" 2026',
+  '"quinceañera" "dj" "miami" 2026',
+  '"sweet 16" "dj" "miami" 2026',
+  '"corporate event" "dj" "miami" 2026',
+  '"boat party" "dj" "miami" 2026',
+  '"yacht" "dj" "miami" 2026',
 ];
 
 function inferLeadCategory(text: string): "wedding" | "corporate" | "private_party" | "general" {
@@ -328,11 +381,35 @@ async function collectCraigslistRss(): Promise<RawLeadDoc[]> {
   return docs;
 }
 
-/** Facebook Groups actor: apify/facebook-groups-scraper. Items have: url, text, time, user, id, legacyId */
+/** Extract phone and email from text using regex; returns first match of each. */
+function extractPhoneAndEmailFromText(text: string): { phone?: string | null; email?: string | null } {
+  const phoneMatch = text.match(/(?:\+?1[-.\s]?)?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}/);
+  const emailMatch = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+  return {
+    phone: phoneMatch ? phoneMatch[0].trim() : null,
+    email: emailMatch ? emailMatch[0].trim() : null,
+  };
+}
+
+/** Facebook Groups actor: apify/facebook-groups-scraper. Items have: url, text, time, user, id, legacyId, comments, commentsCount */
 function normalizeFacebookGroupPost(item: Record<string, unknown>, index: number): RawLeadDoc {
   const id = (item.id ?? item.legacyId ?? item.feedbackId ?? `fb-${index}`) as string;
-  const title = String(item.text ?? "").slice(0, 255) || "Facebook group post";
-  const body = String(item.text ?? "").trim();
+  let body = String(item.text ?? "").trim();
+  const commentsCount = typeof item.commentsCount === "number" ? item.commentsCount : 0;
+  const comments = (item.comments ?? []) as Array<Record<string, unknown> | string>;
+  let contact: RawLeadDoc["contact"] = undefined;
+  const allCommentText = comments
+    .map((c) => (typeof c === "string" ? c : String(c.text ?? c.body ?? c.message ?? "")))
+    .filter(Boolean)
+    .join(" ");
+  if (allCommentText) {
+    const { phone, email } = extractPhoneAndEmailFromText(allCommentText);
+    if (phone || email) contact = { phone: phone ?? undefined, email: email ?? undefined };
+  }
+  if (commentsCount > 3) {
+    body = `${body}\n\nHigh response: ${commentsCount} DJs already responded`.trim();
+  }
+  const title = body.slice(0, 255) || "Facebook group post";
   const rawText = body || title;
   const url = String(item.url ?? item.facebookUrl ?? "").trim() || "https://www.facebook.com";
   const postedAt = safeDate(item.time ?? item.createdAt ?? Date.now());
@@ -348,7 +425,7 @@ function normalizeFacebookGroupPost(item: Record<string, unknown>, index: number
     url,
     postedAt,
     city,
-    contact: undefined,
+    contact,
     metadata: {
       leadType: "scraped_signal",
       leadCategory: inferLeadCategory(rawText),
@@ -431,7 +508,15 @@ function serpResultPassesFilter(organicResult: Record<string, unknown>): boolean
   return passesIntentFilter(`${title} ${description}`);
 }
 
-/** Google Search Scraper organic result → RawLeadDoc (source reddit, sourceLabel Google Search, scraped_signal) */
+/** Extract budget (cents) from snippet text, e.g. "$500" or "$1,200" */
+function extractBudgetFromSnippet(snippet: string): number | null {
+  const match = snippet.match(/\$[\d,]+/);
+  if (!match) return null;
+  const num = parseInt(match[0].replace(/[$,]/g, ""), 10);
+  return Number.isFinite(num) ? num * 100 : null;
+}
+
+/** Google Search Scraper organic result → RawLeadDoc. Bark/Thumbtack get source override, +20 intentBoost, leadTemperature hot. */
 function normalizeGoogleSerpItem(organicResult: Record<string, unknown>, index: number): RawLeadDoc {
   const url = String(organicResult.url ?? organicResult.link ?? "").trim();
   const slug = url ? url.replace(/[^a-z0-9]/gi, "_").slice(0, 80) : `serp-${index}`;
@@ -439,24 +524,56 @@ function normalizeGoogleSerpItem(organicResult: Record<string, unknown>, index: 
   const description = String(organicResult.description ?? organicResult.snippet ?? "").trim();
   const rawText = `${title}\n\n${description}`.trim();
   const city = cityFromPostText(rawText);
+  const urlLower = url.toLowerCase();
+
+  let source: string = "reddit";
+  let sourceType: RawLeadDoc["sourceType"] = "reddit";
+  let sourceLabel = "Apify Google Search";
+  let buyerType: string | undefined;
+  let intentBoost = 0;
+  let leadTemperature: string | undefined;
+  let budgetCents: number | null = null;
+
+  if (urlLower.includes("bark.com")) {
+    source = "bark";
+    sourceType = "other";
+    sourceLabel = "Bark.com Request";
+    buyerType = "private";
+    intentBoost = 20;
+    leadTemperature = "hot";
+    budgetCents = extractBudgetFromSnippet(description);
+  } else if (urlLower.includes("thumbtack.com")) {
+    source = "thumbtack";
+    sourceType = "other";
+    sourceLabel = "Thumbtack Request";
+    intentBoost = 20;
+    leadTemperature = "hot";
+    budgetCents = extractBudgetFromSnippet(description);
+  }
+
+  const metadata: Record<string, unknown> = {
+    leadType: "scraped_signal",
+    leadCategory: inferLeadCategory(rawText),
+    displayedUrl: organicResult.displayedUrl,
+    position: organicResult.position,
+  };
+  if (intentBoost) metadata.intentBoost = intentBoost;
+  if (leadTemperature) metadata.leadTemperature = leadTemperature;
+  if (budgetCents != null) metadata.extractedBudgetCents = budgetCents;
+  if (buyerType) metadata.buyerType = buyerType;
 
   return {
     externalId: `apify-serp-${slug}`,
-    source: "reddit",
-    sourceType: "reddit",
-    sourceLabel: "Google Search",
+    source,
+    sourceType,
+    sourceLabel,
     title,
     rawText,
     url: url || "https://www.google.com",
     postedAt: new Date(),
     city,
     contact: undefined,
-    metadata: {
-      leadType: "scraped_signal",
-      leadCategory: inferLeadCategory(rawText),
-      displayedUrl: organicResult.displayedUrl,
-      position: organicResult.position,
-    },
+    metadata,
   };
 }
 
@@ -487,6 +604,49 @@ function normalizeGoogleMapsItem(item: Record<string, unknown>, index: number): 
       leadCategory: "venue_intelligence",
       address,
       venueUrl: url,
+    },
+  };
+}
+
+const EVENTBRITE_CORPORATE_KEYWORDS = ["corporate", "business", "conference", "team building", "product launch", "networking"];
+const EVENTBRITE_PRIVATE_KEYWORDS = ["wedding", "birthday", "quince", "sweet 16", "private party", "family"];
+
+/** Eventbrite actor: parseforge/eventbrite-scraper. Output: event title, description, url, start/end date, venue city, organizer. */
+function normalizeEventbriteItem(item: Record<string, unknown>, index: number): RawLeadDoc {
+  const eventUrl = String(item.url ?? item.eventUrl ?? item.link ?? "").trim();
+  const slug = eventUrl ? eventUrl.replace(/[^a-z0-9]/gi, "_").slice(0, 80) : `eventbrite-${index}`;
+  const title = String(item.title ?? item.eventTitle ?? item.name ?? "").slice(0, 255) || "Eventbrite event";
+  const description = String(item.description ?? item.eventDescription ?? item.summary ?? "").trim();
+  const rawText = `${title}\n\n${description}`.trim();
+  const city = String(item.venueCity ?? item.city ?? item.location ?? "").trim() || cityFromPostText(description);
+  const startDate = safeDate(item.eventStartDate ?? item.startDate ?? item.start ?? item.date ?? Date.now());
+  const organizerName = item.organizerName ?? (item.organizer as Record<string, unknown>)?.name;
+  const organizerEmail = item.organizerEmail ?? (item.organizer as Record<string, unknown>)?.email;
+  const contact: RawLeadDoc["contact"] =
+    organizerName || organizerEmail
+      ? { name: organizerName ? String(organizerName) : undefined, email: organizerEmail ? String(organizerEmail) : undefined }
+      : undefined;
+  const textLower = rawText.toLowerCase();
+  let leadCategory: string = "general";
+  if (EVENTBRITE_CORPORATE_KEYWORDS.some((k) => textLower.includes(k))) leadCategory = "corporate";
+  else if (EVENTBRITE_PRIVATE_KEYWORDS.some((k) => textLower.includes(k))) leadCategory = "private_party";
+
+  return {
+    externalId: `apify-eventbrite-${slug}`,
+    source: "eventbrite",
+    sourceType: "eventbrite",
+    sourceLabel: "Eventbrite Miami",
+    title,
+    rawText,
+    url: eventUrl || "https://www.eventbrite.com",
+    postedAt: startDate,
+    city: city || null,
+    contact,
+    metadata: {
+      leadType: "scraped_signal",
+      leadCategory,
+      eventDate: startDate,
+      buyerType: "event_planner",
     },
   };
 }
@@ -647,6 +807,34 @@ export async function collectFromApify(): Promise<RawLeadDoc[]> {
     console.log("[apify-collector] Google Maps:", docs.length - beforeGmaps, "items (venue_intelligence)");
   } catch (err) {
     console.warn("[apify-collector] Google Maps actor failed:", err);
+  }
+
+  // 8) Eventbrite — parseforge/eventbrite-scraper (only future events)
+  try {
+    const eventbriteInput = {
+      startUrls: [
+        { url: "https://www.eventbrite.com/d/fl--miami/events/" },
+        { url: "https://www.eventbrite.com/d/fl--fort-lauderdale/events/" },
+        { url: "https://www.eventbrite.com/d/fl--boca-raton/events/" },
+        { url: "https://www.eventbrite.com/d/fl--miami-beach/events/" },
+      ],
+      maxItems: 50,
+    };
+    const run = await client.actor("parseforge/eventbrite-scraper").call(eventbriteInput as any);
+    const eventbriteItems = await client.dataset(run.defaultDatasetId).listItems();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    let eventbriteAdded = 0;
+    for (let i = 0; i < eventbriteItems.items.length; i++) {
+      const item = eventbriteItems.items[i] as Record<string, unknown>;
+      const startDate = safeDate(item.eventStartDate ?? item.startDate ?? item.start ?? item.date ?? 0);
+      if (startDate < today) continue;
+      docs.push(normalizeEventbriteItem(item, i));
+      eventbriteAdded++;
+    }
+    console.log("[apify-collector] Eventbrite:", eventbriteItems.items.length, "collected,", eventbriteAdded, "future events added");
+  } catch (err) {
+    console.warn("[apify-collector] Eventbrite actor failed:", err);
   }
 
   console.log("[apify-collector] Total RawLeadDocs:", docs.length);

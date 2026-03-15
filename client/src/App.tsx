@@ -7,6 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import ArtistDashboard from "./pages/ArtistDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminOverview from "./pages/AdminOverview";
 import AdminEventWindows from "./pages/AdminEventWindows";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -51,7 +52,8 @@ function Router() {
       <Route path="/share" component={SharePage} />
       <Route path="/request-entertainment" component={RequestEntertainment} />
       <Route path="/book-dj" component={BookDj} />
-      <Route path="/admin" component={AdminDashboard} />
+      <Route path="/admin" component={AdminOverview} />
+      <Route path="/admin/queue" component={AdminDashboard} />
       <Route path="/admin/event-windows" component={AdminEventWindows} />
       <Route path="/admin/scraper-config" component={ScraperConfig} />
       <Route path="/admin/leads-explorer" component={AdminLeadsExplorer} />

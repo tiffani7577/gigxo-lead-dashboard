@@ -351,13 +351,25 @@ function redditRawDocToRawLeadDoc(doc: RawDoc): RawLeadDoc {
 
 // ─── Contact completeness (gate + scoring) ──────────────────────────────────────
 
-/** True if venueUrl looks like a real business website, not the source post URL (reddit/facebook/eventbrite etc.). */
-function isRealWebsiteUrl(venueUrl: string, venueUrlSource: string | undefined): boolean {
+/** True if venueUrl looks like a real business website, not the source post URL (reddit/facebook/eventbrite etc.). Exported for router (Tier 2 enrichment). */
+export function isRealWebsiteUrl(venueUrl: string, venueUrlSource: string | undefined): boolean {
   if (!venueUrl || !venueUrl.trim()) return false;
   if (venueUrlSource === "docUrl") return false;
   const lower = venueUrl.toLowerCase();
   const sourceDomains = ["reddit.com", "facebook.com", "eventbrite.com", "craigslist.org", "nextdoor.com", "thebash.com", "gigsalad.com", "thumbtack.com", "yelp.com"];
   return !sourceDomains.some((d) => lower.includes(d));
+}
+
+/** Sources allowed for Tier 2 (no contact but high intent → insert pending enrichment). */
+const TIER2_SOURCES = new Set([
+  "reddit", "apify", "facebook", "twitter", "linkedin", "bark", "thumbtack", "eventbrite", "google_serp",
+]);
+
+function isTier2Source(lead: ScrapedLead): boolean {
+  const src = (lead as { source?: string }).source ?? lead.source;
+  if (TIER2_SOURCES.has(src)) return true;
+  if (lead.sourceLabel?.startsWith("Apify ")) return true;
+  return false;
 }
 
 /** True if lead has at least one usable contact signal (for insert gate). DBPR and inbound bypass in caller. */
@@ -653,9 +665,12 @@ export async function runScraperPipeline(
 
   stats.collected = allDocs.length;
 
-  // Step 3 — Trash/valid routing: negative filter + intent gate; only valid become leads
+  // Step 3 — Trash/valid routing: negative filter + intent gate; three-tier contact gate
   // Venue intelligence (DBPR, Sunbiz) bypass intent gate — they are records, not demand posts
   const leads: ScrapedLead[] = [];
+  let tier1Count = 0;
+  let tier2Count = 0;
+  let tier3RejectedCount = 0;
   for (const doc of allDocs) {
     try {
       const isVenueIntel =
@@ -702,26 +717,36 @@ export async function runScraperPipeline(
         continue;
       }
 
-      // Contact gate: DBPR and inbound bypass; others must have at least one contact signal
+      // Three-tier contact gate: DBPR and inbound bypass; others go through Tier1 / Tier2 / Tier3
       if (lead.source === "dbpr" || (lead as { source?: string }).source === "inbound") {
         leads.push(lead);
         stats.filtered++;
-      } else if (passesContactGate(lead)) {
-        // Auto-approve high confidence: intent >= 65, not duckduckgo, geo passed or null, postedAt within 30 days or null, contact gate passed
+        continue;
+      }
+      if (passesContactGate(lead)) {
+        // TIER 1 — Has contact: auto-approve if intent >= 65 and other conditions
         const sourceStr = (lead as { source?: string }).source;
         const autoApprove =
           lead.intentScore >= 65 &&
           sourceStr !== "duckduckgo" &&
-          (passesGeoFilter(lead.location)) &&
+          passesGeoFilter(lead.location) &&
           postedAtWithin30OrNull(doc.postedAt) &&
           passesContactGate(lead);
-        if (autoApprove) {
-          lead.isApproved = true;
-          (lead as any).autoApproved = true;
-        }
+        lead.isApproved = autoApprove;
+        if (autoApprove) (lead as any).autoApproved = true;
+        tier1Count++;
+        leads.push(lead);
+        stats.filtered++;
+      } else if (lead.intentScore >= 70 && isTier2Source(lead)) {
+        // TIER 2 — No contact but high intent + allowed source: insert pending enrichment
+        lead.isApproved = false;
+        (lead as any).needsEnrichment = true;
+        tier2Count++;
         leads.push(lead);
         stats.filtered++;
       } else {
+        // TIER 3 — Reject
+        tier3RejectedCount++;
         console.log("[pipeline] Rejected - no contact info:", lead.title, "from", lead.source);
       }
     } catch (err) {
@@ -729,6 +754,15 @@ export async function runScraperPipeline(
       console.error("[scraper-pipeline] Error processing doc:", doc.externalId, err);
     }
   }
+
+  console.log(
+    "[pipeline] Tier1 approved:",
+    tier1Count,
+    "| Tier2 pending enrichment:",
+    tier2Count,
+    "| Tier3 rejected:",
+    tier3RejectedCount
+  );
 
   stats.trashCount = stats.negativeRejected + stats.intentRejected;
   stats.classified = leads.length;
