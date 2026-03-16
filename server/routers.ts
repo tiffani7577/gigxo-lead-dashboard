@@ -177,17 +177,15 @@ export const appRouter = router({
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
 
-    /** One-time onboarding: set userType (performer | client | venue) and skip /welcome next time */
+    /** One-time onboarding: set userType (performer | client | venue).
+     *  Temporarily disabled until userType migration is deployed.
+     */
     setUserType: protectedProcedure
       .input(z.object({ userType: z.enum(["performer", "client", "venue"]) }))
-      .mutation(async ({ ctx, input }) => {
-        const db = await getDb();
-        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB unavailable" });
-        const { users } = await import("../drizzle/schema");
-        await db.update(users).set({ userType: input.userType }).where(eq(users.id, ctx.user.id));
-        return { ok: true };
+      .mutation(async () => {
+        return { ok: false };
       }),
-    
+  
     // Email/password signup
     signup: publicProcedure
       .input(z.object({

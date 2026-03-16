@@ -25,8 +25,6 @@ export interface AuthUser {
   emailVerified?: boolean;
   avatarUrl?: string | null;
   hasUsedFreeTrial?: boolean;
-  /** One-time onboarding: performer | client | venue */
-  userType?: string | null;
 }
 
 export interface SignupInput {
@@ -288,7 +286,6 @@ export async function loginWithGoogle(googleProfile: {
     role: u.role,
     emailVerified: true,
     avatarUrl: u.avatarUrl,
-    userType: u.userType ?? undefined,
   };
 
   const token = generateToken(authUser);
@@ -385,7 +382,6 @@ export async function getUserById(id: number): Promise<AuthUser | null> {
     emailVerified: users.emailVerified,
     avatarUrl: users.avatarUrl,
     hasUsedFreeTrial: users.hasUsedFreeTrial,
-    userType: users.userType,
   }).from(users).where(eq(users.id, id)).limit(1);
 
   if (found.length === 0) return null;

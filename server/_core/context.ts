@@ -58,7 +58,6 @@ export async function createContext(
             emailVerified: freshUser.emailVerified ?? false,
             loginMethod: (freshUser as any).loginMethod ?? "email",
             hasUsedFreeTrial: freshUser.hasUsedFreeTrial ?? false,
-            userType: freshUser.userType ?? null,
             createdAt: new Date(),
             updatedAt: new Date(),
             lastSignedIn: new Date(),
