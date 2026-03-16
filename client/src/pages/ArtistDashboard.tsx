@@ -61,7 +61,7 @@ const PERFORMER_TYPES: { value: string; label: string; icon: string }[] = [
 ];
 
 function formatBudget(cents: number | null) {
-  if (!cents) return "TBD";
+  if (!cents) return "";
   const dollars = cents / 100;
   if (dollars >= 1000) return `$${(dollars / 1000).toFixed(1)}k`;
   return `$${dollars.toFixed(0)}`;
@@ -930,13 +930,17 @@ export default function ArtistDashboard() {
                                   Unlock ${((lead as any).unlockPriceCents / 100).toFixed(0)}
                                 </span>
                               )}
-                              {!lead.isUnlocked && (lead as any).unlockPriceCents == null && (lead as any).leadTier != null && (
-                                <span className="flex-shrink-0 text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full">
-                                  {((lead as any).leadTier === "starter_friendly" && "Unlock $1") ||
-                                    ((lead as any).leadTier === "premium" && "Unlock $15") ||
-                                    "Unlock $7"}
-                                </span>
-                              )}
+                              {!lead.isUnlocked &&
+                                (lead as any).unlockPriceCents == null &&
+                                ((lead as any).leadTier === "starter_friendly" ||
+                                  (lead as any).leadTier === "standard" ||
+                                  (lead as any).leadTier === "premium") && (
+                                  <span className="flex-shrink-0 text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full">
+                                    {(lead as any).leadTier === "starter_friendly" && "Unlock $1"}
+                                    {(lead as any).leadTier === "standard" && "Unlock $7"}
+                                    {(lead as any).leadTier === "premium" && "Unlock $15"}
+                                  </span>
+                                )}
                             </div>
                             <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
                               <span className="flex items-center gap-1">
