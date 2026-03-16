@@ -3,7 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
-import { eq, and, desc, not, sql, gte, lte, lt, or, isNull, like, inArray } from "drizzle-orm";
+import { eq, and, desc, asc, not, ne, sql, gte, lte, lt, or, isNull, isNotNull, like, inArray } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import {
   getActiveEventWindows,
@@ -1468,6 +1468,186 @@ export const appRouter = router({
         }
         await db.update(gigLeads).set(updates as any).where(eq(gigLeads.id, input.leadId));
         return { success: true };
+      }),
+
+    /** Next DBPR venue in outreach queue (not_sent, has contactEmail). For Outreach Hub. */
+    getNextOutreachVenue: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN", message: "Unauthorized" });
+      const { getDb } = await import("./db");
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+      const { gigLeads } = await import("../drizzle/schema");
+      const where = and(
+        eq(gigLeads.source, "dbpr"),
+        eq(gigLeads.isApproved, true),
+        eq(gigLeads.outreachStatus, "not_sent"),
+        isNotNull(gigLeads.contactEmail),
+        ne(gigLeads.contactEmail, "")
+      );
+      const [countRow] = await db.select({ c: sql<number>`COUNT(*)` }).from(gigLeads).where(where);
+      const remainingCount = Number(countRow?.c ?? 0);
+      const rows = await db
+        .select({
+          id: gigLeads.id,
+          title: gigLeads.title,
+          location: gigLeads.location,
+          contactEmail: gigLeads.contactEmail,
+          contactPhone: gigLeads.contactPhone,
+          venueUrl: gigLeads.venueUrl,
+          description: gigLeads.description,
+          createdAt: gigLeads.createdAt,
+          externalId: gigLeads.externalId,
+          contactName: gigLeads.contactName,
+        })
+        .from(gigLeads)
+        .where(where)
+        .orderBy(asc(gigLeads.createdAt))
+        .limit(1);
+      const row = rows[0] ?? null;
+      if (!row) return { venue: null, remainingCount: 0 };
+      const { renderVenueTemplate } = await import("./outreachVenueTemplate");
+      const { subject, body } = renderVenueTemplate(row);
+      const venue = { ...row, subject, body };
+      return { venue, remainingCount };
+    }),
+
+    /** Send outreach email, update lead, log, return next venue. */
+    sendOutreachAndAdvance: protectedProcedure
+      .input(z.object({
+        leadId: z.number(),
+        subject: z.string(),
+        body: z.string(),
+        senderEmail: z.string().default("Gigxo <teryn@gigxo.com>"),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN", message: "Unauthorized" });
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+        const { gigLeads, outreachLog } = await import("../drizzle/schema");
+        const { sendOutreachEmail } = await import("./email");
+
+        const [lead] = await db.select().from(gigLeads).where(eq(gigLeads.id, input.leadId)).limit(1);
+        if (!lead?.contactEmail?.trim()) throw new TRPCError({ code: "BAD_REQUEST", message: "Lead has no contact email" });
+
+        const result = await sendOutreachEmail(lead.contactEmail.trim(), input.subject, input.body, input.senderEmail);
+
+        await db.update(gigLeads).set({
+          outreachStatus: "sent",
+          outreachLastSentAt: new Date(),
+          outreachAttemptCount: (lead.outreachAttemptCount ?? 0) + 1,
+        }).where(eq(gigLeads.id, input.leadId));
+
+        await db.insert(outreachLog).values({
+          leadId: input.leadId,
+          recipientEmail: lead.contactEmail.trim(),
+          subject: input.subject,
+          bodyPreview: input.body.slice(0, 500),
+          status: result.success ? "sent" : "failed",
+          errorMessage: result.error ?? null,
+        });
+
+        if (!result.success) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: result.error ?? "Send failed" });
+
+        const where = and(
+          eq(gigLeads.source, "dbpr"),
+          eq(gigLeads.isApproved, true),
+          eq(gigLeads.outreachStatus, "not_sent"),
+          isNotNull(gigLeads.contactEmail),
+          ne(gigLeads.contactEmail, "")
+        );
+        const nextRows = await db.select({
+          id: gigLeads.id,
+          title: gigLeads.title,
+          location: gigLeads.location,
+          contactEmail: gigLeads.contactEmail,
+          contactPhone: gigLeads.contactPhone,
+          venueUrl: gigLeads.venueUrl,
+          description: gigLeads.description,
+          createdAt: gigLeads.createdAt,
+          externalId: gigLeads.externalId,
+          contactName: gigLeads.contactName,
+        }).from(gigLeads).where(where).orderBy(asc(gigLeads.createdAt)).limit(1);
+        const nextRow = nextRows[0] ?? null;
+        let nextVenue: typeof nextRow & { subject?: string; body?: string } | null = nextRow;
+        if (nextRow) {
+          const { renderVenueTemplate } = await import("./outreachVenueTemplate");
+          const { subject, body } = renderVenueTemplate(nextRow);
+          nextVenue = { ...nextRow, subject, body };
+        }
+        return { success: true, nextVenue };
+      }),
+
+    /** Skip this venue (set outreachStatus to not_interested), return next venue. */
+    skipOutreachVenue: protectedProcedure
+      .input(z.object({ leadId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN", message: "Unauthorized" });
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+        const { gigLeads } = await import("../drizzle/schema");
+        await db.update(gigLeads).set({ outreachStatus: "not_interested" }).where(eq(gigLeads.id, input.leadId));
+        const where = and(
+          eq(gigLeads.source, "dbpr"),
+          eq(gigLeads.isApproved, true),
+          eq(gigLeads.outreachStatus, "not_sent"),
+          isNotNull(gigLeads.contactEmail),
+          ne(gigLeads.contactEmail, "")
+        );
+        const nextRows = await db.select({
+          id: gigLeads.id,
+          title: gigLeads.title,
+          location: gigLeads.location,
+          contactEmail: gigLeads.contactEmail,
+          contactPhone: gigLeads.contactPhone,
+          venueUrl: gigLeads.venueUrl,
+          description: gigLeads.description,
+          createdAt: gigLeads.createdAt,
+          externalId: gigLeads.externalId,
+          contactName: gigLeads.contactName,
+        }).from(gigLeads).where(where).orderBy(asc(gigLeads.createdAt)).limit(1);
+        const nextRow = nextRows[0] ?? null;
+        if (!nextRow) return { nextVenue: null };
+        const { renderVenueTemplate } = await import("./outreachVenueTemplate");
+        const { subject, body } = renderVenueTemplate(nextRow);
+        return { nextVenue: { ...nextRow, subject, body } };
+      }),
+
+    /** Remove contact email from venue and return next venue. */
+    clearVenueEmailAndAdvance: protectedProcedure
+      .input(z.object({ leadId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN", message: "Unauthorized" });
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+        const { gigLeads } = await import("../drizzle/schema");
+        await db.update(gigLeads).set({ contactEmail: null }).where(eq(gigLeads.id, input.leadId));
+        const where = and(
+          eq(gigLeads.source, "dbpr"),
+          eq(gigLeads.isApproved, true),
+          eq(gigLeads.outreachStatus, "not_sent"),
+          isNotNull(gigLeads.contactEmail),
+          ne(gigLeads.contactEmail, "")
+        );
+        const nextRows = await db.select({
+          id: gigLeads.id,
+          title: gigLeads.title,
+          location: gigLeads.location,
+          contactEmail: gigLeads.contactEmail,
+          contactPhone: gigLeads.contactPhone,
+          venueUrl: gigLeads.venueUrl,
+          description: gigLeads.description,
+          createdAt: gigLeads.createdAt,
+          externalId: gigLeads.externalId,
+          contactName: gigLeads.contactName,
+        }).from(gigLeads).where(where).orderBy(asc(gigLeads.createdAt)).limit(1);
+        const nextRow = nextRows[0] ?? null;
+        if (!nextRow) return { nextVenue: null };
+        const { renderVenueTemplate } = await import("./outreachVenueTemplate");
+        const { subject, body } = renderVenueTemplate(nextRow);
+        return { nextVenue: { ...nextRow, subject, body } };
       }),
     
     toggleHideLead: protectedProcedure

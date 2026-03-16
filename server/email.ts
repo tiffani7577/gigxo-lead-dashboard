@@ -54,19 +54,20 @@ async function sendEmail(to: string, subject: string, html: string): Promise<boo
 export async function sendOutreachEmail(
   to: string,
   subject: string,
-  bodyPlain: string
+  bodyPlain: string,
+  fromEmail: string = FROM_EMAIL
 ): Promise<{ success: boolean; error?: string }> {
   const html = `<!DOCTYPE html><html><body style="font-family: sans-serif; white-space: pre-wrap;">${bodyPlain.replace(/\n/g, "<br>")}</body></html>`;
   const resend = getResend();
 
   if (!resend) {
-    console.log(`[Outreach Demo] To: ${to}, Subject: ${subject}`);
+    console.log(`[Outreach Demo] From: ${fromEmail}, To: ${to}, Subject: ${subject}`);
     return { success: true };
   }
 
   try {
     await resend.emails.send({
-      from: FROM_EMAIL,
+      from: fromEmail,
       to,
       subject,
       html,

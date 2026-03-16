@@ -28,6 +28,7 @@ import AdminLeadsExplorer from "./pages/AdminLeadsExplorer";
 import AdminVenueIntelligence from "./pages/AdminVenueIntelligence";
 import AdminArtistLeads from "./pages/AdminArtistLeads";
 import AdminOutreachDashboard from "./pages/AdminOutreachDashboard";
+import AdminOutreachHub from "./pages/AdminOutreachHub";
 import AdminOutreachLeads from "./pages/AdminOutreachLeads";
 import AdminOutreachTemplates from "./pages/AdminOutreachTemplates";
 import LiveLeadSearch from "./pages/LiveLeadSearch";
@@ -65,6 +66,7 @@ function Router() {
       <Route path="/admin/venue-intelligence" component={AdminVenueIntelligence} />
       <Route path="/admin/artist-growth" component={AdminArtistLeads} />
       <Route path="/admin/outreach" component={AdminOutreachDashboard} />
+      <Route path="/admin/outreach-hub" component={AdminOutreachHub} />
       <Route path="/admin/outreach/leads" component={AdminOutreachLeads} />
       <Route path="/admin/outreach/templates" component={AdminOutreachTemplates} />
       <Route path="/admin/live-lead-search" component={LiveLeadSearch} />
