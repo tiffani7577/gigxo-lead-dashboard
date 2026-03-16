@@ -134,10 +134,10 @@ export default function Home() {
   const { user, isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
 
-  // If authenticated, redirect: no userType → onboarding; else dashboard
+  // If authenticated, redirect to dashboard (no onboarding)
   useEffect(() => {
     if (isAuthenticated && user) {
-      navigate(user.userType ? "/dashboard" : "/welcome");
+      navigate("/dashboard");
     }
   }, [isAuthenticated, user, navigate]);
 

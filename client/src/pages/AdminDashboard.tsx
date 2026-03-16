@@ -103,6 +103,7 @@ export default function AdminDashboard() {
     status: "",
     notes: "",
     followUpAt: "",
+    unlockPriceDollars: "",
   });
 
   // Update lead
@@ -135,6 +136,7 @@ export default function AdminDashboard() {
       status: (lead as any).status ?? "",
       notes: (lead as any).notes ?? "",
       followUpAt: (lead as any).followUpAt ? new Date(lead.followUpAt).toISOString().slice(0, 16) : "",
+      unlockPriceDollars: (lead as any).unlockPriceCents != null ? (lead as any).unlockPriceCents / 100 : "",
     });
   };
 
@@ -159,6 +161,9 @@ export default function AdminDashboard() {
       status: editFormData.status || undefined,
       notes: editFormData.notes || undefined,
       followUpAt: editFormData.followUpAt ? new Date(editFormData.followUpAt).toISOString() : undefined,
+      unlockPriceCents: editFormData.unlockPriceDollars
+        ? Math.round(Number(editFormData.unlockPriceDollars) * 100)
+        : undefined,
     });
   };
 
@@ -826,7 +831,7 @@ export default function AdminDashboard() {
                         {!lead.isApproved && !lead.isRejected && (
                           <div className="flex flex-wrap gap-1.5">
                             <Button
-                              onClick={() => routeLead({ leadId: lead.id, action: "artist_lead" })}
+                              onClick={() => routeLead({ leadId: lead.id, action: "artist_lead", unlockPriceCents: (lead as any).leadTier === "starter_friendly" ? 100 : undefined })}
                               disabled={isRouting}
                               size="sm"
                               className="bg-green-600 hover:bg-green-700 h-8 text-xs"
@@ -1304,6 +1309,23 @@ export default function AdminDashboard() {
                       className="h-9"
                     />
                   </div>
+                </div>
+
+                <div className="mt-4">
+                  <label className="text-sm font-medium text-slate-700 block mb-1">Unlock Price ($)</label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={999}
+                    step={0.5}
+                    placeholder="e.g. 3.00"
+                    value={editFormData.unlockPriceDollars}
+                    onChange={(e) => setEditFormData({ ...editFormData, unlockPriceDollars: e.target.value })}
+                    className="h-9"
+                  />
+                  <p className="mt-1 text-xs text-slate-500">
+                    Leave blank to use tier pricing ($1/$7/$15). Set a custom price to override.
+                  </p>
                 </div>
 
                 <div className="mt-4">

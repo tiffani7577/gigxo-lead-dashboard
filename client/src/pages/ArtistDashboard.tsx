@@ -420,13 +420,6 @@ export default function ArtistDashboard() {
 
   const utils = trpc.useUtils();
 
-  // Require one-time onboarding: no userType → /welcome
-  useEffect(() => {
-    if (isAuthenticated && user && !user.userType) {
-      navigate("/welcome");
-    }
-  }, [isAuthenticated, user, navigate]);
-
   // Fire onLogin once after auth to trigger welcome email + referral attribution
   const { mutate: onLogin } = trpc.auth.onLogin.useMutation();
   const { mutate: logout } = trpc.auth.logout.useMutation({

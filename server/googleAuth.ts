@@ -131,11 +131,10 @@ export function registerGoogleAuthRoutes(app: Express) {
         path: "/",
       });
 
-      // Redirect: first-time users (no userType) go to onboarding; others to dashboard
+      // Redirect to frontend dashboard. Prefer state (origin from login page); fallback to APP_URL.
       const baseUrl = (state && state.startsWith("http") ? state : null) || process.env.APP_URL?.trim() || "";
       const base = baseUrl ? baseUrl.replace(/\/+$/, "") : "";
-      const path = user.userType ? "/dashboard" : "/welcome";
-      const redirectTo = base ? `${base}${path}` : path;
+      const redirectTo = base ? `${base}/dashboard` : "/dashboard";
       res.redirect(redirectTo);
     } catch (error) {
       console.error("[Google Auth] Error:", error);

@@ -34,7 +34,7 @@ export default function Login() {
       // Store token in localStorage — works in all browsers including Safari
       if (data.token) setAuthToken(data.token);
       toast.success("Welcome back!");
-      window.location.href = "/welcome";
+      window.location.href = "/dashboard";
     },
     onError: (e) => toast.error(e.message),
   });
