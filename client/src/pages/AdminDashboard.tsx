@@ -108,11 +108,15 @@ export default function AdminDashboard() {
   // Update lead
   const { mutate: updateLead, isPending: isUpdating } = trpc.admin.updateLead.useMutation({
     onSuccess: () => {
+      console.log("[edit] save succeeded");
       setEditingLeadId(null);
       refetchLeads();
       toast.success("Lead updated!");
     },
-    onError: (e) => toast.error(e.message),
+    onError: (e) => {
+      console.log("[edit] save failed:", e.message, e);
+      toast.error(e.message);
+    },
   });
 
   const openEditModal = (lead: any) => {
@@ -135,8 +139,13 @@ export default function AdminDashboard() {
   };
 
   const handleSaveEdit = () => {
+    console.log("[edit] saving leadId:", editingLeadId, "data:", editFormData);
+    if (!editingLeadId) {
+      toast.error("No lead selected for editing");
+      return;
+    }
     updateLead({
-      leadId: editingLeadId!,
+      leadId: editingLeadId,
       title: editFormData.title || undefined,
       location: editFormData.location || undefined,
       eventType: editFormData.eventType || undefined,

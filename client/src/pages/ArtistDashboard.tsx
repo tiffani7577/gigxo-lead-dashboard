@@ -67,6 +67,15 @@ function formatBudget(cents: number | null) {
   return `$${dollars.toFixed(0)}`;
 }
 
+function getLeadDisplayPriceCents(lead: any): number {
+  if (lead && lead.unlockPriceCents != null) return lead.unlockPriceCents;
+  const tier = lead?.leadTier as string | undefined;
+  if (tier === "starter_friendly") return 100;
+  if (tier === "premium") return 1500;
+  if (tier === "standard") return 700;
+  return 700;
+}
+
 function getSourceBadgeColor(source: string) {
   switch (source) {
     case "gigxo": return "bg-purple-100 text-purple-700";
@@ -540,11 +549,16 @@ export default function ArtistDashboard() {
 
   // Confirm payment
   const { mutate: confirmPayment, isPending: isConfirming } = trpc.payments.confirmPayment.useMutation({
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       setShowPaymentDialog(false);
       setUnlockingLeadId(null);
       utils.leads.getAvailable.invalidate();
-      utils.leads.getById.invalidate({ id: selectedLead! });
+      if (variables?.leadId) {
+        setSelectedLead(variables.leadId);
+        utils.leads.getById.invalidate({ id: variables.leadId });
+        const el = document.getElementById(`lead-card-${variables.leadId}`);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
       utils.leads.getStats.invalidate();
       utils.artist.getMyUnlocks.invalidate();
       utils.artist.getMyCredits.invalidate();
@@ -876,6 +890,7 @@ export default function ArtistDashboard() {
                   filteredLeads.map((lead) => (
                     <div
                       key={lead.id}
+                      id={`lead-card-${lead.id}`}
                       onClick={() => setSelectedLead(lead.id)}
                       className={`bg-white rounded-xl border transition-all cursor-pointer ${
                         selectedLead === lead.id
@@ -1046,15 +1061,70 @@ export default function ArtistDashboard() {
                               ) : (
                                 <>
                                   <Lock className="w-3 h-3 mr-1" />
-                                  Unlock {availableCredits >= 700 ? "FREE" : "$7"}
+                                  {(() => {
+                                    const priceCents = getLeadDisplayPriceCents(lead as any);
+                                    if (availableCredits >= priceCents) return "Unlock FREE";
+                                    return `Unlock $${(priceCents / 100).toFixed(0)}`;
+                                  })()}
                                 </>
                               )}
                             </Button>
                           ) : (
-                            <span className="text-xs text-green-600 font-medium flex items-center gap-1">
-                              <Check className="w-3 h-3" />
-                              Contact available
-                            </span>
+                            <div className="flex flex-col items-end gap-1 text-xs text-green-700">
+                              <span className="font-medium flex items-center gap-1">
+                                <Check className="w-3 h-3" />
+                                Contact available
+                              </span>
+                              <div className="flex flex-col items-end gap-1 text-[11px] text-slate-600">
+                                {lead.contactName && (
+                                  <span className="flex items-center gap-1">
+                                    <User className="w-3 h-3" />
+                                    {lead.contactName}
+                                  </span>
+                                )}
+                                {lead.contactEmail && (
+                                  <a
+                                    href={`mailto:${lead.contactEmail}`}
+                                    className="flex items-center gap-1 text-purple-600 hover:underline"
+                                  >
+                                    <Mail className="w-3 h-3" />
+                                    {lead.contactEmail}
+                                  </a>
+                                )}
+                                {lead.contactPhone && (
+                                  <a
+                                    href={`tel:${lead.contactPhone}`}
+                                    className="flex items-center gap-1 text-purple-600 hover:underline"
+                                  >
+                                    <Phone className="w-3 h-3" />
+                                    {lead.contactPhone}
+                                  </a>
+                                )}
+                                {lead.venueUrl && (
+                                  <a
+                                    href={lead.venueUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1 text-blue-600 hover:underline"
+                                  >
+                                    <ExternalLink className="w-3 h-3" />
+                                    View website
+                                  </a>
+                                )}
+                              </div>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedLead(lead.id);
+                                  const el = document.getElementById(`lead-card-${lead.id}`);
+                                  if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+                                }}
+                                className="text-[11px] text-purple-600 hover:text-purple-800 font-medium"
+                              >
+                                View full details
+                              </button>
+                            </div>
                           )}
                         </div>
                       </div>
