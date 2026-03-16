@@ -321,63 +321,67 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
 
   // Optional JSON-LD structured data for SEO (FAQ + Service/Offer)
   const jsonLdScripts: string[] = [];
-  if (faq.length > 0) {
+  try {
+    if (faq.length > 0) {
+      jsonLdScripts.push(
+        JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: faq.map((item) => ({
+            "@type": "Question",
+            name: item?.question ?? "",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: item?.answer ?? "",
+            },
+          })),
+        }),
+      );
+    }
     jsonLdScripts.push(
       JSON.stringify({
         "@context": "https://schema.org",
-        "@type": "FAQPage",
-        mainEntity: faq.map((item) => ({
-          "@type": "Question",
-          name: item?.question ?? "",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: item?.answer ?? "",
-          },
-        })),
+        "@type": "Service",
+        name: heading,
+        description: seoDescription,
+        areaServed: {
+          "@type": "City",
+          name: defaultCity,
+        },
+        offers: {
+          "@type": "Offer",
+          priceCurrency: "USD",
+          availability: "https://schema.org/InStock",
+          url: typeof window !== "undefined" ? window.location?.href ?? "" : "",
+          name: isYachtHirePage ? "Yacht DJ hire in Miami" : heading,
+        },
       }),
     );
+  } catch {
+    // Swallow JSON-LD errors; never crash page rendering
   }
 
-  jsonLdScripts.push(
-    JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "Service",
-      name: heading,
-      description: seoDescription,
-      areaServed: {
-        "@type": "City",
-        name: defaultCity,
-      },
-      offers: {
-        "@type": "Offer",
-        priceCurrency: "USD",
-        availability: "https://schema.org/InStock",
-        url: typeof window !== "undefined" ? window.location?.href ?? "" : "",
-        name: isYachtHirePage ? "Yacht DJ hire in Miami" : heading,
-      },
-    }),
-  );
-
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white">
-      {/* JSON-LD scripts */}
-      <div className="hidden">
-        {jsonLdScripts.map((script, idx) => (
-          <script key={idx} type="application/ld+json" dangerouslySetInnerHTML={{ __html: script }} />
-        ))}
-      </div>
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-16 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">{heading}</h1>
-          <p className="text-xl md:text-2xl opacity-90">{subheading}</p>
+  try {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white">
+        {/* JSON-LD scripts */}
+        <div className="hidden">
+          {jsonLdScripts.map((script, idx) => (
+            <script key={idx} type="application/ld+json" dangerouslySetInnerHTML={{ __html: script }} />
+          ))}
         </div>
-      </div>
+      {/* Hero Section */}
+        <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-16 px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">{heading}</h1>
+            <p className="text-xl md:text-2xl opacity-90">{subheading}</p>
+          </div>
+        </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-12">
-        <div className="grid md:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="md:col-span-2">
+        <div className="max-w-6xl mx-auto px-4 py-12">
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* Main Content */}
+            <div className="md:col-span-2">
             <Card className="p-8 mb-8">
               <h2 className="text-2xl font-bold mb-4">
                 {isHireLikePage ? "About These Performers" : "About This Service"}
@@ -437,44 +441,49 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
             </Card>
 
             {/* FAQ section — rendered when pageConfig.faq exists */}
-            {pageConfig?.faq && pageConfig.faq.length > 0 && (
-              <>
-                <script
-                  type="application/ld+json"
-                  dangerouslySetInnerHTML={{
-                    __html: JSON.stringify({
-                      "@context": "https://schema.org",
-                      "@type": "FAQPage",
-                      mainEntity: pageConfig.faq.map((item) => ({
-                        "@type": "Question",
-                        name: item.question,
-                        acceptedAnswer: {
-                          "@type": "Answer",
-                          text: item.answer,
-                        },
-                      })),
-                    }),
-                  }}
-                />
-                <section className="mt-12">
-                  <h2 className="text-2xl font-bold text-slate-900 mb-6">
-                    Frequently Asked Questions
-                  </h2>
-                  <div className="space-y-4">
-                    {pageConfig.faq.map((item, i) => (
-                      <div key={i} className="border border-slate-200 rounded-lg p-5">
-                        <h3 className="font-semibold text-slate-900 mb-2">
-                          {item.question}
-                        </h3>
-                        <p className="text-slate-600 text-sm leading-relaxed">
-                          {item.answer}
-                        </p>
+            {pageConfig?.faq && pageConfig.faq.length > 0 && (() => {
+              try {
+                const faqSchema = JSON.stringify({
+                  "@context": "https://schema.org",
+                  "@type": "FAQPage",
+                  mainEntity: pageConfig.faq.map((item) => ({
+                    "@type": "Question",
+                    name: item.question,
+                    acceptedAnswer: {
+                      "@type": "Answer",
+                      text: item.answer,
+                    },
+                  })),
+                });
+                return (
+                  <>
+                    <script
+                      type="application/ld+json"
+                      dangerouslySetInnerHTML={{ __html: faqSchema }}
+                    />
+                    <section className="mt-12">
+                      <h2 className="text-2xl font-bold text-slate-900 mb-6">
+                        Frequently Asked Questions
+                      </h2>
+                      <div className="space-y-4">
+                        {pageConfig.faq.map((item, i) => (
+                          <div key={i} className="border border-slate-200 rounded-lg p-5">
+                            <h3 className="font-semibold text-slate-900 mb-2">
+                              {item.question}
+                            </h3>
+                            <p className="text-slate-600 text-sm leading-relaxed">
+                              {item.answer}
+                            </p>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </section>
-              </>
-            )}
+                    </section>
+                  </>
+                );
+              } catch {
+                return null;
+              }
+            })()}
 
             {/* Hire / venue-specific performer grid */}
             {isHireLikePage && (

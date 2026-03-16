@@ -49,7 +49,7 @@ function FeaturedLeads() {
     );
   }
 
-  if (!leads || leads.length === 0) return null;
+  if (!leads || !Array.isArray(leads) || leads.length === 0) return null;
 
   return (
     <section className="py-20 bg-slate-800/30 border-t border-slate-700">
