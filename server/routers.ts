@@ -145,6 +145,23 @@ export const appRouter = router({
         const db = await getDb();
         if (!db) throw new Error("Database not available");
         const { gigLeads } = await import("../drizzle/schema");
+        const { LEAD_TIER_PRICE_CENTS, normalizeLeadPriceCents } = await import("../shared/leadPricing");
+
+        const TRUSTED_SEO_SOURCES: Record<
+          string,
+          { defaultLeadTier: keyof typeof LEAD_TIER_PRICE_CENTS; defaultPerformerType: string }
+        > = {
+          "yacht-dj-fort-lauderdale": { defaultLeadTier: "premium", defaultPerformerType: "dj" },
+          "private-yacht-party-dj-fort-lauderdale": { defaultLeadTier: "standard", defaultPerformerType: "dj" },
+          "luxury-yacht-entertainment-fort-lauderdale": { defaultLeadTier: "premium", defaultPerformerType: "dj" },
+          "last-minute-yacht-dj-fort-lauderdale": { defaultLeadTier: "premium", defaultPerformerType: "dj" },
+          "corporate-yacht-event-dj-fort-lauderdale": { defaultLeadTier: "premium", defaultPerformerType: "dj" },
+          "yacht-bachelorette-party-dj-fort-lauderdale": { defaultLeadTier: "standard", defaultPerformerType: "dj" },
+          "yacht-live-music-fort-lauderdale": { defaultLeadTier: "standard", defaultPerformerType: "dj" },
+          "yacht-dj-miami": { defaultLeadTier: "standard", defaultPerformerType: "dj" },
+          "hire-yacht-dj-fort-lauderdale": { defaultLeadTier: "standard", defaultPerformerType: "dj" },
+          "17th-street-yacht-dj-fort-lauderdale": { defaultLeadTier: "premium", defaultPerformerType: "dj" },
+        };
 
         // Prefer explicit numeric budget; fall back to budgetRange if provided
         let budgetCents: number | null = null;
@@ -174,7 +191,7 @@ export const appRouter = router({
           input.notes ? `Notes: ${input.notes}` : null,
         ].filter(Boolean);
 
-        await db.insert(gigLeads).values({
+        const insertResult = await db.insert(gigLeads).values({
           externalId: `client-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           source: "gigxo",
           leadType: "client_submitted",
@@ -194,6 +211,48 @@ export const appRouter = router({
           intentScore: 90,
           leadTemperature: "hot",
         } as any);
+
+        const insertedIdRaw = (insertResult as any).insertId;
+        const insertedId = typeof insertedIdRaw === "number" ? insertedIdRaw : NaN;
+
+        // Derive effective slug from explicit input or description "Source: ..." line
+        let effectiveSlug: string | undefined = input.sourceSlug;
+        if (!effectiveSlug) {
+          const desc = descriptionParts.join("\n");
+          const sourceLine = desc
+            .split("\n")
+            .find((line) => line.trim().startsWith("Source: "));
+          if (sourceLine) {
+            const extracted = sourceLine.replace("Source:", "").trim();
+            if (extracted) {
+              effectiveSlug = extracted;
+            }
+          }
+        }
+
+        if (effectiveSlug && TRUSTED_SEO_SOURCES[effectiveSlug] && Number.isFinite(insertedId)) {
+          const config = TRUSTED_SEO_SOURCES[effectiveSlug];
+          const tier = config.defaultLeadTier;
+          const basePrice = LEAD_TIER_PRICE_CENTS[tier];
+          const normalizedPrice = normalizeLeadPriceCents(basePrice);
+
+          await db
+            .update(gigLeads)
+            .set({
+              isApproved: true,
+              leadType: "client_submitted",
+              leadMonetizationType: "artist_unlock",
+              artistUnlockEnabled: true,
+              leadTier: tier,
+              unlockPriceCents: normalizedPrice,
+              performerType: config.defaultPerformerType,
+            } as any)
+            .where((gigLeads as any).id.eq(insertedId));
+
+          console.log(
+            `[seo-auto-publish] leadId=${insertedId} slug=${effectiveSlug} tier=${tier} price=${normalizedPrice}`,
+          );
+        }
 
         return { success: true };
       }),
