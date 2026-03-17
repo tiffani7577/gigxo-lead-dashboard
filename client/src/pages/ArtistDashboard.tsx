@@ -927,7 +927,11 @@ export default function ArtistDashboard() {
                               {/* Lead tier / unlock price badge — show what they're paying before they click */}
                               {!lead.isUnlocked && (lead as any).unlockPriceCents != null && (
                                 <span className="flex-shrink-0 text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full">
-                                  Unlock ${((lead as any).unlockPriceCents / 100).toFixed(0)}
+                                  {(() => {
+                                    const cents = Number((lead as any).unlockPriceCents) || 0;
+                                    const dollars = Math.round(cents / 100);
+                                    return `Unlock $${dollars}`;
+                                  })()}
                                 </span>
                               )}
                               {!lead.isUnlocked &&
@@ -1061,7 +1065,8 @@ export default function ArtistDashboard() {
                                   {(() => {
                                     const priceCents = getLeadDisplayPriceCents(lead as any);
                                     if (availableCredits >= priceCents) return "Unlock FREE";
-                                    return `Unlock $${(priceCents / 100).toFixed(0)}`;
+                                    const dollars = Math.round(priceCents / 100);
+                                    return `Unlock $${dollars}`;
                                   })()}
                                 </>
                               )}
