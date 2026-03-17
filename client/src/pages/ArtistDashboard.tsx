@@ -514,8 +514,8 @@ export default function ArtistDashboard() {
   // Create payment intent
   const { mutate: createPaymentIntent, isPending: isCreatingPayment } = trpc.payments.createPaymentIntent.useMutation({
     onSuccess: (data) => {
-      if ((data as any).isFree) {
-        // Free trial — skip payment dialog entirely
+      if ((data as any).isFree || (data as any).isFreeWithCredits) {
+        // Free trial or fully covered by credits — skip payment dialog entirely
         confirmPayment({
           leadId: unlockingLeadId!,
           paymentIntentId: null,
@@ -661,7 +661,8 @@ export default function ArtistDashboard() {
       {/* Scarcity Banner */}
       {stats && stats.totalAvailable > 0 && (
         <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-center py-2 px-4 text-sm font-medium">
-          <Zap className="w-3.5 h-3.5 inline mr-1.5 mb-0.5" /> First unlock $1 — then $7 standard or $15 premium. <Link href="/pricing" className="underline font-medium">Go Pro</Link> for $49/mo and get 5 credits.
+          <Zap className="w-3.5 h-3.5 inline mr-1.5 mb-0.5" /> Pricing: Discovery $3 (post link), Standard $7 (partial contact), Premium $15 (direct contact).{" "}
+          <Link href="/pricing" className="underline font-medium">Go Pro</Link> for $49/mo and get 5 credits.
         </div>
       )}
 
@@ -693,7 +694,7 @@ export default function ArtistDashboard() {
                 {availableCredits > 0 && (
                   <span className="flex items-center gap-1 bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full font-medium">
                     <Gift className="w-3.5 h-3.5" />
-                    ${(availableCredits / 100).toFixed(2)} credit
+                    ${(availableCredits / 100).toFixed(2)} in lead credit
                   </span>
                 )}
               </div>
@@ -925,26 +926,22 @@ export default function ArtistDashboard() {
                                 </span>
                               )}
                               {/* Lead tier / unlock price badge — show what they're paying before they click */}
-                              {!lead.isUnlocked && (lead as any).unlockPriceCents != null && (
+                              {!lead.isUnlocked && (
                                 <span className="flex-shrink-0 text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full">
                                   {(() => {
-                                    const cents = Number((lead as any).unlockPriceCents) || 0;
+                                    const rawCents = (lead as any).unlockPriceCents != null
+                                      ? Number((lead as any).unlockPriceCents) || 0
+                                      : getLeadDisplayPriceCents(lead as any);
+                                    // Normalize any legacy odd values (e.g. 150) to nearest tier price
+                                    const validPrices = [100, 700, 1500];
+                                    const cents = validPrices.reduce((closest, value) =>
+                                      Math.abs(value - rawCents) < Math.abs(closest - rawCents) ? value : closest,
+                                    validPrices[0]);
                                     const dollars = Math.round(cents / 100);
                                     return `Unlock $${dollars}`;
                                   })()}
                                 </span>
                               )}
-                              {!lead.isUnlocked &&
-                                (lead as any).unlockPriceCents == null &&
-                                ((lead as any).leadTier === "starter_friendly" ||
-                                  (lead as any).leadTier === "standard" ||
-                                  (lead as any).leadTier === "premium") && (
-                                  <span className="flex-shrink-0 text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full">
-                                    {(lead as any).leadTier === "starter_friendly" && "Unlock $1"}
-                                    {(lead as any).leadTier === "standard" && "Unlock $7"}
-                                    {(lead as any).leadTier === "premium" && "Unlock $15"}
-                                  </span>
-                                )}
                             </div>
                             <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
                               <span className="flex items-center gap-1">
@@ -978,6 +975,8 @@ export default function ArtistDashboard() {
                                 </span>
                               )}
                             </div>
+                            {/* Tier helper text */}
+                            {/* Tier explanation moved to global banner to reduce per-card noise */}
                           </div>
                           <div className="flex-shrink-0 text-right">
                             <div className="text-base font-bold text-emerald-600">{formatBudget(lead.budget)}</div>
@@ -1313,6 +1312,23 @@ export default function ArtistDashboard() {
                             )}
                           </div>
 
+                          {/* Tier-specific post-unlock messaging */}
+                          <p className="text-[11px] text-slate-500">
+                            {(() => {
+                              const tier = (selectedLeadData as any).leadTier as string | undefined;
+                              if (tier === "starter_friendly") {
+                                return "This is a discovery lead. Use the original post or venue link to contact the client.";
+                              }
+                              if (tier === "standard") {
+                                return "This lead includes partial contact info (phone or website when available).";
+                              }
+                              if (tier === "premium") {
+                                return "This lead includes direct contact details (email and/or phone).";
+                              }
+                              return "Contact details vary by lead; use the information shown above to reach out.";
+                            })()}
+                          </p>
+
                           {/* AI Pitch Draft */}
                           {pitchLeadId === selectedLeadData.id && pitchText ? (
                             <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
@@ -1357,10 +1373,15 @@ export default function ArtistDashboard() {
                         </div>
                       ) : (
                         <div className="pt-2 border-t border-slate-100">
-                          {availableCredits >= 700 && (
+                          {(() => {
+                            const priceCents = getLeadDisplayPriceCents(selectedLeadData as any);
+                            return availableCredits >= priceCents;
+                          })() && (
                             <div className="bg-amber-50 border border-amber-200 rounded-lg p-2.5 mb-3 flex items-center gap-2 text-sm">
                               <Gift className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                              <span className="text-amber-800 font-medium">You have ${(availableCredits / 100).toFixed(2)} credit — unlock free!</span>
+                              <span className="text-amber-800 font-medium">
+                                You have ${(availableCredits / 100).toFixed(2)} in lead credit — this lead unlocks free.
+                              </span>
                             </div>
                           )}
                           <div className="bg-slate-50 rounded-lg p-3 mb-3">
@@ -1403,7 +1424,12 @@ export default function ArtistDashboard() {
                             ) : (
                               <>
                                 <Lock className="w-4 h-4 mr-2" />
-                                Unlock Contact Info — {availableCredits >= 700 ? "FREE" : "$7"}
+                                {(() => {
+                                  const priceCents = getLeadDisplayPriceCents(selectedLeadData as any);
+                                  if (availableCredits >= priceCents) return "Unlock Contact Info — FREE";
+                                  const dollars = Math.round(priceCents / 100);
+                                  return `Unlock Contact Info — $${dollars}`;
+                                })()}
                               </>
                             )}
                           </Button>
@@ -1436,7 +1462,9 @@ export default function ArtistDashboard() {
               <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
                 <Unlock className="w-12 h-12 text-slate-300 mx-auto mb-4" />
                 <p className="text-slate-600 font-medium">No unlocked leads yet</p>
-                <p className="text-slate-400 text-sm mt-1 mb-6">Browse gigs and unlock contact info for $7 per lead</p>
+                <p className="text-slate-400 text-sm mt-1 mb-6">
+                  Browse gigs and unlock contact info — Discovery leads $3, Standard $7, Premium $15.
+                </p>
                 <Button onClick={() => setActiveTab("leads")} className="bg-purple-600 hover:bg-purple-700">
                   Browse Gigs <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
@@ -1538,7 +1566,7 @@ export default function ArtistDashboard() {
         {activeTab === "referrals" && (
           <div className="max-w-2xl">
             <h2 className="text-xl font-bold text-slate-900 mb-2">Referral Program</h2>
-            <p className="text-slate-500 text-sm mb-6">Share your link. Earn $7 credit for every artist who joins.</p>
+            <p className="text-slate-500 text-sm mb-6">Share your link. Earn $7 in lead credit for every artist who joins.</p>
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-4 mb-6">
@@ -1571,7 +1599,7 @@ export default function ArtistDashboard() {
                 {[
                   { icon: Copy, text: "Share your unique referral link with other artists" },
                   { icon: Users, text: "They sign up and get 50% off their first lead unlock" },
-                  { icon: Gift, text: "You earn a $7 credit — use it to unlock your next lead free" },
+                  { icon: Gift, text: "You earn a $7 lead credit — use it to unlock your next lead free" },
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
@@ -1617,7 +1645,10 @@ export default function ArtistDashboard() {
         {activeTab === "packs" && (
           <div className="max-w-2xl">
             <h2 className="text-xl font-bold text-slate-900 mb-1">Pro & Unlock Packs</h2>
-            <p className="text-slate-500 text-sm mb-6">Go Pro for 5 credits/month, or buy one-time packs. First unlock is $1; then $7 standard or $15 premium per lead.</p>
+            <p className="text-slate-500 text-sm mb-6">
+              Go Pro for $49/month and get $35/month in lead credit (5×$7), or buy one-time packs. Discovery leads $3, Standard $7, Premium $15.
+              Credits are dollar-based and can be used toward any lead price.
+            </p>
             {/* Pro subscription CTA */}
             {!mySubscription?.tier && (
               <Card className="mb-6 border-2 border-purple-400 bg-gradient-to-br from-purple-50 to-pink-50">
@@ -1674,6 +1705,7 @@ export default function ArtistDashboard() {
         amount={paymentData?.amount ?? 700}
         creditApplied={paymentData?.creditApplied ?? 0}
         leadTitle={paymentData?.leadTitle ?? ""}
+        leadTier={(leads ?? []).find(l => l.id === unlockingLeadId)?.leadTier as any ?? null}
         publishableKey={stripeConfig?.publishableKey ?? null}
         isDemoMode={paymentData?.isDemoMode ?? stripeConfig?.isDemoMode ?? true}
         onSuccess={(paymentIntentId) => {

@@ -123,16 +123,22 @@ export const appRouter = router({
   inbound: inboundRouter,
   scraperConfig: scraperConfigRouter,
   publicLeads: router({
-    // Public client intake: /book-dj
+    // Public client intake: /book-dj and SEO pages
     submitClientLead: publicProcedure
       .input(z.object({
         name: z.string().min(1),
-        email: z.string().email(),
+        email: z.string().email().optional(),
         eventDate: z.string().optional(),
+        eventTime: z.string().optional(),
         location: z.string().min(1),
-        eventType: z.string().min(1),
+        eventType: z.string().min(1).optional(),
         budget: z.number().min(0).optional(),
+        budgetRange: z.string().optional(),
         notes: z.string().optional(),
+        sourceSlug: z.string().optional(),
+        calculatorContext: z.any().optional(),
+        estimateEmail: z.string().email().optional(),
+        estimatePhone: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
         const { getDb } = await import("./db");
@@ -140,12 +146,31 @@ export const appRouter = router({
         if (!db) throw new Error("Database not available");
         const { gigLeads } = await import("../drizzle/schema");
 
-        const budgetCents = input.budget != null ? Math.round(input.budget * 100) : null;
+        // Prefer explicit numeric budget; fall back to budgetRange if provided
+        let budgetCents: number | null = null;
+        if (input.budget != null) {
+          budgetCents = Math.round(input.budget * 100);
+        } else if (input.budgetRange) {
+          // Rough midpoint mapping for ranges
+          if (input.budgetRange === "500-1000") budgetCents = 75000;
+          else if (input.budgetRange === "1000-1500") budgetCents = 125000;
+          else if (input.budgetRange === "1500-2500") budgetCents = 200000;
+          else if (input.budgetRange === "2500-plus") budgetCents = 250000;
+        }
 
-        const leadTitle = `${input.eventType} - ${input.location}`;
+        const effectiveEventType = input.eventType ?? "client_yacht_inquiry";
+        const leadTitle = `${effectiveEventType} - ${input.location}`;
+
+        const effectiveEmail = input.email ?? input.estimateEmail ?? "";
+
         const descriptionParts = [
           `Client name: ${input.name}`,
-          `Client email: ${input.email}`,
+          effectiveEmail ? `Client email: ${effectiveEmail}` : null,
+          input.eventTime ? `Event time: ${input.eventTime}` : null,
+          input.budgetRange ? `Budget range: ${input.budgetRange}` : null,
+          input.sourceSlug ? `Source: ${input.sourceSlug}` : null,
+          input.estimatePhone ? `Phone (from calculator): ${input.estimatePhone}` : null,
+          input.calculatorContext ? `Calculator context: ${JSON.stringify(input.calculatorContext)}` : null,
           input.notes ? `Notes: ${input.notes}` : null,
         ].filter(Boolean);
 
@@ -155,13 +180,13 @@ export const appRouter = router({
           leadType: "client_submitted",
           title: leadTitle,
           description: descriptionParts.join("\n"),
-          eventType: input.eventType,
+          eventType: effectiveEventType,
           budget: budgetCents ?? null,
           location: input.location,
           eventDate: input.eventDate ? new Date(input.eventDate) : null,
           contactName: input.name,
-          contactEmail: input.email,
-          contactPhone: null,
+          contactEmail: effectiveEmail || null,
+          contactPhone: input.estimatePhone ?? null,
           venueUrl: null,
           performerType: "dj",
           leadCategory: "general",
@@ -997,30 +1022,12 @@ export const appRouter = router({
         }
         if ((lead as any).artistUnlockEnabled === false) throw new Error("Lead not available");
         
-        // Dynamic price based on budget
+        // Dynamic, normalized price based on tier/budget/override
         const DYNAMIC_PRICE = getLeadUnlockPriceCents((lead as any).budget, (lead as any).unlockPriceCents, (lead as any).leadTier);
         
         // Check if already unlocked
         const alreadyUnlocked = await hasUnlockedLead(ctx.user.id, input.leadId);
         if (alreadyUnlocked) throw new Error("Lead already unlocked");
-        
-        // First unlock intro price: $1 for new users
-        const { FIRST_UNLOCK_PRICE_CENTS } = await import("../shared/leadPricing");
-        if (!ctx.user.hasUsedFreeTrial) {
-          const firstResult = await createLeadUnlockPaymentIntent(
-            ctx.user.id, input.leadId, lead.title, FIRST_UNLOCK_PRICE_CENTS
-          );
-          return {
-            clientSecret: firstResult.clientSecret,
-            paymentIntentId: firstResult.paymentIntentId,
-            amount: FIRST_UNLOCK_PRICE_CENTS,
-            originalAmount: DYNAMIC_PRICE,
-            creditApplied: 0,
-            leadTitle: lead.title,
-            isDemoMode: 'demoMode' in firstResult && firstResult.demoMode === true,
-            isFirstUnlock: true,
-          };
-        }
         
         // Ensure Pro subscribers have their 5 monthly credits for current period
         const { getDb } = await import("./db");
@@ -1109,14 +1116,14 @@ export const appRouter = router({
           };
         }
         
-        // Mark first unlock used if this was their intro $1 payment
-        const isFirstUnlock = !ctx.user.hasUsedFreeTrial;
-        const { FIRST_UNLOCK_PRICE_CENTS, getLeadUnlockPriceCents } = await import("../shared/leadPricing");
+        const { getLeadUnlockPriceCents } = await import("../shared/leadPricing");
         const { getLeadById: getLead2 } = await import("./db");
         const lead2 = await getLead2(input.leadId);
-        const actualAmount = isFirstUnlock
-          ? FIRST_UNLOCK_PRICE_CENTS
-          : getLeadUnlockPriceCents((lead2 as any)?.budget, (lead2 as any)?.unlockPriceCents, (lead2 as any)?.leadTier);
+        const actualAmount = getLeadUnlockPriceCents(
+          (lead2 as any)?.budget,
+          (lead2 as any)?.unlockPriceCents,
+          (lead2 as any)?.leadTier
+        );
         
         // Verify payment — skip if fully covered by credits
         if (!input.isFree) {
@@ -1125,29 +1132,19 @@ export const appRouter = router({
           if (!paymentValid) throw new Error("Payment not verified");
         }
         
-        // Mark first unlock used
-        if (isFirstUnlock) {
-          const { getDb } = await import("./db");
-          const db2 = await getDb();
-          if (db2) {
-            const { users } = await import("../drizzle/schema");
-            await db2.update(users).set({ hasUsedFreeTrial: true }).where(eq(users.id, ctx.user.id));
-          }
-        } else {
-          // Apply any available credits for non-first unlocks
-          const { getDb } = await import("./db");
-          const db = await getDb();
-          if (db) {
-            const { userCredits } = await import("../drizzle/schema");
-            const credits = await db.select().from(userCredits)
-              .where(and(eq(userCredits.userId, ctx.user.id), eq(userCredits.isUsed, false)))
-              .orderBy(userCredits.createdAt);
-            let remaining = actualAmount;
-            for (const credit of credits) {
-              if (remaining <= 0) break;
-              await db.update(userCredits).set({ isUsed: true }).where(eq(userCredits.id, credit.id));
-              remaining -= credit.amount;
-            }
+        // Apply any available credits (they were already considered in createPaymentIntent when computing finalAmount)
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (db) {
+          const { userCredits } = await import("../drizzle/schema");
+          const credits = await db.select().from(userCredits)
+            .where(and(eq(userCredits.userId, ctx.user.id), eq(userCredits.isUsed, false)))
+            .orderBy(userCredits.createdAt);
+          let remaining = actualAmount;
+          for (const credit of credits) {
+            if (remaining <= 0) break;
+            await db.update(userCredits).set({ isUsed: true }).where(eq(userCredits.id, credit.id));
+            remaining -= credit.amount;
           }
         }
         

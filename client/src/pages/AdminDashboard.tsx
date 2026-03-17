@@ -881,7 +881,22 @@ export default function AdminDashboard() {
                     </div>
                     {/* Raw text preview for quick routing decision */}
                     {lead.description && (
-                      <p className="text-sm text-slate-600 line-clamp-4 mb-2 bg-slate-50 rounded-lg px-2 py-1.5 font-mono">{lead.description}</p>
+                      <div className="mb-2">
+                        {/* Admin-visible source label extracted from description (if present) */}
+                        {lead.description.includes("Source: ") && (
+                          <p className="text-[11px] text-slate-500 mb-1">
+                            <span className="font-semibold">Source slug:</span>{" "}
+                            {lead.description
+                              .split("\n")
+                              .find((line) => line.startsWith("Source: "))
+                              ?.replace("Source: ", "")
+                              .trim() || "unknown"}
+                          </p>
+                        )}
+                        <p className="text-sm text-slate-600 line-clamp-4 bg-slate-50 rounded-lg px-2 py-1.5 font-mono">
+                          {lead.description}
+                        </p>
+                      </div>
                     )}
 
                     {/* Contact info — always visible to admin */}
@@ -1323,9 +1338,9 @@ export default function AdminDashboard() {
                     onChange={(e) => setEditFormData({ ...editFormData, unlockPriceDollars: e.target.value })}
                     className="h-9"
                   />
-                  <p className="mt-1 text-xs text-slate-500">
-                    Leave blank to use tier pricing ($1/$7/$15). Set a custom price to override.
-                  </p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      Leave blank to use tier pricing ($3/$7/$15). Set a custom price to override.
+                    </p>
                 </div>
 
                 <div className="mt-4">

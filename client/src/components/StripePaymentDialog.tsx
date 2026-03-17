@@ -31,6 +31,7 @@ function CheckoutForm({
   paymentIntentId,
   amount,
   creditApplied,
+  leadTier,
   onSuccess,
   onCancel,
 }: {
@@ -38,6 +39,7 @@ function CheckoutForm({
   paymentIntentId: string;
   amount: number; // cents
   creditApplied: number; // cents
+  leadTier: "starter_friendly" | "standard" | "premium" | null;
   onSuccess: (paymentIntentId: string) => void;
   onCancel: () => void;
 }) {
@@ -91,8 +93,30 @@ function CheckoutForm({
 
       <div className="bg-slate-50 rounded-lg p-3 text-sm text-slate-600">
         <ul className="space-y-1">
-          <li>✓ Client name and contact details</li>
-          <li>✓ Direct email and phone number</li>
+          {leadTier === "starter_friendly" && (
+            <>
+              <li>✓ Discovery lead — link to original post</li>
+              <li>✓ Use the post to find contact details yourself</li>
+            </>
+          )}
+          {leadTier === "standard" && (
+            <>
+              <li>✓ Standard lead — phone number or website when available</li>
+              <li>✓ Use provided details to reach out directly</li>
+            </>
+          )}
+          {leadTier === "premium" && (
+            <>
+              <li>✓ Premium lead — direct client contact details</li>
+              <li>✓ Email and/or phone number when provided</li>
+            </>
+          )}
+          {!leadTier && (
+            <>
+              <li>✓ Client and event details for this gig</li>
+              <li>✓ Available contact methods for this lead</li>
+            </>
+          )}
           <li>✓ Confirmation email sent to you</li>
         </ul>
       </div>
@@ -214,6 +238,7 @@ interface StripePaymentDialogProps {
   amount: number; // cents
   creditApplied: number; // cents
   leadTitle: string;
+  leadTier: "starter_friendly" | "standard" | "premium" | null;
   publishableKey: string | null;
   isDemoMode: boolean;
   onSuccess: (paymentIntentId: string) => void;
@@ -236,6 +261,7 @@ export default function StripePaymentDialog({
   amount,
   creditApplied,
   leadTitle,
+  leadTier,
   publishableKey,
   isDemoMode,
   onSuccess,
@@ -285,6 +311,7 @@ export default function StripePaymentDialog({
               paymentIntentId={paymentIntentId!}
               amount={amount}
               creditApplied={creditApplied}
+                leadTier={leadTier}
               onSuccess={onSuccess}
               onCancel={handleCancel}
             />

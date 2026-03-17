@@ -7,21 +7,11 @@ import { SiteFooter } from "@/components/SiteFooter";
 export default function Pricing() {
   const plans = [
     {
-      name: "First Unlock",
-      price: "$1",
-      description: "one-time",
-      badge: "Try risk-free",
-      features: ["Your first lead unlock", "Full contact details", "Direct booking", "No commitment"],
-      cta: "Get Started",
-      href: "/signup",
-      highlighted: false,
-    },
-    {
       name: "Pay as you go",
-      price: "$7 / $15",
+      price: "$3 / $7 / $15",
       description: "per lead",
       badge: null as string | null,
-      features: ["$7 standard leads", "$15 premium leads", "Unlock only what you need", "No subscription"],
+      features: ["$3 discovery leads", "$7 standard leads", "$15 premium leads", "Unlock only what you need", "No subscription"],
       cta: "Browse Gigs",
       href: "/signup",
       highlighted: false,
@@ -31,7 +21,12 @@ export default function Pricing() {
       price: "$49",
       description: "/month",
       badge: "Best value",
-      features: ["5 unlock credits included", "Use credits or pay per lead", "Cancel anytime", "South Florida focus"],
+      features: [
+        "$35/month in lead credit included (5×$7)",
+        "Use your balance or pay per lead",
+        "Cancel anytime",
+        "South Florida focus",
+      ],
       cta: "Go Pro",
       href: "/signup",
       highlighted: true,
@@ -68,7 +63,7 @@ export default function Pricing() {
           <div className="text-center mb-14">
             <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">Pricing</h1>
             <p className="text-lg text-slate-300 max-w-2xl mx-auto">
-              The performer lead marketplace powered by better intelligence. First unlock $1, then pay per lead or go Pro.
+              The performer lead marketplace powered by better intelligence. Discovery leads $3, Standard $7, Premium $15 — or go Pro and get $35/month in lead credit.
             </p>
           </div>
 

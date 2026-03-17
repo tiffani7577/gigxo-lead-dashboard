@@ -1,18 +1,13 @@
 /**
  * Gigxo Lead Pricing — 3 tiers (leadTier from pipeline):
- *   starter_friendly — $1  (100 cents)  social/serp, no direct contact
+ *   starter_friendly — $3  (300 cents)  social/serp, no direct contact
  *   standard        — $7  (700 cents)  phone or real website
  *   premium         — $15 (1500 cents) email, bark/thumbtack/inbound, or DBPR with contact
- *
- * First-time unlock: $1 (100 cents) charged via Stripe.
- * If the lead has an explicit unlockPriceCents admin override, that takes priority.
  */
-
-export const FIRST_UNLOCK_PRICE_CENTS = 100; // $1
 
 /** Price per leadTier (cents) */
 export const LEAD_TIER_PRICE_CENTS = {
-  starter_friendly: 100,
+  starter_friendly: 300,
   standard: 700,
   premium: 1500,
 } as const;
@@ -28,9 +23,19 @@ export const CREDIT_PACKS = [
 
 export type LeadTier = keyof typeof LEAD_TIER_PRICE_CENTS;
 
+/** Normalize any raw price to the nearest valid tier price (300, 700, 1500). */
+export function normalizeLeadPriceCents(cents: number): number {
+  const valid = [300, 700, 1500];
+  if (!Number.isFinite(cents) || cents <= 0) return valid[0];
+  return valid.reduce((closest, value) =>
+    Math.abs(value - cents) < Math.abs(closest - cents) ? value : closest,
+  valid[0]);
+}
+
 /**
  * Calculate the unlock price for a lead.
  * Admin-set override always takes priority; then leadTier; then legacy budget-based.
+ * All results are normalized to the nearest allowed tier price.
  */
 export function getLeadUnlockPriceCents(
   budgetCents: number | null | undefined,
@@ -38,7 +43,7 @@ export function getLeadUnlockPriceCents(
   leadTier?: LeadTier | null
 ): number {
   if (unlockPriceCentsOverride && unlockPriceCentsOverride > 0) {
-    return unlockPriceCentsOverride;
+    return normalizeLeadPriceCents(unlockPriceCentsOverride);
   }
   if (leadTier && leadTier in LEAD_TIER_PRICE_CENTS) {
     return LEAD_TIER_PRICE_CENTS[leadTier as LeadTier];

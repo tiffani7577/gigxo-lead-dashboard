@@ -86,7 +86,9 @@ export default function Signup() {
         {referralCode && (
           <div className="mb-4 bg-purple-900/40 border border-purple-500/30 rounded-xl p-3 flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-purple-400 flex-shrink-0" />
-            <p className="text-purple-300 text-sm">Referral applied — you'll get 50% off your first unlock!</p>
+            <p className="text-purple-300 text-sm">
+              Referral applied — you'll get a launch promo on your first few leads.
+            </p>
           </div>
         )}
 
@@ -94,7 +96,7 @@ export default function Signup() {
           <CardHeader className="pb-4">
             <CardTitle className="text-white text-xl">Create your account</CardTitle>
             <CardDescription className="text-slate-400">
-              Join 50+ artists. First unlock $1 — then $7 standard or $15 premium leads. Go Pro for 5 credits/month.
+              Join 50+ artists. Discovery leads $3, Standard $7, Premium $15. Go Pro for $49/mo and get $35/month in lead credit.
             </CardDescription>
           </CardHeader>
           <CardContent>

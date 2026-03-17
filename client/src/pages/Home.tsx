@@ -110,7 +110,7 @@ function FeaturedLeads() {
               <div className="px-5 pb-5">
                 <Link href="/signup">
                   <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-sm">
-                    <Lock className="w-3.5 h-3.5 mr-2" /> Unlock from ${lead.unlockPriceCents ? (lead.unlockPriceCents / 100).toFixed(0) : "7"}
+                    <Lock className="w-3.5 h-3.5 mr-2" /> Unlock lead (Discovery $3 · Standard $7 · Premium $15)
                   </Button>
                 </Link>
               </div>
@@ -191,7 +191,7 @@ export default function Home() {
                   Find Your Next <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">Gig</span>
                 </h1>
                 <p className="text-xl text-slate-300">
-                  The performer lead marketplace powered by better intelligence. Get curated gig leads matched to your style and location — first unlock $1, then $7 standard or $15 premium. Go Pro for $49/mo and get 5 unlock credits included.
+                  The performer lead marketplace powered by better intelligence. Get curated gig leads matched to your style and location — Discovery leads $3, Standard $7, Premium $15. Go Pro for $49/mo and get $35/month in lead credit included.
                 </p>
               </div>
 
@@ -323,21 +323,11 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {[
               {
-                name: "First Unlock",
-                price: "$1",
-                description: "one-time",
-                badge: "Try risk-free" as string | null,
-                features: ["Your first lead unlock", "Full contact details", "Direct booking", "No commitment"],
-                cta: "Get Started",
-                href: "/signup",
-                highlighted: false,
-              },
-              {
                 name: "Pay as you go",
-                price: "$7 / $15",
+                price: "$3 / $7 / $15",
                 description: "per lead",
                 badge: null as string | null,
-                features: ["$7 standard leads", "$15 premium leads", "Unlock only what you need", "No subscription"],
+                features: ["$3 discovery leads", "$7 standard leads", "$15 premium leads", "Unlock only what you need", "No subscription"],
                 cta: "Browse Gigs",
                 href: "/signup",
                 highlighted: false,
@@ -399,7 +389,7 @@ export default function Home() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl font-bold text-white mb-4">Ready to Find Your Next Gig?</h2>
           <p className="text-lg text-slate-300 mb-8">
-            Join 50+ artists already booking through Gigxo. First unlock $1 — then $7 standard or $15 premium leads. Or go Pro for $49/mo and get 5 credits included.
+            Join 50+ artists already booking through Gigxo. Discovery leads $3, Standard $7, Premium $15. Or go Pro for $49/mo and get $35/month in lead credit included.
           </p>
           <Link href="/signup">
             <Button size="lg" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
