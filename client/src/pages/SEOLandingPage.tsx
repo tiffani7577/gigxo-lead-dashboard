@@ -848,4 +848,25 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
       <SiteFooter />
     </div>
   );
+  } catch (err) {
+    console.error("Error rendering SEOLandingPage:", err);
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white">
+        <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-12 px-4">
+          <div className="max-w-2xl mx-auto text-center">
+            <h1 className="text-3xl md:text-4xl font-bold mb-2">Gigxo Booking</h1>
+            <p className="text-lg opacity-90">Request a quote for your event</p>
+          </div>
+        </div>
+        <div className="max-w-md mx-auto px-4 py-8">
+          <Card className="p-6">
+            <h2 className="text-xl font-bold mb-4">Tell us about your event</h2>
+            <p className="text-sm text-slate-600">
+              Something went wrong loading this page. Please refresh or try again later.
+            </p>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 }
