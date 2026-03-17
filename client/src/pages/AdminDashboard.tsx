@@ -258,7 +258,20 @@ export default function AdminDashboard() {
       status: (lead as any).status ?? "",
       notes: (lead as any).notes ?? "",
       followUpAt: (lead as any).followUpAt ? new Date(lead.followUpAt).toISOString().slice(0, 16) : "",
-      unlockPriceDollars: (lead as any).unlockPriceCents != null ? (lead as any).unlockPriceCents / 100 : "",
+      unlockPriceDollars: (() => {
+        const centsRaw = (lead as any).unlockPriceCents;
+        if (centsRaw == null) return "";
+        const cents = Number(centsRaw) || 0;
+        const valid = [300, 700, 1500];
+        const normalized = !Number.isFinite(cents) || cents <= 0
+          ? valid[0]
+          : valid.reduce(
+              (closest, value) =>
+                Math.abs(value - cents) < Math.abs(closest - cents) ? value : closest,
+              valid[0],
+            );
+        return normalized / 100;
+      })(),
     });
   };
 
@@ -1136,12 +1149,38 @@ export default function AdminDashboard() {
                       ) : (
                         <span className="flex items-center gap-1">
                           <button
-                            onClick={() => { setEditingPriceId(lead.id); setPriceInput(String(((lead as any).unlockPriceCents ?? 700) / 100)); }}
+                            onClick={() => {
+                              const centsRaw = (lead as any).unlockPriceCents ?? 700;
+                              const cents = Number(centsRaw) || 0;
+                              const valid = [300, 700, 1500];
+                              const normalized = !Number.isFinite(cents) || cents <= 0
+                                ? valid[0]
+                                : valid.reduce(
+                                    (closest, value) =>
+                                      Math.abs(value - cents) < Math.abs(closest - cents) ? value : closest,
+                                    valid[0],
+                                  );
+                              setEditingPriceId(lead.id);
+                              setPriceInput(String(normalized / 100));
+                            }}
                             className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200"
                             title="Set custom unlock price"
                           >
                             <DollarSign className="w-3 h-3" />
-                            {(lead as any).unlockPriceCents ? `$${((lead as any).unlockPriceCents / 100).toFixed(0)}` : "$7"}
+                            {(() => {
+                              const centsRaw = (lead as any).unlockPriceCents;
+                              if (centsRaw == null) return "$7";
+                              const cents = Number(centsRaw) || 0;
+                              const valid = [300, 700, 1500];
+                              const normalized = !Number.isFinite(cents) || cents <= 0
+                                ? valid[0]
+                                : valid.reduce(
+                                    (closest, value) =>
+                                      Math.abs(value - cents) < Math.abs(closest - cents) ? value : closest,
+                                    valid[0],
+                                  );
+                              return `$${(normalized / 100).toFixed(0)}`;
+                            })()}
                           </button>
                           {(lead as any).unlockPriceCents != null && (
                             <button

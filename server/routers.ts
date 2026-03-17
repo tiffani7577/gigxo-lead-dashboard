@@ -1082,11 +1082,20 @@ export const appRouter = router({
         if ((lead as any).artistUnlockEnabled === false) throw new Error("Lead not available");
         
         // Dynamic, normalized price based on tier/budget/override
-        const DYNAMIC_PRICE = getLeadUnlockPriceCents((lead as any).budget, (lead as any).unlockPriceCents, (lead as any).leadTier);
+        const DYNAMIC_PRICE = getLeadUnlockPriceCents(
+          (lead as any).budget,
+          (lead as any).unlockPriceCents,
+          (lead as any).leadTier,
+        );
         
         // Check if already unlocked
         const alreadyUnlocked = await hasUnlockedLead(ctx.user.id, input.leadId);
-        if (alreadyUnlocked) throw new Error("Lead already unlocked");
+        if (alreadyUnlocked) {
+          console.log(
+            `[payments.createPaymentIntent] already-unlocked userId=${ctx.user.id} leadId=${input.leadId}`,
+          );
+          throw new Error("Lead already unlocked");
+        }
         
         // Ensure Pro subscribers have their 5 monthly credits for current period
         const { getDb } = await import("./db");
@@ -1110,6 +1119,10 @@ export const appRouter = router({
         }
         
         const finalAmount = Math.max(0, DYNAMIC_PRICE - creditApplied);
+
+        console.log(
+          `[payments.createPaymentIntent] userId=${ctx.user.id} leadId=${input.leadId} priceCents=${DYNAMIC_PRICE} creditApplied=${creditApplied} finalAmount=${finalAmount}`,
+        );
         
         // If credits cover the full price, skip Stripe entirely
         if (finalAmount === 0 && creditApplied > 0) {
@@ -1164,6 +1177,9 @@ export const appRouter = router({
         // Check if already unlocked
         const alreadyUnlocked = await hasUnlockedLead(ctx.user.id, input.leadId);
         if (alreadyUnlocked) {
+          console.log(
+            `[payments.confirmPayment] already-unlocked userId=${ctx.user.id} leadId=${input.leadId}`,
+          );
           return { 
             success: true, 
             leadId: input.leadId,
@@ -1181,7 +1197,7 @@ export const appRouter = router({
         const actualAmount = getLeadUnlockPriceCents(
           (lead2 as any)?.budget,
           (lead2 as any)?.unlockPriceCents,
-          (lead2 as any)?.leadTier
+          (lead2 as any)?.leadTier,
         );
         
         // Verify payment — skip if fully covered by credits
@@ -1191,19 +1207,19 @@ export const appRouter = router({
           if (!paymentValid) throw new Error("Payment not verified");
         }
         
-        // Apply any available credits (they were already considered in createPaymentIntent when computing finalAmount)
+        // Apply credits: mirror createPaymentIntent behavior and consume at most one unused credit row
         const { getDb } = await import("./db");
         const db = await getDb();
         if (db) {
           const { userCredits } = await import("../drizzle/schema");
           const credits = await db.select().from(userCredits)
             .where(and(eq(userCredits.userId, ctx.user.id), eq(userCredits.isUsed, false)))
-            .orderBy(userCredits.createdAt);
-          let remaining = actualAmount;
-          for (const credit of credits) {
-            if (remaining <= 0) break;
-            await db.update(userCredits).set({ isUsed: true }).where(eq(userCredits.id, credit.id));
-            remaining -= credit.amount;
+            .orderBy(userCredits.createdAt)
+            .limit(1);
+          if (credits.length > 0) {
+            await db.update(userCredits)
+              .set({ isUsed: true })
+              .where(eq(userCredits.id, credits[0].id));
           }
         }
         
@@ -1216,6 +1232,10 @@ export const appRouter = router({
           intent_score: (lead as any).intentScore ?? null,
           unlock_rate: 1,
         });
+
+        console.log(
+          `[payments.confirmPayment] unlocked userId=${ctx.user.id} leadId=${input.leadId} amountCents=${actualAmount} isFree=${!!input.isFree}`,
+        );
         
         // Record transaction
         await createTransaction({

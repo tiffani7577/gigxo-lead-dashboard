@@ -111,8 +111,8 @@ export async function sendWelcomeEmail(
       <h3 style="color: #7c3aed; margin: 0 0 12px;">How it works:</h3>
       <ol style="color: #374151; line-height: 1.8; margin: 0; padding-left: 20px;">
         <li>Browse gig leads (title, budget, location visible for free)</li>
-        <li>Your <strong>first unlock is just $1</strong> — try it risk-free</li>
-        <li>After that: <strong>$7</strong> standard or <strong>$15</strong> premium per lead — or go <strong>Pro for $49/mo</strong> and get 5 unlock credits included</li>
+        <li>Discovery leads start at <strong>$3</strong> (starter tier)</li>
+        <li>Standard leads are <strong>$7</strong> and premium leads <strong>$15</strong> — or go <strong>Pro for $49/mo</strong> and get 5 unlock credits included</li>
         <li>Reach out directly and book the gig (no commission)</li>
       </ol>
     </div>
@@ -172,7 +172,7 @@ export async function sendDailyDigest(
         ${lead.eventDate ? `<span style="color: #6b7280;">📅 ${new Date(lead.eventDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>` : ''}
       </div>
       <a href="https://gigxo.com/dashboard?lead=${lead.id}" style="display: inline-block; margin-top: 12px; background: #7c3aed; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 500;">
-        Unlock from $7 →
+        Unlock from $3 →
       </a>
     </div>
   `).join('');

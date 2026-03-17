@@ -68,9 +68,18 @@ function formatBudget(cents: number | null) {
 }
 
 function getLeadDisplayPriceCents(lead: any): number {
-  if (lead && lead.unlockPriceCents != null) return lead.unlockPriceCents;
+  if (lead && lead.unlockPriceCents != null) {
+    const cents = Number(lead.unlockPriceCents) || 0;
+    const valid = [300, 700, 1500];
+    if (!Number.isFinite(cents) || cents <= 0) return valid[0];
+    return valid.reduce(
+      (closest, value) =>
+        Math.abs(value - cents) < Math.abs(closest - cents) ? value : closest,
+      valid[0],
+    );
+  }
   const tier = lead?.leadTier as string | undefined;
-  if (tier === "starter_friendly") return 100;
+  if (tier === "starter_friendly") return 300;
   if (tier === "premium") return 1500;
   if (tier === "standard") return 700;
   return 700;
@@ -929,14 +938,7 @@ export default function ArtistDashboard() {
                               {!lead.isUnlocked && (
                                 <span className="flex-shrink-0 text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full">
                                   {(() => {
-                                    const rawCents = (lead as any).unlockPriceCents != null
-                                      ? Number((lead as any).unlockPriceCents) || 0
-                                      : getLeadDisplayPriceCents(lead as any);
-                                    // Normalize any legacy odd values (e.g. 150) to nearest tier price
-                                    const validPrices = [100, 700, 1500];
-                                    const cents = validPrices.reduce((closest, value) =>
-                                      Math.abs(value - rawCents) < Math.abs(closest - rawCents) ? value : closest,
-                                    validPrices[0]);
+                                    const cents = getLeadDisplayPriceCents(lead as any);
                                     const dollars = Math.round(cents / 100);
                                     return `Unlock $${dollars}`;
                                   })()}
