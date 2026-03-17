@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Loader2, CheckCircle2, XCircle, Plus, TrendingUp, Users, DollarSign, Music, RefreshCw, Send, Bot, UserX, LayoutDashboard, Eye, EyeOff, Bookmark, BookmarkCheck, ExternalLink, Phone, Mail, Megaphone, Bell, Copy, Check, Search } from "lucide-react";
 import GrowthWorksheet from "./GrowthWorksheet";
 import { toast } from "sonner";
@@ -14,6 +14,91 @@ import { toast } from "sonner";
 function formatBudget(cents: number | null) {
   if (!cents) return "TBD";
   return `$${(cents / 100).toLocaleString()}`;
+}
+
+function getLeadSourceLabel(lead: any): string {
+  // 1) Direct field, if present
+  if (lead.sourceSlug && typeof lead.sourceSlug === "string") {
+    const trimmed = lead.sourceSlug.trim();
+    if (trimmed) return trimmed;
+  }
+
+  const description: string = typeof lead.description === "string" ? lead.description : "";
+
+  // 2) Extract from description line like "Source: slug-here"
+  if (description.includes("Source: ")) {
+    const line = description
+      .split("\n")
+      .find((l) => l.trim().startsWith("Source: "));
+    if (line) {
+      const extracted = line.replace("Source:", "").trim();
+      if (extracted) return extracted;
+    }
+  }
+
+  // 3) Infer from known SEO slugs by matching on keywords in title/description
+  const title: string = typeof lead.title === "string" ? lead.title : "";
+  const text = `${title}\n${description}`.toLowerCase();
+
+  const slugCandidates: { slug: string; hints: string[] }[] = [
+    {
+      slug: "yacht-dj-fort-lauderdale",
+      hints: ["yacht dj fort lauderdale", "17th street marina", "yacht dj ft lauderdale"],
+    },
+    {
+      slug: "private-yacht-party-dj-fort-lauderdale",
+      hints: ["private yacht party", "private yacht dj", "friends-only yacht"],
+    },
+    {
+      slug: "luxury-yacht-entertainment-fort-lauderdale",
+      hints: ["luxury yacht", "vip charter", "uhnw", "brand activation"],
+    },
+    {
+      slug: "last-minute-yacht-dj-fort-lauderdale",
+      hints: ["last-minute", "last minute", "same-day", "same day"],
+    },
+    {
+      slug: "corporate-yacht-event-dj-fort-lauderdale",
+      hints: ["corporate", "client cruise", "exec offsite", "business event"],
+    },
+    {
+      slug: "yacht-bachelorette-party-dj-fort-lauderdale",
+      hints: ["bachelorette", "hen party", "girls weekend"],
+    },
+    {
+      slug: "yacht-live-music-fort-lauderdale",
+      hints: ["live music", "band", "sax", "acoustic", "quartet"],
+    },
+    {
+      slug: "yacht-dj-miami",
+      hints: ["miami yacht", "biscayne bay", "miami yacht party"],
+    },
+    {
+      slug: "hire-yacht-dj-fort-lauderdale",
+      hints: ["hire a yacht dj", "hire yacht dj", "book yacht dj"],
+    },
+    {
+      slug: "17th-street-yacht-dj-fort-lauderdale",
+      hints: ["17th street", "17th st causeway", "bahia mar", "pier 66"],
+    },
+  ];
+
+  for (const candidate of slugCandidates) {
+    if (candidate.hints.some((h) => text.includes(h))) {
+      return candidate.slug;
+    }
+  }
+
+  // 4) Fallbacks for non-SEO but still client-submitted leads
+  const leadType = (lead.leadType || "").toString();
+  const source = (lead.source || "").toString();
+
+  if (leadType === "client_submitted" || source === "gigxo") {
+    return "Gigxo client lead";
+  }
+
+  // 5) Default
+  return "Unknown";
 }
 
 export default function AdminDashboard() {
@@ -105,6 +190,43 @@ export default function AdminDashboard() {
     followUpAt: "",
     unlockPriceDollars: "",
   });
+
+  const leadSourceStats = useMemo(() => {
+    if (!leads || leads.length === 0) return [];
+
+    const totals: Record<string, { count: number; valueCents: number }> = {};
+
+    for (const lead of leads as any[]) {
+      const slug = getLeadSourceLabel(lead) || "Gigxo client lead";
+      const budgetCents = typeof lead.budget === "number" ? lead.budget : null;
+
+      if (!totals[slug]) {
+        totals[slug] = { count: 0, valueCents: 0 };
+      }
+      totals[slug].count += 1;
+      if (budgetCents && budgetCents > 0) {
+        totals[slug].valueCents += budgetCents;
+      }
+    }
+
+    const totalLeads = (leads as any[]).length;
+    const rows = Object.entries(totals).map(([slug, stats]) => ({
+      slug,
+      count: stats.count,
+      valueCents: stats.valueCents,
+      percent: totalLeads > 0 ? (stats.count / totalLeads) * 100 : 0,
+    }));
+
+    rows.sort((a, b) => b.count - a.count);
+
+    // Lightweight debug summary
+    console.log(
+      "[admin] lead source summary",
+      Object.fromEntries(rows.map((r) => [r.slug, r.count]))
+    );
+
+    return rows;
+  }, [leads]);
 
   // Update lead
   const { mutate: updateLead, isPending: isUpdating } = trpc.admin.updateLead.useMutation({
@@ -587,6 +709,39 @@ export default function AdminDashboard() {
                 <p className="text-xl font-bold text-green-700">{lastPipelineStats.saved}</p>
                 <p className="text-xs text-slate-500 mt-0.5">Saved to Queue</p>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Lead Sources (SEO / attribution overview) */}
+        {leadSourceStats.length > 0 && (
+          <div className="bg-white rounded-xl border border-slate-200 p-4 mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-semibold text-slate-900">Lead Sources</h2>
+              <p className="text-xs text-slate-500">Grouped by source slug and estimated budget value</p>
+            </div>
+            <div className="text-xs">
+              <div className="flex items-center justify-between pb-1 border-b border-slate-200 text-slate-500 font-semibold">
+                <span className="flex-1 pr-2">Source slug</span>
+                <span className="w-16 text-right">Leads</span>
+                <span className="w-16 text-right">% share</span>
+                <span className="w-28 text-right">Est. value</span>
+              </div>
+              {leadSourceStats.map((row) => (
+                <div
+                  key={row.slug}
+                  className="flex items-center justify-between py-1 border-b border-slate-100 last:border-b-0"
+                >
+                  <span className="flex-1 pr-2 text-[11px] text-slate-700 truncate">{row.slug}</span>
+                  <span className="w-16 text-right text-slate-800">{row.count}</span>
+                  <span className="w-16 text-right text-slate-500">
+                    {row.percent.toFixed(0)}%
+                  </span>
+                  <span className="w-28 text-right text-slate-800">
+                    {row.valueCents > 0 ? `$${(row.valueCents / 100).toLocaleString()}` : "—"}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         )}
