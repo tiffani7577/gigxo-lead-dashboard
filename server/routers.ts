@@ -4388,6 +4388,140 @@ export const appRouter = router({
         return { sent };
       }),
 
+    // ─── New SEO Lead Alerts: Notify DJs about fresh auto-published SEO leads ──
+    sendNewSeoLeadAlerts: protectedProcedure
+      .mutation(async ({ ctx }) => {
+        if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) return { success: false, leadsAlerted: 0, emailsQueued: 0 };
+        const { users, gigLeads, artistProfiles } = await import("../drizzle/schema");
+        const { sendNewLeadAlertEmail } = await import("./email");
+        const origin = ctx.req.headers.origin ?? "https://gigxo.com";
+
+        const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+
+        // Recent auto-published SEO client leads (standard or premium)
+        const recentSeoLeads = await db
+          .select()
+          .from(gigLeads)
+          .where(and(
+            eq(gigLeads.source, "gigxo"),
+            eq(gigLeads.leadType as any, "client_submitted"),
+            eq(gigLeads.isApproved, true),
+            eq(gigLeads.artistUnlockEnabled as any, true),
+            eq(gigLeads.leadMonetizationType as any, "artist_unlock"),
+            sql`${gigLeads.leadTier} IN ('standard','premium')`,
+            gte(gigLeads.createdAt, thirtyMinutesAgo),
+            eq(gigLeads.isHidden, false),
+          ))
+          .limit(50);
+
+        if (recentSeoLeads.length === 0) {
+          return { success: true, leadsAlerted: 0, emailsQueued: 0 };
+        }
+
+        // Lightweight payload preparation with derived sourceSlug when present
+        const leadsWithMeta = recentSeoLeads.map((lead: any) => {
+          let sourceSlug: string | undefined = (lead as any).sourceSlug;
+          const desc: string = typeof lead.description === "string" ? lead.description : "";
+          if (!sourceSlug && desc.includes("Source: ")) {
+            const sourceLine = desc
+              .split("\n")
+              .find((line) => line.trim().startsWith("Source: "));
+            if (sourceLine) {
+              const extracted = sourceLine.replace("Source:", "").trim();
+              if (extracted) sourceSlug = extracted;
+            }
+          }
+          return {
+            leadId: lead.id,
+            title: lead.title,
+            location: lead.location,
+            leadTier: (lead as any).leadTier as string | null,
+            unlockPriceCents: (lead as any).unlockPriceCents as number | null,
+            description: desc,
+            sourceSlug,
+            raw: lead,
+          };
+        });
+
+        // Load DJs with artist profiles; prefer South Florida by simple location filter
+        const artists = await db
+          .select({ u: users, p: artistProfiles })
+          .from(users)
+          .innerJoin(artistProfiles, eq(users.id, artistProfiles.userId))
+          .where(eq(users.role, "user"));
+
+        let emailsQueued = 0;
+        let leadsAlerted = leadsWithMeta.length;
+
+        for (const { u, p } of artists) {
+          if (!u.email) continue;
+
+          const locationText = `${p.location || ""} ${u.location || ""}`.toLowerCase();
+          const isSouthFlorida =
+            locationText.includes("miami") ||
+            locationText.includes("fort lauderdale") ||
+            locationText.includes("broward") ||
+            locationText.includes("miami-dade") ||
+            locationText.includes("south florida");
+
+          // Only target DJs (performerType/genres containing "dj") and South Florida artists
+          const genres = ((p.genres as string[]) ?? []).map((g) => g.toLowerCase());
+          const isDj =
+            genres.some((g) => g.includes("dj")) ||
+            (p.primaryTag && (p.primaryTag as string).toLowerCase().includes("dj"));
+
+          if (!isDj || !isSouthFlorida) continue;
+
+          for (const lead of leadsWithMeta) {
+            if (!lead) continue;
+
+            const priceDollars =
+              lead.unlockPriceCents && lead.unlockPriceCents > 0
+                ? lead.unlockPriceCents / 100
+                : lead.leadTier === "premium"
+                ? 15
+                : 7;
+
+            const subject =
+              lead.leadTier === "premium"
+                ? `New premium yacht DJ lead in ${lead.location} — $${priceDollars} to unlock`
+                : `New yacht DJ lead in ${lead.location} — $${priceDollars} to unlock`;
+
+            const summaryLine = (lead.description || "").split("\n")[0] || lead.title;
+
+            await sendNewLeadAlertEmail(
+              u.email,
+              u.name ?? "",
+              1,
+              {
+                title: lead.title,
+                budget: lead.raw.budget,
+                location: lead.location,
+                eventType: lead.raw.eventType,
+              },
+              origin,
+              {
+                subjectOverride: subject,
+                extraLines: [
+                  `Tier: ${lead.leadTier ?? "standard"} · Unlock price: $${priceDollars}`,
+                  summaryLine,
+                ],
+              } as any,
+            );
+            emailsQueued++;
+          }
+        }
+
+        return {
+          success: true,
+          leadsAlerted,
+          emailsQueued,
+        };
+      }),
+
     // ─── Outreach Templates: Pre-written copy for DJ groups & social ─────────
     getOutreachTemplates: protectedProcedure.query(async ({ ctx }) => {
       if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
