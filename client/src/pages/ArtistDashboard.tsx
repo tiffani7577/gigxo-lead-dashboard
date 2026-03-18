@@ -645,13 +645,13 @@ export default function ArtistDashboard() {
 
   const filteredLeads = leads?.filter((lead) => {
     const matchesSearch = !searchTerm ||
-      lead.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (lead.title ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (lead.location ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
       (lead.eventType && lead.eventType.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesEventType = eventTypeFilter === "All" || lead.eventType === eventTypeFilter;
     const matchesPerformerType = performerTypeFilter === "all" || lead.performerType === performerTypeFilter;
     const cityLabel = CITY_MARKETS.find(c => c.id === cityFilter)?.label ?? "";
-    const matchesCity = cityFilter === "all" || lead.location.toLowerCase().includes(cityLabel.toLowerCase());
+    const matchesCity = cityFilter === "all" || (lead.location ?? "").toLowerCase().includes(cityLabel.toLowerCase());
     // Event window filter: match leads whose performer type is in the window's relevant types
     const matchesEventWindow = !eventWindowFilter || (() => {
       const win = activeEventWindows.find(w => w.id === eventWindowFilter);
