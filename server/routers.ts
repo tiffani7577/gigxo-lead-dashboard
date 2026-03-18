@@ -17,21 +17,25 @@ import { scraperConfigRouter } from "./routers/scraper-config";
 
 function extractCityState(raw: unknown): string {
   const fallback = "Location locked";
-  if (!raw) return fallback;
-  const location = String(raw).trim();
-  if (!location) return fallback;
+  try {
+    if (raw == null) return fallback;
+    const location = String(raw).trim();
+    if (!location) return fallback;
 
-  const parts = location.split(",").map((p) => p.trim()).filter(Boolean);
-  if (parts.length >= 2) {
-    let city = parts[parts.length - 2];
-    const state = parts[parts.length - 1];
-    // Normalize common "Beach"-style phrases, e.g. "Miami Beach" → "Miami"
-    city = city.replace(/\s+Beach\b/i, "");
-    const cityState = `${city}, ${state}`.trim();
-    if (cityState) return cityState;
+    const parts = location.split(",").map((p) => p.trim()).filter(Boolean);
+    if (parts.length >= 2) {
+      let city = parts[parts.length - 2];
+      const state = parts[parts.length - 1];
+      // Normalize common "Beach"-style phrases, e.g. "Miami Beach" → "Miami"
+      city = city.replace(/\s+Beach\b/i, "");
+      const cityState = `${city}, ${state}`.trim();
+      if (cityState) return cityState;
+    }
+
+    return location.length > 48 ? `${location.slice(0, 48)}…` : location;
+  } catch {
+    return fallback;
   }
-
-  return location.length > 48 ? `${location.slice(0, 48)}…` : location;
 }
 
 // ─── Events router (must be defined before appRouter) ───────────────────────
@@ -647,10 +651,10 @@ export const appRouter = router({
           const result = await storagePut(fileKey, buffer, input.mimeType);
           url = result.url;
         } else {
-          const MAX_DATA_URL_BYTES = 500 * 1024; // 500KB for direct storage fallback
+          const MAX_DATA_URL_BYTES = 5 * 1024 * 1024; // 5MB for direct storage fallback
           const base64Length = input.fileBase64.length;
           if (base64Length > MAX_DATA_URL_BYTES) {
-            throw new Error("Image too large for direct storage. Please use an image under 500KB.");
+            throw new Error("Image too large for direct storage. Please use an image under 5MB.");
           }
           url = `data:${input.mimeType};base64,${input.fileBase64}`;
         }
@@ -770,7 +774,7 @@ export const appRouter = router({
         }
         if (input.city) {
           const cityLower = input.city.toLowerCase();
-          filtered = filtered.filter(l => l.location.toLowerCase().includes(cityLower));
+          filtered = filtered.filter(l => (l.location ?? "").toLowerCase().includes(cityLower));
         }
         
         // Get view + unlock counts for social proof
