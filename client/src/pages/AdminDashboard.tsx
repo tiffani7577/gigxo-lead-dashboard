@@ -1402,7 +1402,7 @@ export default function AdminDashboard() {
                       className="w-full h-9 rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 focus:outline-none focus:ring-1 focus:ring-purple-400"
                     >
                       <option value="">—</option>
-                      <option value="event_demand">Event demand</option>
+                      <option value="event_demand">Event demand (non-marketplace)</option>
                       <option value="venue_intelligence">Venue intelligence</option>
                       <option value="artist_signup">Artist signup</option>
                       <option value="outreach">Outreach</option>

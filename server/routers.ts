@@ -15,6 +15,25 @@ import { eventWindows } from "../drizzle/schema";
 import { inboundRouter } from "./routers/inbound";
 import { scraperConfigRouter } from "./routers/scraper-config";
 
+function extractCityState(raw: unknown): string {
+  const fallback = "Location locked";
+  if (!raw) return fallback;
+  const location = String(raw).trim();
+  if (!location) return fallback;
+
+  const parts = location.split(",").map((p) => p.trim()).filter(Boolean);
+  if (parts.length >= 2) {
+    let city = parts[parts.length - 2];
+    const state = parts[parts.length - 1];
+    // Normalize common "Beach"-style phrases, e.g. "Miami Beach" → "Miami"
+    city = city.replace(/\s+Beach\b/i, "");
+    const cityState = `${city}, ${state}`.trim();
+    if (cityState) return cityState;
+  }
+
+  return location.length > 48 ? `${location.slice(0, 48)}…` : location;
+}
+
 // ─── Events router (must be defined before appRouter) ───────────────────────
 const eventsRouter = router({
   /** Public: returns event windows currently in their visibility window (for filter chips) */
@@ -786,16 +805,15 @@ export const appRouter = router({
           }
         });
         
-        // Return leads with contact and identity blurred unless unlocked (reduce lead leakage)
-        const LOCKED_TITLE = "Event lead";
+        // Return leads with contact blurred unless unlocked (reduce lead leakage)
         const LOCKED_LOCATION = "Location locked";
         const LOCKED_DESCRIPTION = "Details available after unlock";
         return filtered.map(lead => {
           const isUnlocked = unlockedLeadIds.has(lead.id);
           return {
             ...lead,
-            title: isUnlocked ? lead.title : LOCKED_TITLE,
-            location: isUnlocked ? lead.location : LOCKED_LOCATION,
+            title: lead.title,
+            location: isUnlocked ? lead.location : extractCityState(lead.location),
             description: isUnlocked ? lead.description : LOCKED_DESCRIPTION,
             venueUrl: isUnlocked ? lead.venueUrl : null,
             isUnlocked,
@@ -823,14 +841,13 @@ export const appRouter = router({
         }
         
         const unlocked = await hasUnlockedLead(ctx.user.id, input.id);
-        // Mask identity fields when locked (reduce lead leakage)
-        const LOCKED_TITLE = "Event lead";
+        // Mask contact and deep details when locked (reduce lead leakage)
         const LOCKED_LOCATION = "Location locked";
         const LOCKED_DESCRIPTION = "Details available after unlock";
         return {
           ...lead,
-          title: unlocked ? lead.title : LOCKED_TITLE,
-          location: unlocked ? lead.location : LOCKED_LOCATION,
+          title: lead.title,
+          location: unlocked ? lead.location : extractCityState(lead.location),
           description: unlocked ? lead.description : LOCKED_DESCRIPTION,
           venueUrl: unlocked ? lead.venueUrl : null,
           isUnlocked: unlocked,
