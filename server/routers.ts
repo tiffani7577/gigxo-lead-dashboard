@@ -1770,6 +1770,23 @@ export const appRouter = router({
         return { success: true };
       }),
 
+    /** Temporary admin-only: clean invalid unlockPriceCents (set to NULL so tier pricing applies). */
+    cleanupLeadPrices: protectedProcedure
+      .mutation(async ({ ctx }) => {
+        if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN", message: "Unauthorized" });
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) throw new Error("Database not available");
+        const result = await db.execute(
+          sql`UPDATE gigLeads SET unlockPriceCents = NULL WHERE unlockPriceCents IS NOT NULL AND unlockPriceCents NOT IN (300, 700, 1500)`,
+        );
+        const rowsAffected =
+          (Array.isArray(result) && result[0] && typeof (result[0] as any).affectedRows === "number"
+            ? (result[0] as any).affectedRows
+            : (result as any)?.affectedRows) ?? 0;
+        return { success: true, rowsAffected: Number(rowsAffected) };
+      }),
+
     updateLead: protectedProcedure
       .input(z.object({
         leadId: z.number(),

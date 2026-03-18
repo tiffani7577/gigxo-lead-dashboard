@@ -188,7 +188,6 @@ export default function AdminDashboard() {
     status: "",
     notes: "",
     followUpAt: "",
-    unlockPriceDollars: "",
   });
 
   const leadSourceStats = useMemo(() => {
@@ -258,20 +257,6 @@ export default function AdminDashboard() {
       status: (lead as any).status ?? "",
       notes: (lead as any).notes ?? "",
       followUpAt: (lead as any).followUpAt ? new Date(lead.followUpAt).toISOString().slice(0, 16) : "",
-      unlockPriceDollars: (() => {
-        const centsRaw = (lead as any).unlockPriceCents;
-        if (centsRaw == null) return "";
-        const cents = Number(centsRaw) || 0;
-        const valid = [300, 700, 1500];
-        const normalized = !Number.isFinite(cents) || cents <= 0
-          ? valid[0]
-          : valid.reduce(
-              (closest, value) =>
-                Math.abs(value - cents) < Math.abs(closest - cents) ? value : closest,
-              valid[0],
-            );
-        return normalized / 100;
-      })(),
     });
   };
 
@@ -296,9 +281,6 @@ export default function AdminDashboard() {
       status: editFormData.status || undefined,
       notes: editFormData.notes || undefined,
       followUpAt: editFormData.followUpAt ? new Date(editFormData.followUpAt).toISOString() : undefined,
-      unlockPriceCents: editFormData.unlockPriceDollars
-        ? Math.round(Number(editFormData.unlockPriceDollars) * 100)
-        : undefined,
     });
   };
 
@@ -722,39 +704,6 @@ export default function AdminDashboard() {
                 <p className="text-xl font-bold text-green-700">{lastPipelineStats.saved}</p>
                 <p className="text-xs text-slate-500 mt-0.5">Saved to Queue</p>
               </div>
-            </div>
-          </div>
-        )}
-
-        {/* Lead Sources (SEO / attribution overview) */}
-        {leadSourceStats.length > 0 && (
-          <div className="bg-white rounded-xl border border-slate-200 p-4 mb-6">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-semibold text-slate-900">Lead Sources</h2>
-              <p className="text-xs text-slate-500">Grouped by source slug and estimated budget value</p>
-            </div>
-            <div className="text-xs">
-              <div className="flex items-center justify-between pb-1 border-b border-slate-200 text-slate-500 font-semibold">
-                <span className="flex-1 pr-2">Source slug</span>
-                <span className="w-16 text-right">Leads</span>
-                <span className="w-16 text-right">% share</span>
-                <span className="w-28 text-right">Est. value</span>
-              </div>
-              {leadSourceStats.map((row) => (
-                <div
-                  key={row.slug}
-                  className="flex items-center justify-between py-1 border-b border-slate-100 last:border-b-0"
-                >
-                  <span className="flex-1 pr-2 text-[11px] text-slate-700 truncate">{row.slug}</span>
-                  <span className="w-16 text-right text-slate-800">{row.count}</span>
-                  <span className="w-16 text-right text-slate-500">
-                    {row.percent.toFixed(0)}%
-                  </span>
-                  <span className="w-28 text-right text-slate-800">
-                    {row.valueCents > 0 ? `$${(row.valueCents / 100).toLocaleString()}` : "—"}
-                  </span>
-                </div>
-              ))}
             </div>
           </div>
         )}
