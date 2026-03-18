@@ -16,7 +16,7 @@ import { inboundRouter } from "./routers/inbound";
 import { scraperConfigRouter } from "./routers/scraper-config";
 
 function extractCityState(raw: unknown): string {
-  const fallback = "Location locked";
+  const fallback = "Unknown location";
   try {
     if (raw == null) return fallback;
     const location = String(raw).trim();
@@ -810,14 +810,15 @@ export const appRouter = router({
         });
         
         // Return leads with contact blurred unless unlocked (reduce lead leakage)
-        const LOCKED_LOCATION = "Location locked";
+        const UNKNOWN_LOCATION = "Unknown location";
         const LOCKED_DESCRIPTION = "Details available after unlock";
         return filtered.map(lead => {
           const isUnlocked = unlockedLeadIds.has(lead.id);
+          const safeLocation = (lead.location ?? UNKNOWN_LOCATION) as string;
           return {
             ...lead,
             title: lead.title,
-            location: isUnlocked ? lead.location : extractCityState(lead.location),
+            location: isUnlocked ? safeLocation : extractCityState(safeLocation),
             description: isUnlocked ? lead.description : LOCKED_DESCRIPTION,
             venueUrl: isUnlocked ? lead.venueUrl : null,
             isUnlocked,
@@ -846,12 +847,13 @@ export const appRouter = router({
         
         const unlocked = await hasUnlockedLead(ctx.user.id, input.id);
         // Mask contact and deep details when locked (reduce lead leakage)
-        const LOCKED_LOCATION = "Location locked";
+        const UNKNOWN_LOCATION = "Unknown location";
         const LOCKED_DESCRIPTION = "Details available after unlock";
+        const safeLocation = ((lead as any).location ?? UNKNOWN_LOCATION) as string;
         return {
           ...lead,
           title: lead.title,
-          location: unlocked ? lead.location : extractCityState(lead.location),
+          location: unlocked ? safeLocation : extractCityState(safeLocation),
           description: unlocked ? lead.description : LOCKED_DESCRIPTION,
           venueUrl: unlocked ? lead.venueUrl : null,
           isUnlocked: unlocked,
