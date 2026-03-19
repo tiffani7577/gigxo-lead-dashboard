@@ -27,10 +27,12 @@ import { ENV } from "./_core/env";
 // ─── Public registration ────────────────────────────────────────────────────
 
 export function registerStripeWebhook(app: Express) {
-  // MUST be registered BEFORE express.json() so req.body is a raw Buffer
+  // MUST be registered BEFORE express.json() so req.body is a raw Buffer.
+  // type: '*/*' — Stripe sends application/json (often with charset); strict
+  // 'application/json' can skip parsing, fall through to express.json(), → 415.
   app.post(
     "/api/stripe/webhook",
-    express.raw({ type: "application/json" }),
+    express.raw({ type: "*/*", limit: "2mb" }),
     handleStripeWebhook
   );
 }
@@ -45,7 +47,7 @@ export async function handleStripeWebhook(req: Request, res: Response) {
   }
 
   const sig = req.headers["stripe-signature"] as string | undefined;
-  const webhookSecret = ENV.stripeWebhookSecret;
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET?.trim() || ENV.stripeWebhookSecret;
 
   let event: import("stripe").Stripe.Event;
 
