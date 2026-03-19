@@ -1473,7 +1473,7 @@ export default function ArtistDashboard() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {myUnlocks.map((unlock) => (
+                {(myUnlocks ?? []).map((unlock) => (
                   <Card key={unlock.unlockId} className="border-slate-200">
                     <CardContent className="p-5">
                       <div className="flex items-start justify-between mb-3">
