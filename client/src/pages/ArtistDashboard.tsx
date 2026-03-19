@@ -462,7 +462,7 @@ export default function ArtistDashboard() {
   const { data: stats } = trpc.leads.getStats.useQuery();
 
   // Fetch my unlocked leads
-  const { data: myUnlocks } = trpc.artist.getMyUnlocks.useQuery();
+  const { data: myUnlocks = [] } = trpc.artist.getMyUnlocks.useQuery();
 
   // Feedback mutation
   const { mutate: submitFeedback, isPending: feedbackPending } = trpc.leads.submitFeedback.useMutation({
