@@ -1470,7 +1470,11 @@ export const appRouter = router({
         if (!pack) throw new Error("Invalid pack");
 
         const stripe = (await import("stripe")).default;
-        const stripeClient = new stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2026-02-25.clover" });
+        const key = process.env.STRIPE_SECRET_KEY?.trim();
+        if (!key) {
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Stripe secret key is not configured" });
+        }
+        const stripeClient = new stripe(key, { apiVersion: "2026-02-25.clover" });
 
         const origin = ctx.req.headers.origin ?? "https://www.gigxo.com";
         const session = await stripeClient.checkout.sessions.create({
