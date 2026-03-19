@@ -168,7 +168,6 @@ export const gigLeads = mysqlTable("gigLeads", {
   // ── Venue Intelligence CRM ─────────────────────────────────────────────────
   venueStatus: mysqlEnum("venueStatus", ["NEW", "CONTACTED", "FOLLOW_UP", "MEETING", "CLIENT", "IGNORED"]).default("NEW"),
   lastContactedAt: timestamp("lastContactedAt"),
-  contactCount: int("contactCount").default(0).notNull(),
   contactOwner: varchar("contactOwner", { length: 255 }),
   website: varchar("website", { length: 2048 }),
   instagram: varchar("instagram", { length: 255 }),
