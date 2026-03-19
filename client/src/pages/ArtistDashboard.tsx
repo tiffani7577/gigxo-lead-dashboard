@@ -198,7 +198,7 @@ function InquiriesTab({ inquiries, onUpdateStatus }: {
 
       {/* Status filter pills */}
       <div className="flex flex-wrap gap-2 mb-5">
-        {((["all", "new", "replied", "booked", "declined"] as const) ?? []).map((s) => (
+        {(["all", "new", "replied", "booked", "declined"] as const).map((s) => (
           <button
             key={s}
             onClick={() => setFilterStatus(s)}
@@ -304,7 +304,7 @@ function InquiriesTab({ inquiries, onUpdateStatus }: {
                         <div className="flex-1">
                           <label className="text-xs font-medium text-slate-500 block mb-1">Update status</label>
                           <div className="flex flex-wrap gap-1.5">
-                            {((["read", "replied", "booked", "declined"] as InquiryStatus[]) ?? []).map((s) => (
+                            {(["read", "replied", "booked", "declined"] as InquiryStatus[]).map((s) => (
                               <button
                                 key={s}
                                 onClick={() => handleStatusChange(inquiry, s)}
@@ -771,7 +771,7 @@ export default function ArtistDashboard() {
 
         {/* Tabs */}
         <div className="max-w-7xl mx-auto px-4 flex gap-1 border-t border-slate-100">
-          {((["leads", "unlocked", "referrals", "inquiries", "packs"] as Tab[]) ?? []).map((tab) => (
+          {(["leads", "unlocked", "referrals", "inquiries", "packs"] as Tab[]).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -1551,12 +1551,12 @@ export default function ArtistDashboard() {
                           <div className="space-y-2">
                             <p className="text-xs text-slate-500 font-medium">How did this lead go?</p>
                             <div className="grid grid-cols-2 gap-1.5">
-                              {(([
+                              {([
                                 { outcome: 'booked', label: '✅ Booked!', cls: 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100' },
                                 { outcome: 'no_response', label: '📭 No Response', cls: 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100' },
                                 { outcome: 'lost', label: '❌ Lost', cls: 'bg-red-50 border-red-200 text-red-600 hover:bg-red-100' },
                                 { outcome: 'price_too_high', label: '💸 Price Too High', cls: 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100' },
-                              ] as const) ?? []).map(({ outcome, label, cls }) => (
+                              ] as const).map(({ outcome, label, cls }) => (
                                 <button
                                   key={outcome}
                                   disabled={feedbackPending}
@@ -1624,7 +1624,7 @@ export default function ArtistDashboard() {
                   { icon: Copy, text: "Share your unique referral link with other artists" },
                   { icon: Users, text: "They sign up and get 50% off their first lead unlock" },
                   { icon: Gift, text: "You earn a $7 lead credit — use it to unlock your next lead free" },
-                ] ?? []).map((item, i) => (
+                ].map((item, i) => (
                   <div key={i} className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
                       <item.icon className="w-4 h-4 text-purple-600" />
@@ -1696,7 +1696,7 @@ export default function ArtistDashboard() {
                 { id: "pack_3" as const, label: "3-Pack", unlocks: 3, price: "$18", perLead: "$6/lead", savings: "Save $3", highlighted: false },
                 { id: "pack_10" as const, label: "10-Pack", unlocks: 10, price: "$49", perLead: "$4.90/lead", savings: "Save $21", highlighted: true },
                 { id: "pack_25" as const, label: "25-Pack", unlocks: 25, price: "$99", perLead: "$3.96/lead", savings: "Save $76", highlighted: false },
-              ] ?? []).map((pack) => (
+              ]).map((pack) => (
                 <Card key={pack.id} className={`relative p-5 ${pack.highlighted ? "border-2 border-purple-400 bg-gradient-to-br from-purple-50 to-pink-50" : "border-slate-200"}`}>
                   {pack.highlighted && (
                     <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">Most Popular</span>
