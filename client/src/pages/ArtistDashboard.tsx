@@ -472,7 +472,7 @@ export default function ArtistDashboard() {
 
   // My feedback map (leadId -> outcome)
   const { data: myFeedbackList = [] } = trpc.leads.getMyFeedback.useQuery();
-  const myFeedbackMap = Object.fromEntries(myFeedbackList.map((f: any) => [f.leadId, f.outcome]));
+  const myFeedbackMap = Object.fromEntries((myFeedbackList ?? []).map((f: any) => [f.leadId, f.outcome]));
 
   // Fetch my credits
   const { data: creditData } = trpc.artist.getMyCredits.useQuery();
@@ -783,11 +783,11 @@ export default function ArtistDashboard() {
         {activeTab === "leads" && (
           <>
             {/* Event Window Filter Chips — auto-shown when active windows exist */}
-            {activeEventWindows.length > 0 && (
+            {(activeEventWindows ?? []).length > 0 && (
               <div className="flex flex-wrap items-center gap-2 mb-3 p-3 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl">
                 <Zap className="w-4 h-4 text-yellow-500 shrink-0" />
                 <span className="text-xs font-semibold text-yellow-700 mr-1">Event Boosts:</span>
-                {activeEventWindows.map((w) => (
+                {(activeEventWindows ?? []).map((w) => (
                   <button
                     key={w.id}
                     onClick={() => setEventWindowFilter(eventWindowFilter === w.id ? null : w.id)}
