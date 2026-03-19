@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Building2, ArrowRight } from "lucide-react";
 
 /**
- * Placeholder dashboard for venue managers (userType = 'venue').
+ * Placeholder dashboard for venue managers.
  * Can be expanded with venue-specific leads, bookings, or intelligence.
  */
 export default function VenueDashboard() {
