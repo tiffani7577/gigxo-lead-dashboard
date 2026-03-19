@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { clearAuthToken } from "@/lib/authToken";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Component } from "react";
 import { Link } from "wouter";
 import {
   Loader2, MapPin, DollarSign, Calendar, Phone, Mail, Lock, Unlock,
@@ -16,6 +16,26 @@ import {
 import { toast } from "sonner";
 import { useLocation } from "wouter";
 import NotificationBell from "@/components/NotificationBell";
+
+class ErrorBoundary extends Component<{ children: any }, { hasError: boolean }> {
+  state = { hasError: false };
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
+          <div className="bg-white rounded-xl border border-slate-200 p-6 text-center max-w-md w-full">
+            <p className="text-slate-900 font-semibold mb-2">An unexpected error occurred</p>
+            <p className="text-slate-500 text-sm">Please refresh the page.</p>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const EVENT_TYPES = [
   "All", "Wedding", "Corporate Event", "Nightclub", "Pool Party", "Private Party",
@@ -149,8 +169,9 @@ function InquiriesTab({ inquiries, onUpdateStatus }: {
   const [notes, setNotes] = useState<Record<number, string>>({});
   const utils = trpc.useUtils();
 
-  const filtered = filterStatus === "all" ? inquiries : inquiries.filter(i => i.status === filterStatus);
-  const counts = inquiries.reduce((acc, i) => { acc[i.status] = (acc[i.status] ?? 0) + 1; return acc; }, {} as Record<string, number>);
+  const safeInquiries = (inquiries ?? []) as Inquiry[];
+  const filtered = filterStatus === "all" ? safeInquiries : (safeInquiries ?? []).filter(i => i.status === filterStatus);
+  const counts = (safeInquiries ?? []).reduce((acc, i) => { acc[i.status] = (acc[i.status] ?? 0) + 1; return acc; }, {} as Record<string, number>);
 
   const handleStatusChange = (inquiry: Inquiry, status: InquiryStatus) => {
     onUpdateStatus({ inquiryId: inquiry.id, status, artistNotes: notes[inquiry.id] ?? inquiry.artistNotes ?? undefined });
@@ -170,14 +191,14 @@ function InquiriesTab({ inquiries, onUpdateStatus }: {
           <p className="text-slate-500 text-sm mt-0.5">Manage requests from clients who want to book you.</p>
         </div>
         <div className="text-right">
-          <p className="text-2xl font-bold text-slate-900">{inquiries.length}</p>
+          <p className="text-2xl font-bold text-slate-900">{(safeInquiries ?? []).length}</p>
           <p className="text-xs text-slate-500">total inquiries</p>
         </div>
       </div>
 
       {/* Status filter pills */}
       <div className="flex flex-wrap gap-2 mb-5">
-        {(["all", "new", "replied", "booked", "declined"] as const).map((s) => (
+        {((["all", "new", "replied", "booked", "declined"] as const) ?? []).map((s) => (
           <button
             key={s}
             onClick={() => setFilterStatus(s)}
@@ -187,22 +208,22 @@ function InquiriesTab({ inquiries, onUpdateStatus }: {
                 : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
             }`}
           >
-            {s === "all" ? `All (${inquiries.length})` : `${STATUS_CONFIG[s].label} (${counts[s] ?? 0})`}
+            {s === "all" ? `All (${(safeInquiries ?? []).length})` : `${STATUS_CONFIG[s].label} (${counts[s] ?? 0})`}
           </button>
         ))}
       </div>
 
-      {filtered.length === 0 ? (
+      {(filtered ?? []).length === 0 ? (
         <Card className="border-dashed border-slate-300">
           <CardContent className="p-12 text-center">
             <Mail className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500 font-medium">{inquiries.length === 0 ? "No inquiries yet" : "No inquiries match this filter"}</p>
-            <p className="text-slate-400 text-sm mt-1">{inquiries.length === 0 ? "Share your profile link to start receiving booking requests" : "Try a different status filter above"}</p>
+            <p className="text-slate-500 font-medium">{(safeInquiries ?? []).length === 0 ? "No inquiries yet" : "No inquiries match this filter"}</p>
+            <p className="text-slate-400 text-sm mt-1">{(safeInquiries ?? []).length === 0 ? "Share your profile link to start receiving booking requests" : "Try a different status filter above"}</p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-3">
-          {filtered.map((inquiry) => {
+          {(filtered ?? []).map((inquiry) => {
             const cfg = STATUS_CONFIG[inquiry.status];
             const isExpanded = expandedId === inquiry.id;
             const noteVal = notes[inquiry.id] ?? inquiry.artistNotes ?? "";
@@ -283,7 +304,7 @@ function InquiriesTab({ inquiries, onUpdateStatus }: {
                         <div className="flex-1">
                           <label className="text-xs font-medium text-slate-500 block mb-1">Update status</label>
                           <div className="flex flex-wrap gap-1.5">
-                            {(["read", "replied", "booked", "declined"] as InquiryStatus[]).map((s) => (
+                            {((["read", "replied", "booked", "declined"] as InquiryStatus[]) ?? []).map((s) => (
                               <button
                                 key={s}
                                 onClick={() => handleStatusChange(inquiry, s)}
@@ -643,7 +664,7 @@ export default function ArtistDashboard() {
     );
   }
 
-  const filteredLeads = leads?.filter((lead) => {
+  const filteredLeads = (leads ?? []).filter((lead) => {
     const matchesSearch = !searchTerm ||
       (lead.title ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
       (lead.location ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -654,9 +675,9 @@ export default function ArtistDashboard() {
     const matchesCity = cityFilter === "all" || (lead.location ?? "").toLowerCase().includes(cityLabel.toLowerCase());
     // Event window filter: match leads whose performer type is in the window's relevant types
     const matchesEventWindow = !eventWindowFilter || (() => {
-      const win = activeEventWindows.find(w => w.id === eventWindowFilter);
+      const win = (activeEventWindows ?? []).find(w => w.id === eventWindowFilter);
       if (!win) return true;
-      const types = win.relevantPerformerTypes as string[];
+      const types = (win.relevantPerformerTypes as string[] | null | undefined) ?? [];
       return types.includes(lead.performerType ?? "") || types.includes("all");
     })();
     return matchesSearch && matchesEventType && matchesPerformerType && matchesCity && matchesEventWindow;
@@ -666,6 +687,7 @@ export default function ArtistDashboard() {
   const availableCredits = creditData?.totalCredits ?? 0;
 
   return (
+    <ErrorBoundary>
     <div className="min-h-screen bg-slate-50">
       {/* Scarcity Banner */}
       {stats && stats.totalAvailable > 0 && (
@@ -749,7 +771,7 @@ export default function ArtistDashboard() {
 
         {/* Tabs */}
         <div className="max-w-7xl mx-auto px-4 flex gap-1 border-t border-slate-100">
-          {(["leads", "unlocked", "referrals", "inquiries", "packs"] as Tab[]).map((tab) => (
+          {((["leads", "unlocked", "referrals", "inquiries", "packs"] as Tab[]) ?? []).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -760,14 +782,14 @@ export default function ArtistDashboard() {
               }`}
             >
               {tab === "leads" && "Browse Gigs"}
-              {tab === "unlocked" && `My Unlocks${myUnlocks?.length ? ` (${myUnlocks.length})` : ""}`}
+              {tab === "unlocked" && `My Unlocks${(myUnlocks ?? []).length ? ` (${(myUnlocks ?? []).length})` : ""}`}
               {tab === "referrals" && "Referrals"}
               {tab === "inquiries" && (
                 <span className="flex items-center gap-1">
                   Inquiries
-                  {myInquiries && myInquiries.filter((i) => i.status === "new").length > 0 && (
+                  {(myInquiries ?? []).filter((i) => i.status === "new").length > 0 && (
                     <span className="bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                      {myInquiries.filter((i) => i.status === "new").length}
+                      {(myInquiries ?? []).filter((i) => i.status === "new").length}
                     </span>
                   )}
                 </span>
@@ -833,7 +855,7 @@ export default function ArtistDashboard() {
                 }`}
               >
                 <option value="all">All Cities</option>
-                {CITY_MARKETS.filter(c => c.id !== "all").map(c => (
+                {(CITY_MARKETS ?? []).filter(c => c.id !== "all").map(c => (
                   <option key={c.id} value={c.id}>{c.label}</option>
                 ))}
               </select>
@@ -846,7 +868,7 @@ export default function ArtistDashboard() {
                 }`}
               >
                 <option value="all">All Types</option>
-                {PERFORMER_TYPES.filter(p => p.value !== "all").map(p => (
+                {(PERFORMER_TYPES ?? []).filter(p => p.value !== "all").map(p => (
                   <option key={p.value} value={p.value}>{p.label}</option>
                 ))}
               </select>
@@ -858,7 +880,7 @@ export default function ArtistDashboard() {
                   eventTypeFilter !== "All" ? "border-pink-400 bg-pink-50 text-pink-700 font-medium" : "border-slate-200 bg-white text-slate-700"
                 }`}
               >
-                {EVENT_TYPES.map(type => (
+                {(EVENT_TYPES ?? []).map(type => (
                   <option key={type} value={type}>{type}</option>
                 ))}
               </select>
@@ -872,7 +894,7 @@ export default function ArtistDashboard() {
                 </button>
               )}
               <span className="text-sm text-slate-400 ml-auto">
-                {leadsLoading ? "Loading..." : `${filteredLeads.length} leads`}
+                {leadsLoading ? "Loading..." : `${(filteredLeads ?? []).length} leads`}
               </span>
             </div>
 
@@ -883,14 +905,14 @@ export default function ArtistDashboard() {
                   <div className="flex items-center justify-center py-16">
                     <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
                   </div>
-                ) : filteredLeads.length === 0 ? (
+                ) : (filteredLeads ?? []).length === 0 ? (
                   <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
                     <Music className="w-12 h-12 text-slate-300 mx-auto mb-4" />
                     <p className="text-slate-600 font-medium">No gigs found</p>
                     <p className="text-slate-400 text-sm mt-1">Try adjusting your search or filters</p>
                   </div>
                 ) : (
-                  filteredLeads.map((lead) => (
+                  (filteredLeads ?? []).map((lead) => (
                     <div
                       key={lead.id}
                       id={`lead-card-${lead.id}`}
@@ -1460,7 +1482,7 @@ export default function ArtistDashboard() {
         {activeTab === "unlocked" && (
           <div>
             <h2 className="text-xl font-bold text-slate-900 mb-5">My Unlocked Leads</h2>
-            {!myUnlocks || myUnlocks.length === 0 ? (
+            {(myUnlocks ?? []).length === 0 ? (
               <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
                 <Unlock className="w-12 h-12 text-slate-300 mx-auto mb-4" />
                 <p className="text-slate-600 font-medium">No unlocked leads yet</p>
@@ -1529,12 +1551,12 @@ export default function ArtistDashboard() {
                           <div className="space-y-2">
                             <p className="text-xs text-slate-500 font-medium">How did this lead go?</p>
                             <div className="grid grid-cols-2 gap-1.5">
-                              {([
+                              {(([
                                 { outcome: 'booked', label: '✅ Booked!', cls: 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100' },
                                 { outcome: 'no_response', label: '📭 No Response', cls: 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100' },
                                 { outcome: 'lost', label: '❌ Lost', cls: 'bg-red-50 border-red-200 text-red-600 hover:bg-red-100' },
                                 { outcome: 'price_too_high', label: '💸 Price Too High', cls: 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100' },
-                              ] as const).map(({ outcome, label, cls }) => (
+                              ] as const) ?? []).map(({ outcome, label, cls }) => (
                                 <button
                                   key={outcome}
                                   disabled={feedbackPending}
@@ -1602,7 +1624,7 @@ export default function ArtistDashboard() {
                   { icon: Copy, text: "Share your unique referral link with other artists" },
                   { icon: Users, text: "They sign up and get 50% off their first lead unlock" },
                   { icon: Gift, text: "You earn a $7 lead credit — use it to unlock your next lead free" },
-                ].map((item, i) => (
+                ] ?? []).map((item, i) => (
                   <div key={i} className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
                       <item.icon className="w-4 h-4 text-purple-600" />
@@ -1674,7 +1696,7 @@ export default function ArtistDashboard() {
                 { id: "pack_3" as const, label: "3-Pack", unlocks: 3, price: "$18", perLead: "$6/lead", savings: "Save $3", highlighted: false },
                 { id: "pack_10" as const, label: "10-Pack", unlocks: 10, price: "$49", perLead: "$4.90/lead", savings: "Save $21", highlighted: true },
                 { id: "pack_25" as const, label: "25-Pack", unlocks: 25, price: "$99", perLead: "$3.96/lead", savings: "Save $76", highlighted: false },
-              ]).map((pack) => (
+              ] ?? []).map((pack) => (
                 <Card key={pack.id} className={`relative p-5 ${pack.highlighted ? "border-2 border-purple-400 bg-gradient-to-br from-purple-50 to-pink-50" : "border-slate-200"}`}>
                   {pack.highlighted && (
                     <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">Most Popular</span>
@@ -1720,5 +1742,6 @@ export default function ArtistDashboard() {
         }}
       />
     </div>
+    </ErrorBoundary>
   );
 }

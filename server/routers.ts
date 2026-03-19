@@ -814,11 +814,14 @@ export const appRouter = router({
         const LOCKED_DESCRIPTION = "Details available after unlock";
         return filtered.map(lead => {
           const isUnlocked = unlockedLeadIds.has(lead.id);
+          const safeTitle = (lead.title ?? "") as string;
+          const safeLocation = (lead.location ?? "") as string;
+          const safeDescription = (lead.description ?? "") as string;
           return {
             ...lead,
-            title: lead.title,
-            location: isUnlocked ? lead.location : extractCityState(lead.location),
-            description: isUnlocked ? lead.description : LOCKED_DESCRIPTION,
+            title: safeTitle,
+            location: isUnlocked ? safeLocation : extractCityState(safeLocation),
+            description: isUnlocked ? safeDescription : LOCKED_DESCRIPTION,
             venueUrl: isUnlocked ? lead.venueUrl : null,
             isUnlocked,
             contactName: isUnlocked ? lead.contactName : (lead.contactName ? "Contact info locked" : null),
@@ -848,11 +851,14 @@ export const appRouter = router({
         // Mask contact and deep details when locked (reduce lead leakage)
         const LOCKED_LOCATION = "Location locked";
         const LOCKED_DESCRIPTION = "Details available after unlock";
+        const safeTitle = ((lead as any).title ?? "") as string;
+        const safeLocation = ((lead as any).location ?? "") as string;
+        const safeDescription = ((lead as any).description ?? "") as string;
         return {
           ...lead,
-          title: lead.title,
-          location: unlocked ? lead.location : extractCityState(lead.location),
-          description: unlocked ? lead.description : LOCKED_DESCRIPTION,
+          title: safeTitle,
+          location: unlocked ? safeLocation : extractCityState(safeLocation),
+          description: unlocked ? safeDescription : LOCKED_DESCRIPTION,
           venueUrl: unlocked ? lead.venueUrl : null,
           isUnlocked: unlocked,
           contactName: unlocked ? lead.contactName : (lead.contactName ? "Contact info locked" : null),
