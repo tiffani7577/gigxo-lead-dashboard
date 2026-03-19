@@ -11,7 +11,7 @@ import { Link } from "wouter";
 import {
   Loader2, MapPin, DollarSign, Calendar, Phone, Mail, Lock, Unlock,
   Search, Music, TrendingUp, User, Gift, Copy, Check, Eye,
-  ChevronRight, Zap, Star, LogOut, Users, Sparkles, Flame, ThumbsUp, ThumbsDown, MessageSquare, BarChart2, Building2,
+  ChevronRight, Zap, Star, LogOut, Users, Sparkles, Flame, ThumbsUp, ThumbsDown, MessageSquare, BarChart2, Building2, ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
