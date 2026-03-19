@@ -273,7 +273,11 @@ function scheduleDailyVenueOutreach() {
 
 function scheduleDbprPipeline() {
   setInterval(async () => {
+    if (process.env.DBPR_AUTO_RUN !== "true") return;
     const now = new Date();
+    const dayFormatter = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short" });
+    const dayEt = dayFormatter.format(now);
+    if (dayEt !== "Mon") return;
     const etFormatter = new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York", hour: "numeric", minute: "numeric", hour12: false });
     const etParts = etFormatter.formatToParts(now);
     const hour = parseInt(etParts.find((p) => p.type === "hour")?.value ?? "0", 10);
@@ -308,6 +312,8 @@ function scheduleDbprPipeline() {
             sourceLabel: lead.sourceLabel ?? null,
             title: lead.title,
             description: lead.description,
+            fullDescription: lead.description,
+            publicPreviewDescription: null,
             eventType: lead.eventType,
             budget: lead.budget,
             location: lead.location,
@@ -322,6 +328,7 @@ function scheduleDbprPipeline() {
             intentScore: lead.intentScore ?? null,
             leadType: (lead as any).leadType ?? undefined,
             leadCategory: (lead as any).leadCategory ?? undefined,
+            status: (lead as any).status ?? undefined,
             isApproved: true,
             isRejected: false,
             isHidden: false,
@@ -337,7 +344,7 @@ function scheduleDbprPipeline() {
             const title = lead.title ?? "";
             const location = lead.location ?? "";
             const { shouldEnrichVenue } = await import("./scraper-collectors/contact-enrichment");
-            if (shouldEnrichVenue(lead.title, lead.description)) {
+            if ((lead as any).status !== "manual_review" && shouldEnrichVenue(lead.title, lead.description, lead.location)) {
               setImmediate(() => {
                 import("./scraper-collectors/contact-enrichment").then((m) => m.enrichVenueContact(leadId, title, location)).catch(() => {});
               });

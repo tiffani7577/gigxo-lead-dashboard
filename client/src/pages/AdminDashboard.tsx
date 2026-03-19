@@ -113,6 +113,7 @@ export default function AdminDashboard() {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
+    publicPreviewDescription: "",
     eventType: "Wedding",
     performerType: "dj",
     budget: 1000,
@@ -180,6 +181,7 @@ export default function AdminDashboard() {
     eventType: "",
     budget: "",
     description: "",
+    publicPreviewDescription: "",
     contactName: "",
     contactEmail: "",
     leadType: "",
@@ -249,6 +251,7 @@ export default function AdminDashboard() {
       eventType: lead.eventType || "",
       budget: lead.budget ? String(lead.budget / 100) : "",
       description: lead.description || "",
+      publicPreviewDescription: (lead as any).publicPreviewDescription || "",
       contactName: lead.contactName || "",
       contactEmail: lead.contactEmail || "",
       leadType: lead.leadType ?? "",
@@ -273,6 +276,7 @@ export default function AdminDashboard() {
       eventType: editFormData.eventType || undefined,
       budget: editFormData.budget ? Number(editFormData.budget) : undefined,
       description: editFormData.description || undefined,
+      publicPreviewDescription: editFormData.publicPreviewDescription || undefined,
       contactName: editFormData.contactName || undefined,
       contactEmail: editFormData.contactEmail || undefined,
       leadType: editFormData.leadType || undefined,
@@ -288,7 +292,7 @@ export default function AdminDashboard() {
   const { mutate: addManualLead, isPending: isAdding } = trpc.admin.addManualLead.useMutation({
     onSuccess: () => {
       setFormData({
-        title: "", description: "", eventType: "Wedding", performerType: "dj", budget: 1000,
+        title: "", description: "", publicPreviewDescription: "", eventType: "Wedding", performerType: "dj", budget: 1000,
         location: "Miami, FL", eventDate: "", contactName: "", contactEmail: "", contactPhone: "",
       });
       setShowAddForm(false);
@@ -1200,6 +1204,20 @@ export default function AdminDashboard() {
                       />
                     </div>
 
+                    <div>
+                      <label className="text-xs font-medium text-slate-600 block mb-1">Public Preview Description</label>
+                      <Textarea
+                        value={formData.publicPreviewDescription}
+                        onChange={(e) => setFormData({ ...formData, publicPreviewDescription: e.target.value })}
+                        placeholder="Short sanitized preview shown before purchase."
+                        rows={2}
+                        className="text-sm"
+                      />
+                      <p className="mt-1 text-[11px] text-slate-500">
+                        Do not include contact info or direct links.
+                      </p>
+                    </div>
+
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <label className="text-xs font-medium text-slate-600 block mb-1">Event Type</label>
@@ -1391,6 +1409,20 @@ export default function AdminDashboard() {
                     className="resize-none"
                     rows={3}
                   />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-slate-700 block mb-1">Public Preview Description</label>
+                  <Textarea
+                    value={editFormData.publicPreviewDescription}
+                    onChange={(e) => setEditFormData({ ...editFormData, publicPreviewDescription: e.target.value })}
+                    className="resize-none"
+                    rows={2}
+                    placeholder="Shown before purchase"
+                  />
+                  <p className="mt-1 text-xs text-slate-500">
+                    Do not include contact info or direct links.
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">

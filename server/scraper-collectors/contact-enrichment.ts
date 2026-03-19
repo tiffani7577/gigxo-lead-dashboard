@@ -8,28 +8,47 @@ const PLACES_SEARCH_URL = "https://places.googleapis.com/v1/places:searchText";
 const FIELD_MASK =
   "places.displayName,places.formattedAddress,places.nationalPhoneNumber,places.websiteUri,places.rating,places.userRatingCount";
 
-const EMAIL_REGEX = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g;
+const EMAIL_REGEX = /[a-zA-Z0-9._%+'\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,24}/g;
 const BLOCKED_SUBSTRINGS = [
   "sentry", "example", "wix", "squarespace", "wordpress", "domain",
   "noreply", "no-reply", "support@google", "@sentry",
 ];
 const BLOCKED_EXTENSIONS = [".png", ".jpg", ".gif", ".css", ".js"];
 const PRIORITY_KEYWORDS = ["booking", "info", "contact", "events", "entertainment", "hello", "owner", "manager"];
-const WEBSITE_FETCH_TIMEOUT_MS = 5000;
+const WEBSITE_FETCH_TIMEOUT_MS = 8000;
 const WEBSITE_USER_AGENT = "Mozilla/5.0 (compatible; Googlebot/2.1)";
+const LEGAL_SUFFIX_REGEX = /\b(?:llc|inc|inc\.|corp|corp\.|corporation|ltd|ltd\.|limited)\b/gi;
 
 /** High-value venue signals (case-insensitive); used to gate enrichment and avoid API calls on low-value licenses. */
 const VENUE_QUALITY_SIGNALS = [
   "bar", "lounge", "club", "nightclub", "tavern", "brewery", "winery", "distillery", "cocktail",
   "venue", "event space", "banquet", "ballroom", "rooftop", "waterfront", "marina", "yacht",
   "hotel", "resort", "restaurant", "grill", "cantina", "speakeasy", "taproom", "supper club",
+  "cafe", "bistro", "kitchen", "deli", "eatery", "pizza",
   "music hall", "entertainment",
 ];
 
-/** True if title or description contains at least one high-value venue signal (case-insensitive). */
-export function shouldEnrichVenue(title: string | null | undefined, description: string | null | undefined): boolean {
-  const combined = `${title ?? ""} ${description ?? ""}`.toLowerCase();
-  return VENUE_QUALITY_SIGNALS.some((signal) => combined.includes(signal.toLowerCase()));
+const HIGH_INTENT_TITLE_KEYWORDS = ["nightclub", "lounge", "bar"] as const;
+const TOP_TIER_CITIES = [
+  "miami",
+  "fort lauderdale",
+  "boca raton",
+  "west palm beach",
+  "delray beach",
+  "miami beach",
+] as const;
+
+/** True only for high-intent venue titles in top-tier target cities. */
+export function shouldEnrichVenue(
+  title: string | null | undefined,
+  description: string | null | undefined,
+  location: string | null | undefined
+): boolean {
+  const titleLower = String(title ?? "").toLowerCase();
+  const locationLower = String(location ?? "").toLowerCase();
+  const titleMatches = HIGH_INTENT_TITLE_KEYWORDS.some((keyword) => titleLower.includes(keyword));
+  const cityMatches = TOP_TIER_CITIES.some((city) => locationLower.includes(city));
+  return titleMatches && cityMatches;
 }
 
 interface PlaceResult {
@@ -84,31 +103,64 @@ function priorityScore(email: string): number {
 
 /** Scrape website HTML for a valid venue email; returns one email or null. Never throws. */
 async function scrapeEmailFromWebsite(websiteUri: string, venueRootDomain: string | null): Promise<string | null> {
-  let html: string;
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), WEBSITE_FETCH_TIMEOUT_MS);
-    const res = await fetch(websiteUri, {
-      headers: { "User-Agent": WEBSITE_USER_AGENT },
-      signal: controller.signal,
+  const extractBestEmail = (html: string): string | null => {
+    const matches = html.match(EMAIL_REGEX) ?? [];
+    const unique = [...new Set(matches.map((m) => m.toLowerCase().trim()))];
+    const valid = unique.filter((e) => {
+      if (isBlockedEmail(e)) return false;
+      if (venueRootDomain && !emailDomainMatchesVenue(e, venueRootDomain)) return false;
+      return true;
     });
-    clearTimeout(timeoutId);
-    if (!res.ok) return null;
-    html = await res.text();
-  } catch (err) {
+    if (valid.length === 0) return null;
+    valid.sort((a, b) => priorityScore(a) - priorityScore(b));
+    return valid[0];
+  };
+
+  const fetchHtml = async (url: string): Promise<string | null> => {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), WEBSITE_FETCH_TIMEOUT_MS);
+      const res = await fetch(url, {
+        headers: { "User-Agent": WEBSITE_USER_AGENT },
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      if (!res.ok) return null;
+      return await res.text();
+    } catch {
+      return null;
+    }
+  };
+
+  // 1) Homepage
+  const homepageHtml = await fetchHtml(websiteUri);
+  if (homepageHtml) {
+    const homepageEmail = extractBestEmail(homepageHtml);
+    if (homepageEmail) return homepageEmail;
+  }
+
+  // 2) Common contact sub-pages
+  const subPaths = ["/contact", "/about", "/booking"];
+  let baseUrl: URL;
+  try {
+    baseUrl = new URL(websiteUri);
+  } catch {
     return null;
   }
 
-  const matches = html.match(EMAIL_REGEX) ?? [];
-  const unique = [...new Set(matches.map((m) => m.toLowerCase().trim()))];
-  const valid = unique.filter((e) => {
-    if (isBlockedEmail(e)) return false;
-    if (venueRootDomain && !emailDomainMatchesVenue(e, venueRootDomain)) return false;
-    return true;
-  });
-  if (valid.length === 0) return null;
-  valid.sort((a, b) => priorityScore(a) - priorityScore(b));
-  return valid[0];
+  for (const path of subPaths) {
+    try {
+      const subUrl = new URL(path, baseUrl).toString();
+      const html = await fetchHtml(subUrl);
+      if (!html) continue;
+      const email = extractBestEmail(html);
+      if (email) return email;
+    } catch {
+      // keep trying other sub-pages
+    }
+  }
+
+  return null;
 }
 
 export async function enrichVenueContact(
@@ -123,7 +175,14 @@ export async function enrichVenueContact(
     return;
   }
 
-  const textQuery = [businessName, city, "FL"].filter(Boolean).join(" ");
+  // Strip legal suffixes so Places search uses storefront-style name.
+  const normalizedBusinessName = businessName
+    .replace(LEGAL_SUFFIX_REGEX, "")
+    .replace(/[,.\-]+$/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  const searchBusinessName = normalizedBusinessName || businessName;
+  const textQuery = [searchBusinessName, city, "FL"].filter(Boolean).join(" ");
   if (!textQuery.trim()) {
     console.warn("[contact-enrichment] Empty query for leadId", leadId);
     return;

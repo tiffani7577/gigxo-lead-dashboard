@@ -38,6 +38,89 @@ function extractCityState(raw: unknown): string {
   }
 }
 
+function sanitizePreviewText(input: string): string {
+  if (!input) return "";
+  return input
+    .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, "[redacted]")
+    .replace(/(?:\+?1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?){2}\d{4}\b/g, "[redacted]")
+    .replace(/https?:\/\/\S+/gi, "[link removed]")
+    .replace(/\bwww\.\S+/gi, "[link removed]")
+    .replace(/@[a-z0-9_.]+/gi, "[handle removed]")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function inferIntentLevel(text: string): string {
+  const t = text.toLowerCase();
+  if (/(actively looking|need asap|urgent|book now|looking for)/i.test(t)) return "Actively looking";
+  if (/(recommend|recommendation|exploring options|considering)/i.test(t)) return "Requesting recommendations";
+  return "Open to options";
+}
+
+function inferRequirements(text: string, performerType?: string | null): string {
+  const t = text.toLowerCase();
+  const reqs: string[] = [];
+  if (/spanish|bilingual|latino|latin/i.test(t)) reqs.push("Bilingual preferred");
+  if (/dj|disc jockey/i.test(t)) reqs.push("DJ");
+  if (/band|live music/i.test(t)) reqs.push("Band/live music");
+  if (/singer|vocal/i.test(t)) reqs.push("Singer");
+  if (reqs.length === 0 && performerType) reqs.push(String(performerType).replace(/_/g, " "));
+  return reqs.slice(0, 2).join(", ");
+}
+
+function formatMonthYear(eventDate: unknown): string {
+  const d = eventDate ? new Date(String(eventDate)) : null;
+  if (!d || Number.isNaN(d.getTime())) return "Date TBD";
+  return d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+}
+
+function buildPublicPreviewDescription(params: {
+  fullDescription: string;
+  eventType?: string | null;
+  location?: string | null;
+  eventDate?: unknown;
+  performerType?: string | null;
+}): string {
+  const sanitized = sanitizePreviewText(params.fullDescription);
+  if (!sanitized) return "";
+  const cityState = extractCityState(params.location ?? "");
+  const monthYear = formatMonthYear(params.eventDate);
+  const eventType = (params.eventType ?? "Event").trim() || "Event";
+  const requirements = inferRequirements(sanitized, params.performerType);
+  const intent = inferIntentLevel(sanitized);
+  const bits = [
+    `${eventType} in ${cityState} (${monthYear}).`,
+    requirements ? `Requirements: ${requirements}.` : "",
+    `Intent: ${intent}.`,
+  ].filter(Boolean);
+  const summary = bits.join(" ");
+  return summary.length > 220 ? `${summary.slice(0, 217)}...` : summary;
+}
+
+function getSafePublicPreview(params: {
+  publicPreviewDescription?: unknown;
+  fullDescription?: unknown;
+  legacyDescription?: unknown;
+  eventType?: unknown;
+  location?: unknown;
+  eventDate?: unknown;
+  performerType?: unknown;
+}): string {
+  const explicit = sanitizePreviewText(String(params.publicPreviewDescription ?? "").trim());
+  if (explicit) return explicit;
+  const full = String(params.fullDescription ?? params.legacyDescription ?? "").trim();
+  const generated = buildPublicPreviewDescription({
+    fullDescription: full,
+    eventType: String(params.eventType ?? ""),
+    location: String(params.location ?? ""),
+    eventDate: params.eventDate,
+    performerType: String(params.performerType ?? ""),
+  });
+  if (generated) return generated;
+  const fallback = sanitizePreviewText(full);
+  return fallback ? fallback.slice(0, 150) : "";
+}
+
 // ─── Events router (must be defined before appRouter) ───────────────────────
 const eventsRouter = router({
   /** Public: returns event windows currently in their visibility window (for filter chips) */
@@ -811,17 +894,27 @@ export const appRouter = router({
         
         // Return leads with contact blurred unless unlocked (reduce lead leakage)
         const LOCKED_LOCATION = "Location locked";
-        const LOCKED_DESCRIPTION = "Details available after unlock";
         return filtered.map(lead => {
           const isUnlocked = unlockedLeadIds.has(lead.id);
           const safeTitle = (lead.title ?? "") as string;
           const safeLocation = (lead.location ?? "") as string;
-          const safeDescription = (lead.description ?? "") as string;
+          const safeFullDescription = ((lead as any).fullDescription ?? lead.description ?? "") as string;
+          const safePreviewDescription = getSafePublicPreview({
+            publicPreviewDescription: (lead as any).publicPreviewDescription,
+            fullDescription: (lead as any).fullDescription,
+            legacyDescription: lead.description,
+            eventType: lead.eventType,
+            location: lead.location,
+            eventDate: lead.eventDate,
+            performerType: lead.performerType,
+          });
           return {
             ...lead,
             title: safeTitle,
             location: isUnlocked ? safeLocation : extractCityState(safeLocation),
-            description: isUnlocked ? safeDescription : LOCKED_DESCRIPTION,
+            description: isUnlocked ? safeFullDescription : safePreviewDescription,
+            fullDescription: isUnlocked ? safeFullDescription : null,
+            publicPreviewDescription: safePreviewDescription,
             venueUrl: isUnlocked ? lead.venueUrl : null,
             isUnlocked,
             contactName: isUnlocked ? lead.contactName : (lead.contactName ? "Contact info locked" : null),
@@ -850,15 +943,25 @@ export const appRouter = router({
         const unlocked = await hasUnlockedLead(ctx.user.id, input.id);
         // Mask contact and deep details when locked (reduce lead leakage)
         const LOCKED_LOCATION = "Location locked";
-        const LOCKED_DESCRIPTION = "Details available after unlock";
         const safeTitle = ((lead as any).title ?? "") as string;
         const safeLocation = ((lead as any).location ?? "") as string;
-        const safeDescription = ((lead as any).description ?? "") as string;
+        const safeFullDescription = (((lead as any).fullDescription ?? (lead as any).description) ?? "") as string;
+        const safePreviewDescription = getSafePublicPreview({
+          publicPreviewDescription: (lead as any).publicPreviewDescription,
+          fullDescription: (lead as any).fullDescription,
+          legacyDescription: (lead as any).description,
+          eventType: (lead as any).eventType,
+          location: (lead as any).location,
+          eventDate: (lead as any).eventDate,
+          performerType: (lead as any).performerType,
+        });
         return {
           ...lead,
           title: safeTitle,
           location: unlocked ? safeLocation : extractCityState(safeLocation),
-          description: unlocked ? safeDescription : LOCKED_DESCRIPTION,
+          description: unlocked ? safeFullDescription : safePreviewDescription,
+          fullDescription: unlocked ? safeFullDescription : null,
+          publicPreviewDescription: safePreviewDescription,
           venueUrl: unlocked ? lead.venueUrl : null,
           isUnlocked: unlocked,
           contactName: unlocked ? lead.contactName : (lead.contactName ? "Contact info locked" : null),
@@ -981,6 +1084,30 @@ export const appRouter = router({
 
         const { logBookingResult } = await import("./leadConversionLog");
         logBookingResult({ leadId: input.leadId, outcome: input.outcome, booking_result: input.outcome });
+
+        return { success: true };
+      }),
+
+    updateLeadStatus: protectedProcedure
+      .input(z.object({
+        leadId: z.number(),
+        status: z.enum(["new", "contacted", "followed_up", "booked"]),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) throw new Error("Database not available");
+        const { gigLeads, leadUnlocks } = await import("../drizzle/schema");
+
+        // Must have unlocked this lead first
+        const [unlock] = await db.select().from(leadUnlocks)
+          .where(and(eq(leadUnlocks.userId, ctx.user.id), eq(leadUnlocks.leadId, input.leadId)))
+          .limit(1);
+        if (!unlock) throw new TRPCError({ code: "FORBIDDEN", message: "You must unlock this lead before updating status." });
+
+        await db.update(gigLeads)
+          .set({ status: input.status })
+          .where(eq(gigLeads.id, input.leadId));
 
         return { success: true };
       }),
@@ -1309,7 +1436,7 @@ export const appRouter = router({
           contactEmail: lead.contactEmail,
           contactPhone: lead.contactPhone,
           venueUrl: lead.venueUrl,
-          description: lead.description,
+          description: (lead as any).fullDescription ?? lead.description,
         };
       }),
       
@@ -1819,6 +1946,8 @@ export const appRouter = router({
         leadId: z.number(),
         title: z.string().optional(),
         description: z.string().optional(),
+        publicPreviewDescription: z.string().optional(),
+        fullDescription: z.string().optional(),
         location: z.string().optional(),
         eventType: z.string().optional(),
         budget: z.number().optional(),
@@ -1852,7 +1981,15 @@ export const appRouter = router({
         const updateData: any = {};
         if (input.leadTier !== undefined) updateData.leadTier = input.leadTier;
         if (input.title !== undefined) updateData.title = input.title;
-        if (input.description !== undefined) updateData.description = input.description;
+        if (input.description !== undefined) {
+          updateData.description = input.description;
+          if (input.fullDescription === undefined) updateData.fullDescription = input.description;
+        }
+        if (input.publicPreviewDescription !== undefined) updateData.publicPreviewDescription = input.publicPreviewDescription || null;
+        if (input.fullDescription !== undefined) {
+          updateData.fullDescription = input.fullDescription || null;
+          if (input.description === undefined) updateData.description = input.fullDescription || null;
+        }
         if (input.location !== undefined) updateData.location = input.location;
         if (input.eventType !== undefined) updateData.eventType = input.eventType;
         if (input.budget !== undefined) updateData.budget = Math.round(input.budget * 100);
@@ -1884,6 +2021,7 @@ export const appRouter = router({
       .input(z.object({
         title: z.string(),
         description: z.string().optional(),
+        publicPreviewDescription: z.string().optional(),
         eventType: z.string(),
         budget: z.number(), // In dollars
         location: z.string(),
@@ -1906,6 +2044,14 @@ export const appRouter = router({
         await db.insert(gigLeads).values({
           title: input.title,
           description: input.description,
+          fullDescription: input.description,
+          publicPreviewDescription: input.publicPreviewDescription || buildPublicPreviewDescription({
+            fullDescription: input.description ?? "",
+            eventType: input.eventType,
+            location: input.location,
+            eventDate: input.eventDate,
+            performerType: "dj",
+          }),
           eventType: input.eventType,
           budget: budgetCents,
           location: input.location,
@@ -2266,6 +2412,14 @@ export const appRouter = router({
                 sourceLabel:   lead.sourceLabel ?? null,
                 title:         lead.title,
                 description:   lead.description,
+                fullDescription: lead.description,
+                publicPreviewDescription: buildPublicPreviewDescription({
+                  fullDescription: lead.description ?? "",
+                  eventType: lead.eventType,
+                  location: lead.location,
+                  eventDate: lead.eventDate,
+                  performerType: lead.performerType,
+                }),
                 eventType:     lead.eventType,
                 budget:        lead.budget,
                 location:      lead.location,
@@ -2299,6 +2453,14 @@ export const appRouter = router({
               sourceLabel:   lead.sourceLabel ?? null,
               title:         lead.title,
               description:   lead.description,
+              fullDescription: lead.description,
+              publicPreviewDescription: buildPublicPreviewDescription({
+                fullDescription: lead.description ?? "",
+                eventType: lead.eventType,
+                location: lead.location,
+                eventDate: lead.eventDate,
+                performerType: lead.performerType,
+              }),
               eventType:     lead.eventType,
               budget:        lead.budget,
               location:      lead.location,
@@ -2320,6 +2482,7 @@ export const appRouter = router({
               isHidden:      false,
               isReserved:    false,
               notes:         needsEnrichment ? "needs_enrichment" : undefined,
+              status:        (lead as any).status ?? undefined,
             };
             await db.insert(gigLeads).values(insertData);
             inserted++;
@@ -2333,7 +2496,7 @@ export const appRouter = router({
                 const title = lead.title ?? "";
                 const location = lead.location ?? "";
                 const { shouldEnrichVenue } = await import("./scraper-collectors/contact-enrichment");
-                if (!shouldEnrichVenue(lead.title, lead.description)) {
+                if ((lead as any).status === "manual_review" || !shouldEnrichVenue(lead.title, lead.description, lead.location)) {
                   console.log("[contact-enrichment] Skipped enrichment - non-venue type:", title);
                 } else {
                   setImmediate(() => {
@@ -2349,7 +2512,7 @@ export const appRouter = router({
                 const title = lead.title ?? "";
                 const location = lead.location ?? "";
                 const { shouldEnrichVenue } = await import("./scraper-collectors/contact-enrichment");
-                if (!shouldEnrichVenue(lead.title, lead.description)) {
+                if ((lead as any).status === "manual_review" || !shouldEnrichVenue(lead.title, lead.description, lead.location)) {
                   console.log("[contact-enrichment] Skipped enrichment - non-venue type:", title);
                 } else {
                   setImmediate(() => {
@@ -2366,7 +2529,7 @@ export const appRouter = router({
                 const [insertedRow] = await db.select({ id: gigLeads.id }).from(gigLeads).where(eq(gigLeads.externalId, lead.externalId)).limit(1);
                 if (insertedRow?.id) {
                   const { shouldEnrichVenue } = await import("./scraper-collectors/contact-enrichment");
-                  if (shouldEnrichVenue(lead.title, lead.description)) {
+                  if ((lead as any).status !== "manual_review" && shouldEnrichVenue(lead.title, lead.description, lead.location)) {
                     setImmediate(() => {
                       import("./scraper-collectors/contact-enrichment").then((m) => m.enrichVenueContact(insertedRow.id, lead.title ?? "", lead.location ?? "")).catch(() => {});
                     });
@@ -2386,7 +2549,7 @@ export const appRouter = router({
                   const businessName = rawTitle.replace(/\s*[–-]\s*[^–-]+$/, "").trim() || rawTitle;
                   const city = (lead.location ?? "").trim();
                   const { shouldEnrichVenue } = await import("./scraper-collectors/contact-enrichment");
-                  if (shouldEnrichVenue(lead.title, lead.description)) {
+                  if ((lead as any).status !== "manual_review" && shouldEnrichVenue(lead.title, lead.description, lead.location)) {
                     setImmediate(() => {
                       import("./scraper-collectors/contact-enrichment").then((m) => m.enrichVenueContact(insertedRow.id, businessName, city)).catch(() => {});
                     });
@@ -2464,6 +2627,14 @@ export const appRouter = router({
             sourceLabel:   lead.sourceLabel ?? null,
             title:         lead.title,
             description:   lead.description,
+            fullDescription: lead.description,
+            publicPreviewDescription: buildPublicPreviewDescription({
+              fullDescription: lead.description ?? "",
+              eventType: lead.eventType,
+              location: lead.location,
+              eventDate: lead.eventDate,
+              performerType: lead.performerType,
+            }),
             eventType:     lead.eventType,
             budget:        lead.budget,
             location:      lead.location,
@@ -2478,6 +2649,7 @@ export const appRouter = router({
             intentScore:   lead.intentScore ?? null,
             leadType:      (lead as any).leadType ?? undefined,
             leadCategory:  (lead as any).leadCategory ?? undefined,
+            status:        (lead as any).status ?? undefined,
             isApproved:    true,
             isRejected:    false,
             isHidden:      false,
@@ -2493,7 +2665,7 @@ export const appRouter = router({
             const title = lead.title ?? "";
             const location = lead.location ?? "";
             const { shouldEnrichVenue } = await import("./scraper-collectors/contact-enrichment");
-            if (shouldEnrichVenue(lead.title, lead.description)) {
+            if ((lead as any).status !== "manual_review" && shouldEnrichVenue(lead.title, lead.description, lead.location)) {
               setImmediate(() => {
                 import("./scraper-collectors/contact-enrichment").then((m) => m.enrichVenueContact(leadId, title, location)).catch(() => {});
               });

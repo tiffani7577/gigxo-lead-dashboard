@@ -88,6 +88,8 @@ export const gigLeads = mysqlTable("gigLeads", {
   leadType: mysqlEnum("leadType", ["scraped_signal", "client_submitted", "venue_intelligence", "referral", "manual_outreach", "event_demand", "artist_signup", "outreach", "trash", "other"]).default("scraped_signal"),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
+  publicPreviewDescription: text("publicPreviewDescription"),
+  fullDescription: text("fullDescription"),
   eventType: varchar("eventType", { length: 100 }),
   budget: int("budget"), // In cents (e.g., 50000 = $500)
   location: varchar("location", { length: 255 }).notNull(),
@@ -166,6 +168,7 @@ export const gigLeads = mysqlTable("gigLeads", {
   // ── Venue Intelligence CRM ─────────────────────────────────────────────────
   venueStatus: mysqlEnum("venueStatus", ["NEW", "CONTACTED", "FOLLOW_UP", "MEETING", "CLIENT", "IGNORED"]).default("NEW"),
   lastContactedAt: timestamp("lastContactedAt"),
+  contactCount: int("contactCount").default(0).notNull(),
   contactOwner: varchar("contactOwner", { length: 255 }),
   website: varchar("website", { length: 2048 }),
   instagram: varchar("instagram", { length: 255 }),

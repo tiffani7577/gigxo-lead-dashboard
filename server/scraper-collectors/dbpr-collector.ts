@@ -36,7 +36,15 @@ const LIQUOR_LICENSE_TOKENS = [
 ];
 
 /** County tokens for South Florida (case-insensitive, partial match). */
-const SOUTH_FLORIDA_COUNTY_TOKENS = ["DADE", "MIAMI", "BROWARD", "PALM BEACH"];
+const SOUTH_FLORIDA_COUNTY_TOKENS = ["DADE", "MIAMI", "BROWARD", "PALM BEACH", "MONROE"];
+const HIGH_VALUE_CITY_TOKENS = [
+  "MIAMI",
+  "FORT LAUDERDALE",
+  "BOCA RATON",
+  "WEST PALM BEACH",
+  "DELRAY BEACH",
+  "MIAMI BEACH",
+] as const;
 
 const STALE_DAYS = 45;
 
@@ -95,6 +103,12 @@ function passesCountyFilter(countyStr: string): boolean {
   return SOUTH_FLORIDA_COUNTY_TOKENS.some((token) => upper.includes(token.toUpperCase()));
 }
 
+/** Returns true when city matches one of the high-value enrichment markets. */
+function isHighValueCity(cityStr: string): boolean {
+  const upper = (cityStr || "").toUpperCase();
+  return HIGH_VALUE_CITY_TOKENS.some((token) => upper.includes(token));
+}
+
 /** Parse a date string; returns Date or null if unparseable. */
 function parseDate(value: string | null | undefined): Date | null {
   const s = (value || "").trim();
@@ -129,6 +143,7 @@ function normalizePositionalRow(cells: string[], url: string, sourceLabel: strin
   const zip = getAt(cells, POS.zip);
   const dateStr = getAt(cells, POS.date);
   const description = getAt(cells, POS.description);
+  const manualReview = !isHighValueCity(city);
 
   const divisionKey = normalizeDivisionKey(divisionCode || licenseClass);
   const externalId = `dbpr-${divisionKey}-${licenseNumber}`;
@@ -163,7 +178,10 @@ function normalizePositionalRow(cells: string[], url: string, sourceLabel: strin
       zip,
       date: dateStr,
       description,
+      highValueCity: !manualReview,
+      enrichmentMode: manualReview ? "manual_review" : "auto_enrich",
     },
+    status: manualReview ? "manual_review" : null,
     leadCategory: "venue_intelligence",
     leadType: "venue_intelligence",
     source: "dbpr",
@@ -343,6 +361,7 @@ export async function collectFromDbpr(options?: DbprCollectorOptions): Promise<R
         const licenseNumber = (row["License Number"] || "").trim();
         const primaryStatus = (row["Primary Status"] || "").trim();
         const secondaryStatus = (row["Secondary Status"] || "").trim();
+        const manualReview = !isHighValueCity(city);
         const division =
           (row["Division"] || row["Board"] || row["Board Number"] || row["Class Code"] || row["License Type"] || row["License Type Code"] || "").trim();
 
@@ -381,7 +400,8 @@ export async function collectFromDbpr(options?: DbprCollectorOptions): Promise<R
         const divisionKey = normalizeDivisionKey(division);
         const externalId = `dbpr-${divisionKey}-${licenseNumber}`;
         const metadata: Record<string, unknown> = {
-          dbpr: row,
+          dbpr: { ...row, highValueCity: !manualReview, enrichmentMode: manualReview ? "manual_review" : "auto_enrich" },
+          status: manualReview ? "manual_review" : null,
           leadCategory: "venue_intelligence",
           leadType: "venue",
           source: "dbpr",

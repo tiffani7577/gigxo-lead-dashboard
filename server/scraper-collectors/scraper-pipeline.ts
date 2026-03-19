@@ -577,6 +577,7 @@ export function rawLeadDocToLead(doc: RawLeadDoc, baseIntentScore: number): Scra
     base.leadType = "venue_intelligence";
     base.leadCategory = "venue_intelligence";
     base.isApproved = true; // venue intelligence leads (DBPR, Sunbiz, Google Maps) go to Venue Intelligence tab
+    (base as any).status = (doc.metadata?.status as string | null | undefined) ?? undefined;
   } else {
     base.leadType = (doc.metadata?.leadType as string) ?? base.leadType ?? "scraped_signal";
     base.leadCategory = (doc.metadata?.leadCategory as string) ?? base.leadCategory ?? "general";
