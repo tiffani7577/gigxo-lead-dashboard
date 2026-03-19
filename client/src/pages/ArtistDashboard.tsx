@@ -528,7 +528,7 @@ export default function ArtistDashboard() {
   );
 
   // Fetch available leads
-  const { data: leads, isLoading: leadsLoading } = trpc.leads.getAvailable.useQuery({
+  const { data: leads, isLoading: leadsLoading, isError: leadsError, error: leadsErrorObj } = trpc.leads.getAvailable.useQuery({
     limit: 100,
     offset: 0,
   });
@@ -966,6 +966,11 @@ export default function ArtistDashboard() {
                 {leadsLoading ? (
                   <div className="flex items-center justify-center py-16">
                     <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+                  </div>
+                ) : leadsError ? (
+                  <div className="bg-white rounded-xl border border-red-200 p-12 text-center">
+                    <p className="text-red-600 font-medium">Could not load gigs right now.</p>
+                    <p className="text-slate-400 text-sm mt-1">{leadsErrorObj?.message ?? "Please try again in a moment."}</p>
                   </div>
                 ) : (filteredLeads ?? []).length === 0 ? (
                   <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
