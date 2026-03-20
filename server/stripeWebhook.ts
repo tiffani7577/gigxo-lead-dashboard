@@ -14,15 +14,16 @@
  *
  * Registered events (configure these in the Stripe Dashboard):
  *  - payment_intent.succeeded        → fulfill lead unlock
- *  - checkout.session.completed      → fulfill subscription checkout
+ *  - checkout.session.completed      → credit packs (mode=payment) + Pro subscription (mode=subscription)
  *  - customer.subscription.updated   → sync subscription status
  *  - customer.subscription.deleted   → cancel subscription
- *  - invoice.payment_succeeded       → renew subscription credits
+ *  - invoice.payment_succeeded       → renew subscription period (see handleSubscriptionRenewal)
  */
 import type { Express, Request, Response } from "express";
 import express from "express";
-import { getStripe } from "./stripe";
+import { getStripe, LEAD_UNLOCK_PRICE_CENTS } from "./stripe";
 import { ENV } from "./_core/env";
+import { CREDIT_PACKS } from "../shared/leadPricing";
 
 // ─── Public registration ────────────────────────────────────────────────────
 
@@ -106,10 +107,57 @@ export async function handleStripeWebhook(req: Request, res: Response) {
       // ── Subscription checkout fulfillment ──────────────────────────────────
       case "checkout.session.completed": {
         const session = event.data.object as import("stripe").Stripe.Checkout.Session;
-        const userId = session.metadata?.user_id ?? session.client_reference_id;
+        const userIdRaw =
+          session.metadata?.user_id ??
+          (session.metadata as Record<string, string> | undefined)?.userId ??
+          session.client_reference_id;
 
-        if (userId && session.mode === "subscription" && session.subscription) {
-          await fulfillSubscription(parseInt(userId, 10), session.subscription as string);
+        if (session.mode === "payment" && session.metadata?.pack_id) {
+          if (!userIdRaw || session.payment_status !== "paid") {
+            console.error("[Webhook] FULFILLMENT BLOCKED: credit pack checkout not ready for credits", {
+              sessionId: session.id,
+              payment_status: session.payment_status,
+              hasUserId: !!userIdRaw,
+              packId: session.metadata.pack_id,
+            });
+            break;
+          }
+          try {
+            await fulfillCreditPackFromCheckout(session, parseInt(String(userIdRaw), 10));
+          } catch (packErr: any) {
+            console.error("[Webhook] fulfillCreditPackFromCheckout threw — check DB migration 0029 (stripeCheckoutSessionId)", {
+              sessionId: session.id,
+              message: packErr?.message,
+              stack: packErr?.stack,
+            });
+            throw packErr;
+          }
+          break;
+        }
+
+        if (userIdRaw && session.mode === "subscription" && session.subscription) {
+          const uid = parseInt(String(userIdRaw), 10);
+          if (Number.isFinite(uid) && uid > 0) {
+            const subId =
+              typeof session.subscription === "string"
+                ? session.subscription
+                : (session.subscription as import("stripe").Stripe.Subscription).id;
+            try {
+              await fulfillSubscription(uid, subId);
+            } catch (subErr: any) {
+              console.error("[Webhook] fulfillSubscription threw", { sessionId: session.id, message: subErr?.message });
+              throw subErr;
+            }
+          } else {
+            console.error("[Webhook] checkout.session.completed subscription: invalid user id", userIdRaw);
+          }
+        } else if (session.mode === "subscription" && session.payment_status === "paid") {
+          console.error("[Webhook] FULFILLMENT BLOCKED: Pro checkout paid but missing user or subscription reference", {
+            sessionId: session.id,
+            hasUserId: !!userIdRaw,
+            hasSubscriptionField: !!session.subscription,
+            payment_status: session.payment_status,
+          });
         }
         break;
       }
@@ -127,8 +175,13 @@ export async function handleStripeWebhook(req: Request, res: Response) {
         const invoice = event.data.object as import("stripe").Stripe.Invoice;
         const raw = invoice as any;
         const subId = typeof raw.subscription === "string" ? raw.subscription : raw.parent?.subscription_details?.subscription ? (typeof raw.parent.subscription_details.subscription === "string" ? raw.parent.subscription_details.subscription : raw.parent.subscription_details.subscription?.id) : undefined;
-        if (subId && raw.billing_reason === "subscription_cycle") {
+        const reason = raw.billing_reason as string | undefined;
+        if (subId && reason === "subscription_cycle") {
           await handleSubscriptionRenewal(subId);
+        } else if (!subId) {
+          console.warn("[Webhook] invoice.payment_succeeded: could not resolve subscription id", { invoiceId: invoice.id });
+        } else if (reason) {
+          console.log(`[Webhook] invoice.payment_succeeded: skipped renewal handler (billing_reason=${reason}, invoice=${invoice.id})`);
         }
         break;
       }
@@ -210,6 +263,65 @@ export async function fulfillLeadUnlock({ userId, leadId, paymentIntentId, amoun
   }
 
   console.log(`[Webhook] ✓ Lead ${leadId} unlocked for user ${userId} (pi=${paymentIntentId})`);
+}
+
+/**
+ * Fulfill Stripe Checkout one-time credit packs (mode=payment).
+ * Inserts one userCredits row per unlock ($7-equivalent cents each, source=promo).
+ * Idempotent: deletes any prior rows tagged with this Checkout Session id, then re-inserts (safe on webhook retry).
+ */
+async function fulfillCreditPackFromCheckout(
+  session: import("stripe").Stripe.Checkout.Session,
+  userId: number,
+) {
+  if (!Number.isFinite(userId) || userId < 1) {
+    console.error("[Webhook] fulfillCreditPackFromCheckout: invalid userId", userId);
+    return;
+  }
+  const packId = session.metadata?.pack_id;
+  if (!packId) {
+    console.warn("[Webhook] fulfillCreditPackFromCheckout: no pack_id on session", session.id);
+    return;
+  }
+  const pack = CREDIT_PACKS.find((p) => p.id === packId);
+  if (!pack) {
+    console.error("[Webhook] fulfillCreditPackFromCheckout: unknown pack_id", packId);
+    return;
+  }
+  const unlocks = pack.unlocks;
+  const sessionId = session.id;
+  if (!sessionId) {
+    console.error("[Webhook] fulfillCreditPackFromCheckout: missing session.id");
+    return;
+  }
+
+  const { getDb } = await import("./db");
+  const db = await getDb();
+  if (!db) {
+    console.error("[Webhook] fulfillCreditPackFromCheckout: database unavailable");
+    return;
+  }
+
+  const { userCredits } = await import("../drizzle/schema");
+  const { eq } = await import("drizzle-orm");
+  const creditCents = LEAD_UNLOCK_PRICE_CENTS;
+
+  await db.transaction(async (tx) => {
+    await tx.delete(userCredits).where(eq(userCredits.stripeCheckoutSessionId, sessionId));
+    for (let i = 0; i < unlocks; i++) {
+      await tx.insert(userCredits).values({
+        userId,
+        amount: creditCents,
+        source: "promo",
+        isUsed: false,
+        stripeCheckoutSessionId: sessionId,
+      });
+    }
+  });
+
+  console.log(
+    `[Webhook] ✓ Credit pack fulfilled: user=${userId} pack=${packId} unlocks=${unlocks} session=${sessionId}`,
+  );
 }
 
 /**

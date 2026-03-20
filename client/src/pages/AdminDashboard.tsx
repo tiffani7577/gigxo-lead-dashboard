@@ -127,7 +127,13 @@ export default function AdminDashboard() {
   const utils = trpc.useUtils();
 
   // Fetch leads by status
-  const { data: leads, isLoading: leadsLoading, refetch: refetchLeads } = trpc.admin.getAllLeads.useQuery(
+  const {
+    data: leads,
+    isLoading: leadsLoading,
+    isError: leadsQueryError,
+    error: leadsQueryErr,
+    refetch: refetchLeads,
+  } = trpc.admin.getAllLeads.useQuery(
     { status: leadFilter, limit: 100, performerType: filterPerformerType === "all" ? undefined : filterPerformerType },
     { enabled: user?.role === "admin" }
   );
@@ -385,7 +391,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="h-screen overflow-y-auto bg-slate-50">
       {/* Top Nav */}
       <div className="bg-white border-b border-slate-200 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -816,6 +822,17 @@ export default function AdminDashboard() {
             {leadsLoading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="w-6 h-6 animate-spin text-purple-600" />
+              </div>
+            ) : leadsQueryError ? (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center space-y-3">
+                <XCircle className="w-10 h-10 text-red-500 mx-auto" />
+                <p className="text-red-900 font-medium">Failed to load leads</p>
+                <p className="text-sm text-red-800 break-words max-w-lg mx-auto">
+                  {leadsQueryErr?.message ?? "Unknown error — check server logs."}
+                </p>
+                <Button variant="outline" className="border-red-300 text-red-800" onClick={() => refetchLeads()}>
+                  Retry
+                </Button>
               </div>
             ) : leads && leads.length > 0 ? (
               <div className="space-y-3">

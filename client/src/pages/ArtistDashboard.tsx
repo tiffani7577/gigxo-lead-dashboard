@@ -403,12 +403,22 @@ function InquiriesTab({ inquiries, onUpdateStatus }: {
 function CreditPackButton({ packId, highlighted }: { packId: "pack_3" | "pack_10" | "pack_25"; highlighted: boolean }) {
   const { mutate, isPending } = trpc.payments.purchaseCreditPack.useMutation({
     onSuccess: (data: { checkoutUrl: string | null }) => {
-      if (data.checkoutUrl) {
+      const url = data.checkoutUrl?.trim();
+      if (url) {
         toast.success("Redirecting to checkout...");
-        window.open(data.checkoutUrl, "_blank");
+        try {
+          window.location.assign(url);
+        } catch {
+          toast.error("Could not open the payment page. Check your browser settings and try again.");
+        }
+        return;
       }
+      toast.error("Checkout link was missing. Please try again.");
     },
-    onError: (e: { message: string }) => toast.error(e.message),
+    onError: (e: { message?: string }) => {
+      const msg = e.message?.trim();
+      toast.error(msg ? `Payment setup failed: ${msg}` : "Payment setup failed. Please try again.");
+    },
   });
   return (
     <Button
@@ -579,14 +589,26 @@ export default function ArtistDashboard() {
   // Start premium subscription
   const { mutate: startPremium, isPending: isStartingPremium } = trpc.subscription.startPremium.useMutation({
     onSuccess: (data) => {
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
-      } else {
+      const url = data.checkoutUrl?.trim();
+      if (url) {
+        try {
+          window.location.href = url;
+        } catch {
+          toast.error("Could not open the payment page. Check your browser settings and try again.");
+        }
+        return;
+      }
+      if (data.demo) {
         utils.subscription.getMy.invalidate();
         toast.success("Premium activated! You now have 5 monthly unlocks.");
+        return;
       }
+      toast.error("Checkout link was missing. Please try again.");
     },
-    onError: (err) => toast.error(err.message),
+    onError: (err) => {
+      const msg = err.message?.trim();
+      toast.error(msg ? `Payment setup failed: ${msg}` : "Payment setup failed. Please try again.");
+    },
   });
 
   // Fetch referral link

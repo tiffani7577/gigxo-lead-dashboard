@@ -14,6 +14,7 @@ import { getDb } from "./db";
 import { eventWindows } from "../drizzle/schema";
 import { inboundRouter } from "./routers/inbound";
 import { scraperConfigRouter } from "./routers/scraper-config";
+import { checkoutErrorUserMessage, logStripeCheckoutSessionError } from "./stripe";
 
 function extractCityState(raw: unknown): string {
   const fallback = "Location locked";
@@ -1502,44 +1503,60 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {        
         const { CREDIT_PACKS } = await import("../shared/leadPricing");
         const pack = CREDIT_PACKS.find(p => p.id === input.packId);
-        if (!pack) throw new Error("Invalid pack");
+        if (!pack) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid credit pack." });
+        }
 
-        const stripe = (await import("stripe")).default;
+        const StripeSdk = (await import("stripe")).default;
         const key = process.env.STRIPE_SECRET_KEY?.trim();
         if (!key) {
           throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Stripe secret key is not configured" });
         }
-        const stripeClient = new stripe(key, { apiVersion: "2026-02-25.clover" });
+        const stripeClient = new StripeSdk(key, { apiVersion: "2026-02-25.clover" });
 
         const origin = ctx.req.headers.origin ?? "https://www.gigxo.com";
-        const session = await stripeClient.checkout.sessions.create({
-          payment_method_types: ["card"],
-          mode: "payment",
-          customer_email: ctx.user.email ?? undefined,
-          client_reference_id: ctx.user.id.toString(),
-          metadata: {
-            user_id: ctx.user.id.toString(),
-            pack_id: pack.id,
-            unlocks: pack.unlocks.toString(),
-            pack_label: pack.label,
-          },
-          line_items: [{
-            price_data: {
-              currency: "usd",
-              unit_amount: pack.priceCents,
-              product_data: {
-                name: `Gigxo ${pack.label} — ${pack.unlocks} Lead Unlocks`,
-                description: `Unlock ${pack.unlocks} gig leads at a discounted rate. Saves ${pack.savings} vs. paying individually.`,
-              },
+        try {
+          const session = await stripeClient.checkout.sessions.create({
+            payment_method_types: ["card"],
+            mode: "payment",
+            customer_email: ctx.user.email ?? undefined,
+            client_reference_id: ctx.user.id.toString(),
+            metadata: {
+              user_id: ctx.user.id.toString(),
+              pack_id: pack.id,
+              unlocks: pack.unlocks.toString(),
+              pack_label: pack.label,
             },
-            quantity: 1,
-          }],
-          allow_promotion_codes: true,
-          success_url: `${origin}/dashboard?pack_success=${pack.id}`,
-          cancel_url: `${origin}/dashboard?pack_cancel=1`,
-        });
+            line_items: [{
+              price_data: {
+                currency: "usd",
+                unit_amount: pack.priceCents,
+                product_data: {
+                  name: `Gigxo ${pack.label} — ${pack.unlocks} Lead Unlocks`,
+                  description: `Unlock ${pack.unlocks} gig leads at a discounted rate. Saves ${pack.savings} vs. paying individually.`,
+                },
+              },
+              quantity: 1,
+            }],
+            allow_promotion_codes: true,
+            success_url: `${origin}/dashboard?pack_success=${pack.id}`,
+            cancel_url: `${origin}/dashboard?pack_cancel=1`,
+          });
 
-        return { checkoutUrl: session.url };
+          if (!session?.url) {
+            console.error("[payments.purchaseCreditPack] Stripe returned no session.url", { sessionId: session?.id, packId: pack.id });
+            throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Checkout did not return a redirect URL. Please try again." });
+          }
+          return { checkoutUrl: session.url };
+        } catch (err) {
+          if (err instanceof TRPCError) throw err;
+          logStripeCheckoutSessionError("payments.purchaseCreditPack", err);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: checkoutErrorUserMessage(err, "Could not start checkout. Please try again."),
+            cause: err,
+          });
+        }
       }),
   }),
   
@@ -1637,6 +1654,38 @@ export const appRouter = router({
         if (!db) throw new Error("Database not available");
         
         const { gigLeads } = await import("../drizzle/schema");
+
+        /** Explicit columns for admin list only — avoids SELECT * breaking on schema/DB drift. */
+        const adminGigLeadListColumns = {
+          id: gigLeads.id,
+          title: gigLeads.title,
+          description: gigLeads.description,
+          publicPreviewDescription: gigLeads.publicPreviewDescription,
+          eventType: gigLeads.eventType,
+          budget: gigLeads.budget,
+          location: gigLeads.location,
+          eventDate: gigLeads.eventDate,
+          contactName: gigLeads.contactName,
+          contactEmail: gigLeads.contactEmail,
+          contactPhone: gigLeads.contactPhone,
+          venueUrl: gigLeads.venueUrl,
+          performerType: gigLeads.performerType,
+          leadType: gigLeads.leadType,
+          leadCategory: gigLeads.leadCategory,
+          leadTier: gigLeads.leadTier,
+          status: gigLeads.status,
+          notes: gigLeads.notes,
+          followUpAt: gigLeads.followUpAt,
+          isApproved: gigLeads.isApproved,
+          isRejected: gigLeads.isRejected,
+          source: gigLeads.source,
+          sourceLabel: gigLeads.sourceLabel,
+          intentScore: gigLeads.intentScore,
+          unlockPriceCents: gigLeads.unlockPriceCents,
+          isReserved: gigLeads.isReserved,
+          isHidden: gigLeads.isHidden,
+          createdAt: gigLeads.createdAt,
+        } as const;
         
         const buildWhere = (statusCondition: any) => {
           if (input.performerType) {
@@ -1647,16 +1696,40 @@ export const appRouter = router({
           }
           return statusCondition;
         };
-        
-        if (input.status === "approved") {
-          return await db.select().from(gigLeads).where(buildWhere(eq(gigLeads.isApproved, true))).orderBy(desc(gigLeads.createdAt)).limit(input.limit);
-        } else if (input.status === "pending") {
-          return await db.select().from(gigLeads).where(buildWhere(and(eq(gigLeads.isApproved, false), eq(gigLeads.isRejected, false)))).orderBy(desc(gigLeads.createdAt)).limit(input.limit);
-        } else if (input.status === "rejected") {
-          return await db.select().from(gigLeads).where(buildWhere(eq(gigLeads.isRejected, true))).orderBy(desc(gigLeads.createdAt)).limit(input.limit);
+
+        const runListQuery = async (statusCondition: any) => {
+          const whereClause = buildWhere(statusCondition);
+          return db
+            .select(adminGigLeadListColumns)
+            .from(gigLeads)
+            .where(whereClause ?? sql`1=1`)
+            .orderBy(desc(gigLeads.createdAt))
+            .limit(input.limit);
+        };
+
+        try {
+          if (input.status === "approved") {
+            return await runListQuery(eq(gigLeads.isApproved, true));
+          }
+          if (input.status === "pending") {
+            return await runListQuery(and(eq(gigLeads.isApproved, false), eq(gigLeads.isRejected, false)));
+          }
+          if (input.status === "rejected") {
+            return await runListQuery(eq(gigLeads.isRejected, true));
+          }
+          return await runListQuery(null);
+        } catch (err) {
+          console.error("[admin.getAllLeads] query failed:", {
+            status: input.status,
+            limit: input.limit,
+            performerType: input.performerType,
+            error: err instanceof Error ? err.message : String(err),
+            stack: err instanceof Error ? err.stack : undefined,
+          });
+          if (err instanceof TRPCError) throw err;
+          const message = err instanceof Error ? err.message : "Failed to load leads";
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message, cause: err });
         }
-        
-        return await db.select().from(gigLeads).where(buildWhere(null)).orderBy(desc(gigLeads.createdAt)).limit(input.limit);
       }),
     
     approveLead: protectedProcedure
@@ -4234,8 +4307,8 @@ export const appRouter = router({
         if (!db) throw new Error("Database not available");
         const { subscriptions } = await import("../drizzle/schema");
         const origin = input.origin ?? process.env.APP_URL?.trim() ?? "https://gigxo.com";
-        // Check if Stripe is configured
-        const stripeKey = process.env.STRIPE_SECRET_KEY;
+        // Check if Stripe is configured (trim so whitespace-only env doesn't skip demo incorrectly)
+        const stripeKey = process.env.STRIPE_SECRET_KEY?.trim();
         const now = new Date();
         const periodEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
         if (!stripeKey) {
@@ -4250,25 +4323,44 @@ export const appRouter = router({
         }
         // Real Stripe checkout — $49/month Pro (5 lead unlocks included)
         const stripe = (await import("./stripe")).getStripe();
-        if (!stripe) throw new Error("Stripe not configured");
-        const session = await stripe.checkout.sessions.create({
-          mode: "subscription",
-          payment_method_types: ["card"],
-          customer_email: ctx.user.email ?? undefined,
-          line_items: [{
-            price_data: {
-              currency: "usd",
-              unit_amount: 4900,
-              recurring: { interval: "month" },
-              product_data: { name: "Gigxo Pro", description: "5 lead unlocks per month + South Florida Venue Intelligence access" },
-            },
-            quantity: 1,
-          }],
-          success_url: `${origin}/dashboard?subscribed=1`,
-          cancel_url: `${origin}/dashboard`,
-          metadata: { userId: String(ctx.user.id) },
-        });
-        return { success: true, demo: false, checkoutUrl: session.url };
+        if (!stripe) {
+          console.error("[subscription.startPremium] STRIPE_SECRET_KEY set but getStripe() returned null");
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Stripe is not configured correctly on the server." });
+        }
+        try {
+          const session = await stripe.checkout.sessions.create({
+            mode: "subscription",
+            payment_method_types: ["card"],
+            customer_email: ctx.user.email ?? undefined,
+            client_reference_id: ctx.user.id.toString(),
+            line_items: [{
+              price_data: {
+                currency: "usd",
+                unit_amount: 4900,
+                recurring: { interval: "month" },
+                product_data: { name: "Gigxo Pro", description: "5 lead unlocks per month + South Florida Venue Intelligence access" },
+              },
+              quantity: 1,
+            }],
+            success_url: `${origin}/dashboard?subscribed=1`,
+            cancel_url: `${origin}/dashboard`,
+            // Webhook reads user_id or client_reference_id (must match stripeWebhook.ts)
+            metadata: { user_id: String(ctx.user.id), userId: String(ctx.user.id) },
+          });
+          if (!session?.url) {
+            console.error("[subscription.startPremium] Stripe returned no session.url", { sessionId: session?.id, userId: ctx.user.id });
+            throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Checkout did not return a redirect URL. Please try again." });
+          }
+          return { success: true, demo: false, checkoutUrl: session.url };
+        } catch (err) {
+          if (err instanceof TRPCError) throw err;
+          logStripeCheckoutSessionError("subscription.startPremium", err);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: checkoutErrorUserMessage(err, "Could not start checkout. Please try again."),
+            cause: err,
+          });
+        }
       }),
     // Cancel subscription
     cancel: protectedProcedure.mutation(async ({ ctx }) => {

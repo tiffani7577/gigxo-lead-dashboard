@@ -8,12 +8,13 @@ import { ENV } from "./_core/env";
 let stripeInstance: Stripe | null = null;
 
 export function getStripe(): Stripe | null {
-  if (!ENV.stripeSecretKey) {
+  const key = ENV.stripeSecretKey?.trim();
+  if (!key) {
     console.warn("[Stripe] No secret key configured - running in demo mode");
     return null;
   }
   if (!stripeInstance) {
-    stripeInstance = new Stripe(ENV.stripeSecretKey, {
+    stripeInstance = new Stripe(key, {
       apiVersion: "2026-02-25.clover",
     });
   }
@@ -21,6 +22,37 @@ export function getStripe(): Stripe | null {
 }
 
 export const LEAD_UNLOCK_PRICE_CENTS = 700; // $7.00
+
+/** Server log for Checkout Session failures — full Stripe metadata for support/debug. */
+export function logStripeCheckoutSessionError(context: string, err: unknown): void {
+  if (err instanceof Stripe.errors.StripeError) {
+    console.error(`[${context}] Stripe API error`, {
+      type: err.type,
+      code: err.code,
+      decline_code: err.decline_code,
+      statusCode: err.statusCode,
+      message: err.message,
+      requestId: err.requestId,
+    });
+    return;
+  }
+  if (err instanceof Error) {
+    console.error(`[${context}] Error`, { name: err.name, message: err.message, stack: err.stack });
+    return;
+  }
+  console.error(`[${context}] Unknown error`, err);
+}
+
+/** Safe message for tRPC after logging the full error. */
+export function checkoutErrorUserMessage(err: unknown, fallback: string): string {
+  if (err instanceof Stripe.errors.StripeError && err.message?.trim()) {
+    return err.message.trim();
+  }
+  if (err instanceof Error && err.message?.trim()) {
+    return err.message.trim();
+  }
+  return fallback;
+}
 
 /**
  * Create a Stripe PaymentIntent for unlocking a lead

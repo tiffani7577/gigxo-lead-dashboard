@@ -381,9 +381,12 @@ export const userCredits = mysqlTable("userCredits", {
   source: mysqlEnum("source", ["referral", "promo", "refund", "pro_monthly"]).notNull(),
   referralId: int("referralId"),
   isUsed: boolean("isUsed").default(false).notNull(),
+  /** Set for credit-pack Checkout rows so webhook retries can replace the batch idempotently */
+  stripeCheckoutSessionId: varchar("stripeCheckoutSessionId", { length: 255 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 }, (table) => ({
   userIdIdx: index("userCredits_userId_idx").on(table.userId),
+  stripeCheckoutSessionIdIdx: index("userCredits_stripeCheckoutSessionId_idx").on(table.stripeCheckoutSessionId),
 }));
 
 export type UserCredit = typeof userCredits.$inferSelect;
