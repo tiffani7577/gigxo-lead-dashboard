@@ -864,6 +864,18 @@ export default function AdminDashboard() {
                     }
                     return true;
                   })
+                  .sort((a: any, b: any) => {
+                    if (leadPod !== "marketplace") return 0;
+                    const rank = (lt: string | undefined) =>
+                      lt === "scraped_signal"
+                        ? 0
+                        : lt === "client_submitted"
+                          ? 1
+                          : lt === "referral"
+                            ? 2
+                            : 3;
+                    return rank((a as any).leadType) - rank((b as any).leadType);
+                  })
                   .map((lead) => (
                   <div key={lead.id} className="bg-white rounded-xl border border-slate-200 p-4">
                     <div className="flex items-start justify-between gap-3 mb-2">
