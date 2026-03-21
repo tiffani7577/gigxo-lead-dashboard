@@ -134,7 +134,7 @@ export default function AdminDashboard() {
     error: leadsQueryErr,
     refetch: refetchLeads,
   } = trpc.admin.getAllLeads.useQuery(
-    { status: leadFilter, limit: 100, performerType: filterPerformerType === "all" ? undefined : filterPerformerType },
+    { status: leadFilter, limit: 500, performerType: filterPerformerType === "all" ? undefined : filterPerformerType },
     { enabled: user?.role === "admin" }
   );
 
