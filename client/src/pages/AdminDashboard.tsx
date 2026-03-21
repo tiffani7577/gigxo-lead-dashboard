@@ -838,11 +838,20 @@ export default function AdminDashboard() {
               <div className="space-y-3">
                 {leads
                   .filter((lead: any) => {
-                    // Approved tab: show every row the server returned (no pod leadType gate).
-                    if (leadFilter === "approved") return true;
                     const lt = (lead as any).leadType as string | undefined;
                     if (leadPod === "marketplace") {
-                      // Default pod: artist marketplace opportunities
+                      // Artist-facing marketplace only (explicit exclusions — never show venue/B2B pods here).
+                      if (
+                        lt === "venue_intelligence" ||
+                        lt === "manual_outreach" ||
+                        lt === "artist_signup" ||
+                        lt === "outreach" ||
+                        lt === "trash" ||
+                        lt === "other" ||
+                        lt === "event_demand"
+                      ) {
+                        return false;
+                      }
                       if (!lt) return true;
                       return lt === "scraped_signal" || lt === "client_submitted" || lt === "referral";
                     }
