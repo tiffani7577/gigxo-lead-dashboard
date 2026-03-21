@@ -3,12 +3,16 @@
  * Updates OG tags, Twitter Card, and canonical URL per page
  */
 
+const DEFAULT_OG_IMAGE = "https://www.gigxo.com/og-default.png";
+
 export function setMetaTags(config: {
   title: string;
   description: string;
   url: string;
   image?: string;
 }) {
+  const imageUrl = config.image?.trim() || DEFAULT_OG_IMAGE;
+
   // Update document title
   document.title = config.title;
 
@@ -29,16 +33,14 @@ export function setMetaTags(config: {
   updateOrCreateMeta('property', 'og:title', config.title);
   updateOrCreateMeta('property', 'og:description', config.description);
   updateOrCreateMeta('property', 'og:url', config.url);
-  if (config.image) {
-    updateOrCreateMeta('property', 'og:image', config.image);
-  }
+  updateOrCreateMeta('property', 'og:image', imageUrl);
 
   // Update Twitter Card
+  updateOrCreateMeta('name', 'twitter:card', 'summary_large_image');
+  updateOrCreateMeta('name', 'twitter:url', config.url);
   updateOrCreateMeta('name', 'twitter:title', config.title);
   updateOrCreateMeta('name', 'twitter:description', config.description);
-  if (config.image) {
-    updateOrCreateMeta('name', 'twitter:image', config.image);
-  }
+  updateOrCreateMeta('name', 'twitter:image', imageUrl);
 }
 
 function updateOrCreateMeta(attr: 'name' | 'property', value: string, content: string) {

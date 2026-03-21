@@ -33,6 +33,21 @@ interface SEOLandingPageProps {
   params: { slug: string };
 }
 
+/** Turn "/dj-fort-lauderdale" into readable link text e.g. "DJ Fort Lauderdale". */
+function formatInternalLinkLabel(path: string): string {
+  const segment = path.replace(/^\//, "");
+  return segment
+    .split("-")
+    .map((word) => {
+      const lower = word.toLowerCase();
+      if (lower === "dj") return "DJ";
+      if (lower === "mc") return "MC";
+      if (/^\d+$/.test(word)) return word;
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join(" ");
+}
+
 export default function SEOLandingPage({ params }: SEOLandingPageProps) {
   const [location] = useLocation();
   const slug = params?.slug || location.split("/").filter(Boolean).pop() || "dj-miami";
@@ -293,7 +308,6 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
   }
 
   // Normalize optional config so undefined never crashes render
-  const faq = Array.isArray(pageConfig.faq) ? pageConfig.faq : [];
   const heading = pageConfig.heading ?? "";
   const subheading = pageConfig.subheading ?? "";
   const content = pageConfig.content ?? "";
@@ -319,7 +333,7 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
     return { otherCities, relatedServices };
   })();
 
-  // Optional JSON-LD structured data for SEO (Service only — FAQPage is emitted once next to the FAQ section)
+  // JSON-LD: Service + BreadcrumbList (FAQPage script lives next to FAQ section)
   const jsonLdScripts: string[] = [];
   try {
     jsonLdScripts.push(
@@ -339,6 +353,26 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
           url: typeof window !== "undefined" ? window.location?.href ?? "" : "",
           name: isYachtHirePage ? "Yacht DJ hire in Miami" : heading,
         },
+      }),
+    );
+    jsonLdScripts.push(
+      JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Home",
+            item: "https://www.gigxo.com",
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: heading,
+            item: `https://www.gigxo.com/${slug}`,
+          },
+        ],
       }),
     );
   } catch {
@@ -551,7 +585,9 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
                       <div className="flex flex-wrap gap-2">
                         {relatedLinks.otherCities.slice(0, 4).map((path) => (
                           <Link key={path} href={path}>
-                            <a className="text-purple-700 hover:text-purple-900 underline text-xs">{path}</a>
+                            <a className="text-purple-700 hover:text-purple-900 underline text-xs">
+                              {formatInternalLinkLabel(path)}
+                            </a>
                           </Link>
                         ))}
                       </div>
@@ -563,27 +599,14 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
                       <div className="flex flex-wrap gap-2">
                         {relatedLinks.relatedServices.slice(0, 4).map((path) => (
                           <Link key={path} href={path}>
-                            <a className="text-purple-700 hover:text-purple-900 underline text-xs">{path}</a>
+                            <a className="text-purple-700 hover:text-purple-900 underline text-xs">
+                              {formatInternalLinkLabel(path)}
+                            </a>
                           </Link>
                         ))}
                       </div>
                     </div>
                   )}
-                </div>
-              </Card>
-            )}
-
-            {/* FAQ Section */}
-            {faq.length > 0 && (
-              <Card className="p-8 mt-8">
-                <h2 className="text-2xl font-bold mb-4">FAQs</h2>
-                <div className="space-y-4">
-                  {faq.map((item, idx) => (
-                    <div key={idx}>
-                      <h3 className="font-semibold">{item?.question ?? ""}</h3>
-                      <p className="text-gray-700 text-sm">{item?.answer ?? ""}</p>
-                    </div>
-                  ))}
                 </div>
               </Card>
             )}
@@ -787,7 +810,7 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
                     className="w-full bg-purple-600 hover:bg-purple-700"
                     disabled={submitEventRequest.isPending}
                   >
-                    {submitEventRequest.isPending ? "Submitting..." : "Get Matched"}
+                    {submitEventRequest.isPending ? "Submitting..." : pageConfig.leadCTA ?? "Get Matched"}
                   </Button>
                 </form>
               )}

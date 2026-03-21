@@ -48,6 +48,10 @@ export interface PageConfig {
    * Optional FAQ entries for this page.
    */
   faq?: FAQ[];
+  /** Optional primary CTA label for the quote form (e.g. pricing pages). */
+  leadCTA?: string;
+  /** Optional Open Graph / Twitter preview image URL (falls back to /og-default.png in meta-tags). */
+  ogImage?: string;
   priority?: number;
   changefreq?: string;
 }
@@ -137,6 +141,9 @@ export const SERVICES: ServiceConfig[] = [
   { id: "band", name: "Band", plural: "Bands", description: "Live bands and musicians for events", eventTypes: ["wedding", "corporate", "party"], keywords: ["band", "live band", "musicians"] },
   { id: "dj-gigs", name: "DJ Gigs", plural: "DJ Gigs", description: "DJ gig opportunities and bookings", eventTypes: ["wedding", "party", "corporate"], keywords: ["dj gigs", "dj jobs", "gig opportunities"] },
   { id: "venues-hiring-djs", name: "Venues Hiring DJs", plural: "Venues Hiring DJs", description: "Venues and events looking for DJs", eventTypes: ["wedding", "party", "corporate", "club"], keywords: ["venues hiring djs", "dj bookings", "event entertainment"] },
+  /** Pricing / calculator-style slugs (only whitelisted city combos in generateAllPageConfigs) */
+  { id: "dj-cost", name: "DJ cost", plural: "DJ costs", description: "DJ pricing and cost guides by city", eventTypes: ["party", "wedding", "corporate"], keywords: ["dj cost", "dj prices", "how much is a dj"] },
+  { id: "wedding-dj-cost", name: "Wedding DJ cost", plural: "Wedding DJ costs", description: "Wedding DJ pricing guides", eventTypes: ["wedding"], keywords: ["wedding dj cost", "wedding dj prices"] },
 ];
 
 // FAQ template constants (auto-assigned by serviceId in generatePageConfig)
@@ -201,6 +208,14 @@ export const CITIES: CityConfig[] = [
   { id: "port-everglades-yacht", name: "Port Everglades Yacht", state: "FL", region: "Fort Lauderdale" },
 ];
 
+/** Only these URLs are generated for dj-cost / wedding-dj-cost (avoid thin city×service spam). */
+const PRICING_PAGE_SLUGS = new Set([
+  "dj-cost-miami",
+  "wedding-dj-cost-miami",
+  "dj-cost-fort-lauderdale",
+  "dj-cost-boca-raton",
+]);
+
 // Manual overrides for specific pages (custom titles, descriptions, etc.)
 const MANUAL_OVERRIDES: Record<string, Partial<PageConfig>> = {
   "dj-miami": {
@@ -212,6 +227,178 @@ const MANUAL_OVERRIDES: Record<string, Partial<PageConfig>> = {
     content:
       "Miami has one of the strongest DJ scenes in the world. Use this page to discover working DJs who play clubs, weddings, private villas and yacht parties across Miami and nearby neighborhoods. Filter by genre, experience and location, then send a quick request so we can match you with the right talent and pricing for your date.",
     pageType: "hire",
+  },
+  "dj-cost-miami": {
+    seoTitle: "How Much Does a DJ Cost in Miami? | 2025 Price Ranges & Quotes",
+    seoDescription:
+      "DJ cost in Miami typically runs about $500–$2,500+ for private events: house parties and birthdays often start around $500–$1,200, while weddings and corporate galas commonly land $900–$2,500+ depending on hours, gear, and date. Compare verified DJs and get tailored quotes on Gigxo.",
+    heading: "How Much Does a DJ Cost in Miami?",
+    subheading: "Realistic Miami DJ price ranges—then match with verified talent",
+    content:
+      "Miami DJ pricing depends on event length, sound and lighting needs, travel, season (peak winter/spring is pricier), and whether you need MC or ceremony support. Use the short form to share your date, neighborhood, and vibe—we’ll connect you with DJs whose rates fit your budget.",
+    pageType: "calculator",
+    leadCTA: "Get free quotes from verified DJs",
+    faq: [
+      {
+        question: "How much does a DJ cost in Miami for a wedding?",
+        answer:
+          "Most Miami wedding DJs quote roughly $900–$2,500+ for reception coverage (often 4–6 hours), with add-ons for ceremony audio, uplighting, or extended time. Premium weekends and holidays trend higher; always confirm hours, equipment, and MC duties in writing.",
+      },
+      {
+        question: "What’s a typical DJ price for a house party or birthday in Miami?",
+        answer:
+          "Smaller private events often fall around $500–$1,200 for a standard PA, DJ, and basic lighting, assuming a 3–5 hour window. Late nights, outdoor setups, or extra subs and wireless mics can move the quote up.",
+      },
+      {
+        question: "Do Miami DJs charge hourly or flat packages?",
+        answer:
+          "Most use flat packages (e.g. up to 5 hours + setup) with clear overtime rates. Hourly billing exists but is less common for private events. Ask what’s included: sound system size, backup gear, lighting, and breakdown time.",
+      },
+      {
+        question: "What makes a Miami DJ quote go up or down?",
+        answer:
+          "Peak season (Oct–Apr), Saturdays, holidays, load-in difficulty (high-rises, valet, long cable runs), larger guest counts, extra speakers or subs, ceremony coverage, and early arrival or late finish all affect price. Weeknights and flexible dates usually save money.",
+      },
+      {
+        question: "Are travel fees common for Miami-area events?",
+        answer:
+          "DJs often include a radius from their base; longer drives to the Keys, northern Broward, or cross-county gigs may add a travel or logistics fee. Disclose your venue early so the quote includes load-in constraints.",
+      },
+      {
+        question: "How can I compare DJ prices without hidden fees?",
+        answer:
+          "Request an itemized quote: hours of performance, setup/strike, equipment list, backup plan, overtime rate, and cancellation terms. On Gigxo you unlock direct contact with verified DJs so you negotiate transparently—no platform commission on the booking.",
+      },
+    ],
+  },
+  "wedding-dj-cost-miami": {
+    seoTitle: "Wedding DJ Cost Miami | Packages, Price Ranges & Free Quotes",
+    seoDescription:
+      "Wedding DJ cost in Miami usually ranges from about $900–$2,500+ for reception coverage, with ceremony audio and lighting as common add-ons. See what drives pricing and get free quotes from verified wedding DJs on Gigxo.",
+    heading: "How Much Does a Wedding DJ Cost in Miami?",
+    subheading: "Typical Miami wedding DJ packages and what you’re paying for",
+    content:
+      "Your wedding DJ quote reflects timeline coordination, sound for ceremony and reception, MC skills, dance-floor energy, and equipment quality. Share your venue, guest count, and must-have moments—we’ll help you compare vetted wedding DJs at clear price points.",
+    pageType: "calculator",
+    leadCTA: "Get free quotes from verified DJs",
+    faq: [
+      {
+        question: "How much does a wedding DJ cost in Miami on average?",
+        answer:
+          "Plan around $900–$2,500+ for a full reception (commonly 4–6 hours), depending on experience, production level, and date. Ceremony-only or cocktail-hour coverage may start lower; ask for a package that lists each segment.",
+      },
+      {
+        question: "What’s usually included in a Miami wedding DJ package?",
+        answer:
+          "Most packages include sound for the reception, wireless mics for toasts, basic dance-floor lighting, music planning, and professional MC announcements. Ceremony sound, uplighting, cold sparks, or subwoofers are often add-ons—confirm line by line.",
+      },
+      {
+        question: "Do Miami wedding DJs charge more for peak season?",
+        answer:
+          "Yes—October through April and holiday weekends see higher demand. Saturday prime dates book first; Friday or Sunday events can sometimes reduce rates slightly. Book early once you love a DJ’s style and reviews.",
+      },
+      {
+        question: "How many hours should I book a wedding DJ for?",
+        answer:
+          "Many Miami weddings book 5–7 hours total when ceremony, cocktail, and reception are on one property. If venues differ or you need a long after-party, ask about overtime rates and whether a meal break is required for the DJ team.",
+      },
+      {
+        question: "Can I save money without cutting quality?",
+        answer:
+          "Bundle smart: choose a realistic end time, avoid redundant lighting you won’t use, and be flexible on minor details if the DJ recommends a simpler rig for your room size. The biggest savings come from comparing multiple verified pros—not skipping insurance or backup gear.",
+      },
+      {
+        question: "How do I get accurate wedding DJ quotes fast?",
+        answer:
+          "Send your date, venues (with addresses), guest count, start/end times, and must-play/do-not-play notes. Gigxo connects you with verified wedding DJs so you can compare apples-to-apples quotes directly.",
+      },
+    ],
+  },
+  "dj-cost-fort-lauderdale": {
+    seoTitle: "How Much Does a DJ Cost in Fort Lauderdale? | Prices & Quotes",
+    seoDescription:
+      "DJ cost in Fort Lauderdale often falls around $500–$2,200+ for private events: parties and corporate mixers may start near $500–$1,100, while weddings and yacht-adjacent gigs commonly run $900–$2,200+ based on hours and production. Request tailored quotes from verified DJs on Gigxo.",
+    heading: "How Much Does a DJ Cost in Fort Lauderdale?",
+    subheading: "Fort Lauderdale DJ rates—from intracoastal parties to wedding receptions",
+    content:
+      "Fort Lauderdale events span beach hotels, marinas, and downtown rooftops; load-in, parking, and weather backup can affect quotes. Tell us your neighborhood and hours so we can match you with DJs who price fairly for Broward County gigs.",
+    pageType: "calculator",
+    leadCTA: "Get free quotes from verified DJs",
+    faq: [
+      {
+        question: "How much does a DJ cost in Fort Lauderdale for a wedding?",
+        answer:
+          "Many Fort Lauderdale wedding DJs quote approximately $900–$2,200+ for standard reception coverage, with ceremony sound and lighting as extras. Waterfront and marina venues sometimes need compact or weather-conscious setups—disclose dock or deck access up front.",
+      },
+      {
+        question: "What’s a typical Fort Lauderdale DJ price for a corporate or yacht-adjacent event?",
+        answer:
+          "Corporate receptions and marina-area parties often land around $700–$1,800+ for 3–5 hours with a professional PA. Tighter decks, generator or battery needs, or extended timelines can increase the investment.",
+      },
+      {
+        question: "Do Fort Lauderdale DJs charge travel from Miami?",
+        answer:
+          "Many South Florida DJs cover Miami–Fort Lauderdale–Boca as a region, but cross-county gigs during peak hours may include a modest travel or time block fee. Share your exact address and load-in path for an accurate quote.",
+      },
+      {
+        question: "What affects DJ pricing most in Broward County?",
+        answer:
+          "Date (Saturday vs weekday), season, guest count and room size, lighting add-ons, ceremony coverage, overtime, and technical complexity (high-rise load-ins, long cable runs) move numbers more than small playlist tweaks.",
+      },
+      {
+        question: "Is a DJ cheaper than a live band in Fort Lauderdale?",
+        answer:
+          "Usually yes—DJs typically cost less than multi-piece live bands for the same hours while offering broader song variety. If budget is tight, prioritize sound quality, reliability, and experience over the lowest bid.",
+      },
+      {
+        question: "How do I compare Fort Lauderdale DJ quotes fairly?",
+        answer:
+          "Ask each DJ for the same scope: hours, equipment list, lighting, MC duties, backup gear, overtime rate, and cancellation policy. Gigxo helps you reach verified DJs directly so you can compare line items without middleman markups.",
+      },
+    ],
+  },
+  "dj-cost-boca-raton": {
+    seoTitle: "How Much Does a DJ Cost in Boca Raton? | DJ Prices & Free Quotes",
+    seoDescription:
+      "DJ cost in Boca Raton is often about $550–$2,300+ for private events: upscale weddings and country-club receptions frequently run $1,000–$2,300+, while smaller parties may start closer to $550–$1,200. See typical ranges and get quotes from verified DJs on Gigxo.",
+    heading: "How Much Does a DJ Cost in Boca Raton?",
+    subheading: "Boca Raton and Palm Beach County DJ pricing—clubs, homes, and venues",
+    content:
+      "Boca events often mean higher-end venues, longer cocktail flows, and detailed timelines. DJs price for production expectations and guest experience, not just hours behind the decks. Share your venue and schedule to get quotes that match Palm Beach standards.",
+    pageType: "calculator",
+    leadCTA: "Get free quotes from verified DJs",
+    faq: [
+      {
+        question: "How much does a DJ cost in Boca Raton for a country club or hotel wedding?",
+        answer:
+          "Upscale Boca weddings commonly see DJ packages around $1,000–$2,300+ for reception coverage, depending on hours, lighting design, and ceremony support. Venues with strict vendor rules or union load-ins can add time and cost—mention those details early.",
+      },
+      {
+        question: "What’s a typical DJ price for a private home party in Boca?",
+        answer:
+          "Backyard and estate parties often range roughly $550–$1,400 for a few hours with a solid PA and basic lighting, assuming standard power. Larger guest counts, pool-deck setups, or noise considerations may require upgraded sound or directional speakers.",
+      },
+      {
+        question: "Do Boca Raton DJs include lighting in their packages?",
+        answer:
+          "Many offer dance-floor washes or uplighting as bundles or add-ons. For elegant receptions, ask for photos of past setups and whether lighting is LED (heat-friendly for Florida). Spell out exactly which rooms are covered.",
+      },
+      {
+        question: "Why are Palm Beach County DJ rates sometimes higher than nearby cities?",
+        answer:
+          "Higher-end venues, longer events, insurance expectations, and production standards can lift averages. You’re often paying for experience with formal timelines, dress code, and seamless MC work—not just a playlist.",
+      },
+      {
+        question: "When should I book a DJ for a Boca Raton peak-season event?",
+        answer:
+          "For winter and spring Saturdays, booking 6–12 months ahead is wise. Last-minute dates can work but limit your choices. Lock your DJ after venue confirmation so sound and timeline planning stay aligned.",
+      },
+      {
+        question: "How can I get an accurate Boca Raton DJ quote?",
+        answer:
+          "Provide the venue name, guest count, event start/end, indoor vs outdoor areas needing sound, and any ceremony needs. Gigxo connects you with verified DJs so you receive comparable, transparent pricing.",
+      },
+    ],
   },
   // General DJ hire page for Fort Lauderdale
   "dj-fort-lauderdale": {
@@ -417,7 +604,7 @@ export function generatePageConfig(serviceId: string, cityId: string): PageConfi
 
   // Auto-assign FAQ by serviceId when override doesn't provide faq
   const faqForService =
-    serviceId === "wedding-dj"
+    serviceId === "wedding-dj" || serviceId === "wedding-dj-cost"
       ? WEDDING_DJ_FAQ
       : serviceId === "live-band" || serviceId === "band"
         ? LIVE_BAND_FAQ
@@ -425,7 +612,9 @@ export function generatePageConfig(serviceId: string, cityId: string): PageConfi
           ? PHOTOGRAPHER_FAQ
           : serviceId === "videographer"
             ? VIDEOGRAPHER_FAQ
-            : (serviceId === "dj" || serviceId === "dj-gigs" || serviceId === "venues-hiring-djs" ? DJ_FAQ : DJ_FAQ);
+            : serviceId === "dj" || serviceId === "dj-gigs" || serviceId === "venues-hiring-djs" || serviceId === "dj-cost"
+              ? DJ_FAQ
+              : DJ_FAQ;
 
   // Normalize so no critical field is undefined for SEOLandingPage
   return {
@@ -451,6 +640,12 @@ export function generateAllPageConfigs(): Record<string, PageConfig> {
   for (const service of SERVICES) {
     for (const city of CITIES) {
       const slug = `${service.id}-${city.id}`;
+      if (
+        (service.id === "dj-cost" || service.id === "wedding-dj-cost") &&
+        !PRICING_PAGE_SLUGS.has(slug)
+      ) {
+        continue;
+      }
       const config = generatePageConfig(service.id, city.id);
       if (config) {
         configs[slug] = config;

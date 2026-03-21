@@ -81,6 +81,17 @@ async function buildSitemapResponse(baseUrl: string): Promise<string> {
         }
       }
 
+      // Manual pricing slugs (dj-cost / wedding-dj-cost — not in SERVICES grid above)
+      const extraSeoSlugs = [
+        "dj-cost-miami",
+        "wedding-dj-cost-miami",
+        "dj-cost-fort-lauderdale",
+        "dj-cost-boca-raton",
+      ];
+      for (const s of extraSeoSlugs) {
+        seoPages.push({ url: `/${s}`, priority: "0.90", changefreq: "weekly" });
+      }
+
       // Dynamic artist profile pages
       let artistPages: Array<{ url: string; priority: string; changefreq: string }> = [];
       try {
