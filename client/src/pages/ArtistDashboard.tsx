@@ -142,11 +142,65 @@ function formatLeadStatusLabel(status: string | null | undefined): string {
   return value.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+/** Facebook / Meta + Instagram profile-style paths that must not appear in pre-unlock copy. */
+const SOCIAL_PROFILE_URL_RE =
+  /(?:https?:\/\/)?(?:www\.|m\.)?(?:facebook\.com|fb\.com|fb\.me)\/[^\s<>"')\]]+|(?:https?:\/\/)?(?:www\.)?instagram\.com\/[^\s<>"')\]]+/gi;
+
+function normalizeSocialProfileUrl(raw: string): string {
+  const t = raw.trim();
+  if (!t) return t;
+  if (/^https?:\/\//i.test(t)) return t;
+  return `https://${t.replace(/^\/+/, "")}`;
+}
+
+function textContainsSocialProfileUrl(text: string): boolean {
+  if (!text) return false;
+  SOCIAL_PROFILE_URL_RE.lastIndex = 0;
+  return SOCIAL_PROFILE_URL_RE.test(text);
+}
+
+function stripSocialProfileUrls(text: string): string {
+  if (!text) return text;
+  return text
+    .replace(SOCIAL_PROFILE_URL_RE, "")
+    .replace(/\[link removed\]\s*/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+/** Primary contact is via profile link (matches server hasFacebookProfileLink; client fallback if stale API). */
+function showFacebookProfileLeadCta(lead: any): boolean {
+  if ((lead as any).hasFacebookProfileLink) return true;
+  const hasEmail = !!(lead as any).hasContactEmail;
+  const hasPhone = !!(lead as any).hasContactPhone;
+  if (hasEmail || hasPhone) return false;
+  const blob = [lead?.publicPreviewDescription, lead?.description, lead?.fullDescription, lead?.venueUrl]
+    .filter(Boolean)
+    .join("\n");
+  return textContainsSocialProfileUrl(blob);
+}
+
+function extractFirstSocialProfileUrl(text: string): string | null {
+  if (!text) return null;
+  SOCIAL_PROFILE_URL_RE.lastIndex = 0;
+  const m = text.match(SOCIAL_PROFILE_URL_RE);
+  return m?.[0] ? normalizeSocialProfileUrl(m[0]) : null;
+}
+
+/** After unlock: venueUrl if it is a social URL, else first social URL in full description. */
+function getSocialProfileUrlForLead(lead: any): string | null {
+  if (!lead?.isUnlocked) return null;
+  const vu = String(lead?.venueUrl ?? "").trim();
+  if (vu && textContainsSocialProfileUrl(vu)) return normalizeSocialProfileUrl(vu);
+  const body = String(lead?.fullDescription ?? lead?.description ?? "");
+  return extractFirstSocialProfileUrl(body);
+}
+
 function getLeadDescriptionForDisplay(lead: any): string {
   const preview = String(lead?.publicPreviewDescription ?? "").trim();
   const full = String(lead?.fullDescription ?? lead?.description ?? "").trim();
-  if (lead?.isUnlocked) return full || preview;
-  return preview || full.slice(0, 150);
+  const raw = lead?.isUnlocked ? full || preview : preview || full.slice(0, 150);
+  return stripSocialProfileUrls(raw);
 }
 
 function getPreviewTags(lead: any): string[] {
@@ -1170,7 +1224,7 @@ export default function ArtistDashboard() {
                                 Phone available
                               </span>
                             )}
-                            {(lead as any).hasFacebookProfileLink && (
+                            {showFacebookProfileLeadCta(lead) && (
                               <span className="inline-flex items-center gap-1 text-xs font-medium text-sky-700 bg-sky-100 px-2 py-0.5 rounded-full">
                                 Facebook Lead — contact via profile link
                               </span>
@@ -1241,17 +1295,37 @@ export default function ArtistDashboard() {
                                     {lead.contactPhone}
                                   </a>
                                 )}
-                                {lead.venueUrl && (
-                                  <a
-                                    href={lead.venueUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-1 text-blue-600 hover:underline"
-                                  >
-                                    <ExternalLink className="w-3 h-3" />
-                                    View website
-                                  </a>
-                                )}
+                                {(() => {
+                                  const socialUrl = getSocialProfileUrlForLead(lead);
+                                  if (socialUrl) {
+                                    const ig = /instagram\.com/i.test(socialUrl);
+                                    return (
+                                      <a
+                                        href={socialUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-1 rounded-md border border-sky-200 bg-sky-50 px-2 py-1 text-[11px] font-medium text-sky-800 hover:bg-sky-100"
+                                      >
+                                        <ExternalLink className="w-3 h-3 shrink-0" />
+                                        {ig ? "Open Instagram profile" : "Open Facebook / profile link"}
+                                      </a>
+                                    );
+                                  }
+                                  if (lead.venueUrl) {
+                                    return (
+                                      <a
+                                        href={lead.venueUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-1 text-blue-600 hover:underline"
+                                      >
+                                        <ExternalLink className="w-3 h-3" />
+                                        View website
+                                      </a>
+                                    );
+                                  }
+                                  return null;
+                                })()}
                               </div>
                               <button
                                 type="button"
@@ -1354,10 +1428,12 @@ export default function ArtistDashboard() {
                         </div>
                       )}
 
-                      {selectedLeadData.description && (
+                      {getLeadDescriptionForDisplay(selectedLeadData) && (
                         <div className="pt-2 border-t border-slate-100">
                           <p className="text-xs text-slate-500 mb-1.5">Details</p>
-                          <p className="text-sm text-slate-700 leading-relaxed">{selectedLeadData.description}</p>
+                          <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
+                            {getLeadDescriptionForDisplay(selectedLeadData)}
+                          </p>
                         </div>
                       )}
 
@@ -1509,6 +1585,24 @@ export default function ArtistDashboard() {
                                 </a>
                               </div>
                             )}
+                            {(() => {
+                              const u = getSocialProfileUrlForLead(selectedLeadData);
+                              if (!u) return null;
+                              const ig = /instagram\.com/i.test(u);
+                              return (
+                                <div className="pt-1">
+                                  <a
+                                    href={u}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-sky-200 bg-sky-50 px-2.5 py-2 text-xs font-medium text-sky-800 hover:bg-sky-100 sm:w-auto sm:justify-start"
+                                  >
+                                    <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                                    {ig ? "Open Instagram profile" : "Open Facebook / profile link"}
+                                  </a>
+                                </div>
+                              );
+                            })()}
                             {(selectedLeadData.contactEmail || selectedLeadData.contactPhone) && (
                               <div className="pt-2 mt-2 border-t border-green-200">
                                 <p className="text-[11px] font-semibold text-green-700 mb-2">Quick Actions</p>
@@ -1632,7 +1726,7 @@ export default function ArtistDashboard() {
                                   Phone available
                                 </span>
                               )}
-                              {(selectedLeadData as any).hasFacebookProfileLink && (
+                              {showFacebookProfileLeadCta(selectedLeadData) && (
                                 <span className="inline-flex items-center gap-1 text-xs font-medium text-sky-700 bg-sky-50 border border-sky-200 px-2 py-0.5 rounded-full">
                                   Facebook Lead — contact via profile link
                                 </span>

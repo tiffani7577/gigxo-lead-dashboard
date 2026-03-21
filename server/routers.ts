@@ -46,6 +46,9 @@ function sanitizePreviewText(input: string): string {
     .replace(/(?:\+?1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?){2}\d{4}\b/g, "[redacted]")
     .replace(/https?:\/\/\S+/gi, "[link removed]")
     .replace(/\bwww\.\S+/gi, "[link removed]")
+    // Bare social paths (no scheme) were leaking past the rules above, e.g. facebook.com/marketplace/...
+    .replace(/\b(?:https?:\/\/)?(?:www\.|m\.)?(?:facebook\.com|fb\.com|fb\.me)\/[^\s]+/gi, "[link removed]")
+    .replace(/\b(?:https?:\/\/)?(?:www\.)?instagram\.com\/[^\s]+/gi, "[link removed]")
     .replace(/@[a-z0-9_.]+/gi, "[handle removed]")
     .replace(/\s+/g, " ")
     .trim();
@@ -96,6 +99,31 @@ function buildPublicPreviewDescription(params: {
   ].filter(Boolean);
   const summary = bits.join(" ");
   return summary.length > 220 ? `${summary.slice(0, 217)}...` : summary;
+}
+
+/** True when the lead's primary contact path is a Facebook / IG profile (no email/phone) or venueUrl is Facebook. */
+function computeHasFacebookProfileLink(lead: {
+  contactEmail?: unknown;
+  contactPhone?: unknown;
+  venueUrl?: unknown;
+  description?: unknown;
+  fullDescription?: unknown;
+  publicPreviewDescription?: unknown;
+}): boolean {
+  const noDirect = !String(lead.contactEmail ?? "").trim() && !String(lead.contactPhone ?? "").trim();
+  if (!noDirect) return false;
+  const vu = String(lead.venueUrl ?? "");
+  if (vu && /facebook\.com/i.test(vu)) return true;
+  const blob = [
+    lead.fullDescription,
+    lead.description,
+    lead.publicPreviewDescription,
+  ]
+    .map((x) => String(x ?? ""))
+    .join("\n");
+  if (/\b(?:https?:\/\/)?(?:www\.|m\.)?(?:facebook\.com|fb\.com|fb\.me)\//i.test(blob)) return true;
+  if (/\b(?:https?:\/\/)?(?:www\.)?instagram\.com\//i.test(blob)) return true;
+  return false;
 }
 
 function getSafePublicPreview(params: {
@@ -958,7 +986,7 @@ export const appRouter = router({
             contactPhone: isUnlocked ? lead.contactPhone : null,
             hasContactEmail: !!lead.contactEmail,
             hasContactPhone: !!lead.contactPhone,
-            hasFacebookProfileLink: !lead.contactEmail && !lead.contactPhone && !!(lead.venueUrl && String(lead.venueUrl).includes("facebook.com")),
+            hasFacebookProfileLink: computeHasFacebookProfileLink(lead),
             viewCount: (viewCounts[lead.id] ?? 0) + ((lead.id * 17 + 43) % 67) + 12,
             unlockCount: unlockCounts[lead.id] ?? 0,
           };
@@ -1005,7 +1033,7 @@ export const appRouter = router({
           contactPhone: unlocked ? lead.contactPhone : null,
           hasContactEmail: !!lead.contactEmail,
           hasContactPhone: !!lead.contactPhone,
-          hasFacebookProfileLink: !lead.contactEmail && !lead.contactPhone && !!(lead.venueUrl && String(lead.venueUrl).includes("facebook.com")),
+          hasFacebookProfileLink: computeHasFacebookProfileLink(lead),
         };
       }),
       
@@ -1190,8 +1218,9 @@ export const appRouter = router({
         .orderBy(desc(gigLeads.budget))
         .limit(3);
 
-      return rows.map(r => ({
+      return rows.map((r) => ({
         ...r,
+        description: sanitizePreviewText(String(r.description ?? "")),
         // Never expose contact info on public endpoint
         contactName: null,
         contactEmail: null,

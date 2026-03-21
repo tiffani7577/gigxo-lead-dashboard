@@ -391,7 +391,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="h-screen overflow-y-auto bg-slate-50">
+    <div className="min-h-screen bg-slate-50">
       {/* Top Nav */}
       <div className="bg-white border-b border-slate-200 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -835,7 +835,7 @@ export default function AdminDashboard() {
                 </Button>
               </div>
             ) : leads && leads.length > 0 ? (
-              <div className="space-y-3">
+              <div className={leadFilter === "approved" ? "space-y-3 max-h-[70vh] overflow-y-auto pr-1" : "space-y-3"}>
                 {leads
                   .filter((lead: any) => {
                     const lt = (lead as any).leadType as string | undefined;
