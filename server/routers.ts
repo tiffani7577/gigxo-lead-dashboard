@@ -1771,7 +1771,32 @@ export const appRouter = router({
         if (!db) throw new Error("Database not available");
         
         const { gigLeads } = await import("../drizzle/schema");
-        await db.update(gigLeads).set({ isApproved: true, isRejected: false }).where(eq(gigLeads.id, input.leadId));
+        const { getLeadTypePatchOnApprove } = await import("./marketplaceLeadType");
+        const [row] = await db
+          .select({
+            leadType: gigLeads.leadType,
+            leadCategory: gigLeads.leadCategory,
+            source: gigLeads.source,
+            externalId: gigLeads.externalId,
+            description: gigLeads.description,
+          })
+          .from(gigLeads)
+          .where(eq(gigLeads.id, input.leadId))
+          .limit(1);
+        if (!row) throw new TRPCError({ code: "NOT_FOUND", message: "Lead not found" });
+
+        const typePatch = getLeadTypePatchOnApprove({
+          leadType: row.leadType,
+          leadCategory: row.leadCategory,
+          source: row.source,
+          externalId: row.externalId,
+          description: row.description,
+        });
+
+        await db
+          .update(gigLeads)
+          .set({ isApproved: true, isRejected: false, ...typePatch })
+          .where(eq(gigLeads.id, input.leadId));
         return { success: true };
       }),
     
@@ -2202,6 +2227,7 @@ export const appRouter = router({
           contactPhone: input.contactPhone,
           externalId: `manual-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
           source: "manual",
+          leadType: "client_submitted",
           unlockPriceCents: autoPrice,
           isApproved: true,
         });
