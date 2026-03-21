@@ -838,6 +838,8 @@ export default function AdminDashboard() {
               <div className="space-y-3">
                 {leads
                   .filter((lead: any) => {
+                    // Approved tab: show every row the server returned (no pod leadType gate).
+                    if (leadFilter === "approved") return true;
                     const lt = (lead as any).leadType as string | undefined;
                     if (leadPod === "marketplace") {
                       // Default pod: artist marketplace opportunities
