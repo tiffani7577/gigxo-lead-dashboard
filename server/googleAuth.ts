@@ -6,12 +6,14 @@
  *   GOOGLE_CLIENT_ID
  *   GOOGLE_CLIENT_SECRET
  *   GOOGLE_REDIRECT_URI — must match Google Cloud Console exactly (e.g. https://www.gigxo.com/api/auth/google/callback if app is on www)
- *   APP_URL — frontend origin for redirect fallback when state is missing (e.g. https://www.gigxo.com); avoids redirecting to wrong host and "not found"
  */
 
 import type { Express, Request, Response } from "express";
 import { loginWithGoogle } from "./customAuth";
 import { CUSTOM_AUTH_COOKIE, ONE_YEAR_MS } from "@shared/const";
+
+/** Canonical web origin — all post-OAuth redirects go here (avoids apex / wrong host). */
+const GIGXO_WWW_ORIGIN = "https://www.gigxo.com";
 
 const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
@@ -71,14 +73,13 @@ export function registerGoogleAuthRoutes(app: Express) {
   app.get("/api/auth/google/callback", async (req: Request, res: Response) => {
     const { clientId, clientSecret, redirectUri, configured } = getGoogleConfig(req);
     if (!configured || !clientId || !clientSecret || !redirectUri) {
-      return res.redirect("/login?error=google_failed");
+      return res.redirect(302, `${GIGXO_WWW_ORIGIN}/login?error=google_failed`);
     }
 
     const code = req.query.code as string;
-    const state = (req.query.state as string) || "";
 
     if (!code) {
-      return res.redirect("/login?error=google_cancelled");
+      return res.redirect(302, `${GIGXO_WWW_ORIGIN}/login?error=google_cancelled`);
     }
 
     try {
@@ -131,14 +132,12 @@ export function registerGoogleAuthRoutes(app: Express) {
         path: "/",
       });
 
-      // Redirect to frontend dashboard. Prefer state (origin from login page); fallback to APP_URL.
-      const baseUrl = (state && state.startsWith("http") ? state : null) || process.env.APP_URL?.trim() || "";
-      const base = baseUrl ? baseUrl.replace(/\/+$/, "") : "";
-      const redirectTo = base ? `${base}/dashboard` : "/dashboard";
-      res.redirect(redirectTo);
+      const appUrl = "https://www.gigxo.com";
+      const redirectTo = `${appUrl}/dashboard`;
+      res.redirect(302, redirectTo);
     } catch (error) {
       console.error("[Google Auth] Error:", error);
-      res.redirect("/login?error=google_failed");
+      res.redirect(302, `${GIGXO_WWW_ORIGIN}/login?error=google_failed`);
     }
   });
 }
