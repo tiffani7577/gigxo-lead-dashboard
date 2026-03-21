@@ -61,11 +61,10 @@ async function startServer() {
   const app = express();
   const server = createServer(app);
 
-  // 301 apex → www in production (behind proxies: use X-Forwarded-Host when present)
+  // MUST stay first: 301 apex → www for any path/query (OAuth often redirects to https://gigxo.com/...).
+  // Runs whenever Host/X-Forwarded-Host is gigxo.com (not only NODE_ENV=production — some hosts omit it).
+  // Behind proxies: prefer X-Forwarded-Host (see getRequestHost).
   app.use((req, res, next) => {
-    if (process.env.NODE_ENV !== "production") {
-      return next();
-    }
     const host = getRequestHost(req);
     if (host === "gigxo.com") {
       return res.redirect(301, `https://www.gigxo.com${req.originalUrl}`);
