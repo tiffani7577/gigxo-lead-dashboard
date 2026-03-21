@@ -54,13 +54,7 @@ function minimalSitemap(baseUrl: string): string {
 </urlset>`;
 }
 
-export function registerSitemapRoute(app: Express) {
-  app.get("/sitemap.xml", async (req, res) => {
-    const baseUrl = "https://www.gigxo.com";
-    res.setHeader("Content-Type", "application/xml; charset=utf-8");
-    res.setHeader("Cache-Control", "public, max-age=3600"); // Cache 1 hour
-
-    try {
+async function buildSitemapResponse(baseUrl: string): Promise<string> {
       const now = new Date().toISOString().split("T")[0];
 
       // Static pages
@@ -133,10 +127,29 @@ ${allPages
   .join("\n")}
 </urlset>`;
 
-      res.send(xml);
-    } catch (err) {
-      console.error("[Sitemap] Handler error:", err);
-      res.send(minimalSitemap(baseUrl));
-    }
+      return xml;
+}
+
+/**
+ * Register GET /sitemap.xml. Uses a sync entry + .catch() because Express 4 does not
+ * automatically forward rejected promises from async route handlers (would yield 500).
+ */
+export function registerSitemapRoute(app: Express) {
+  app.get("/sitemap.xml", (req, res) => {
+    const baseUrl = "https://www.gigxo.com";
+    res.setHeader("Content-Type", "application/xml; charset=utf-8");
+    res.setHeader("Cache-Control", "public, max-age=3600"); // Cache 1 hour
+
+    void buildSitemapResponse(baseUrl)
+      .then((xml) => {
+        res.send(xml);
+      })
+      .catch((err) => {
+        console.error("[Sitemap] Handler error:", err);
+        if (!res.headersSent) {
+          res.setHeader("Content-Type", "application/xml; charset=utf-8");
+        }
+        res.send(minimalSitemap(baseUrl));
+      });
   });
 }

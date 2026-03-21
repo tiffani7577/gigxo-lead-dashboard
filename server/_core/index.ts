@@ -48,21 +48,33 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
   throw new Error(`No available port found starting from ${startPort}`);
 }
 
+function getRequestHost(req: express.Request): string {
+  const raw =
+    (typeof req.headers["x-forwarded-host"] === "string" && req.headers["x-forwarded-host"]) ||
+    (typeof req.headers.host === "string" && req.headers.host) ||
+    "";
+  const first = raw.split(",")[0]?.trim() ?? "";
+  return first.split(":")[0].toLowerCase();
+}
+
 async function startServer() {
   const app = express();
   const server = createServer(app);
 
-  // Redirect non-www to www in production (gigxo.com → www.gigxo.com) — commented out so both domains work
-  // app.use((req, res, next) => {
-  //   const host = req.headers.host ?? "";
-  //   if (
-  //     process.env.NODE_ENV === "production" &&
-  //     (host === "gigxo.com" || host === "gigxo.com:443")
-  //   ) {
-  //     return res.redirect(301, `https://www.gigxo.com${req.originalUrl}`);
-  //   }
-  //   next();
-  // });
+  // 301 apex → www in production (behind proxies: use X-Forwarded-Host when present)
+  app.use((req, res, next) => {
+    if (process.env.NODE_ENV !== "production") {
+      return next();
+    }
+    const host = getRequestHost(req);
+    if (host === "gigxo.com") {
+      return res.redirect(301, `https://www.gigxo.com${req.originalUrl}`);
+    }
+    next();
+  });
+
+  // SEO: register before static SPA fallback so /sitemap.xml is never swallowed by index.html
+  registerSitemapRoute(app);
 
   // Stripe webhook MUST be registered BEFORE express.json() to get raw body
   registerStripeWebhook(app);
@@ -77,8 +89,6 @@ async function startServer() {
   registerMicrosoftAuthRoutes(app);
   // Outreach send (admin only, manual send only)
   registerOutreachRoutes(app);
-  // SEO sitemap
-  registerSitemapRoute(app);
   // tRPC API
   app.use(
     "/api/trpc",
