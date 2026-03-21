@@ -838,16 +838,16 @@ export default function AdminDashboard() {
               <div className="space-y-3">
                 {leads
                   .filter((lead: any) => {
-                    if (leadFilter === "approved") return true;
                     const lt = (lead as any).leadType as string | undefined;
                     if (leadPod === "marketplace") {
-                      // Sellable to artists: exclude only venue/B2B pipeline + trash; include all other leadTypes.
-                      if (lt === "venue_intelligence" || lt === "manual_outreach" || lt === "trash") return false;
-                      return true;
+                      if (!lt) return true;
+                      return lt === "scraped_signal" ||
+                             lt === "client_submitted" ||
+                             lt === "referral";
                     }
                     if (leadPod === "venue") {
-                      // Venue intelligence + manual outreach
-                      return lt === "venue_intelligence" || lt === "manual_outreach";
+                      return lt === "venue_intelligence" ||
+                             lt === "manual_outreach";
                     }
                     if (leadPod === "artist") {
                       // Artist acquisition placeholder: for now, surface client_submitted and referral leads
