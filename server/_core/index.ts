@@ -48,25 +48,26 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
   throw new Error(`No available port found starting from ${startPort}`);
 }
 
-function getRequestHost(req: express.Request): string {
-  const raw =
-    (typeof req.headers["x-forwarded-host"] === "string" && req.headers["x-forwarded-host"]) ||
-    (typeof req.headers.host === "string" && req.headers.host) ||
-    "";
-  const first = raw.split(",")[0]?.trim() ?? "";
-  return first.split(":")[0].toLowerCase();
-}
-
 async function startServer() {
   const app = express();
+  // Railway / reverse proxies: correct client IP, protocol, and host for redirects.
+  // In Railway project variables, set RAILWAY_TRUST_PROXY=true (recommended with this app).
+  app.set("trust proxy", true);
   const server = createServer(app);
 
-  // MUST stay first: 301 apex → www for any path/query (OAuth often redirects to https://gigxo.com/...).
-  // Runs whenever Host/X-Forwarded-Host is gigxo.com (not only NODE_ENV=production — some hosts omit it).
-  // Behind proxies: prefer X-Forwarded-Host (see getRequestHost).
+  // MUST stay first: 301 apex → www. Aggressive host detection for proxy chains (X-Forwarded-Host, Host).
   app.use((req, res, next) => {
-    const host = getRequestHost(req);
+    const forwarded = req.headers["x-forwarded-host"];
+    const host = (Array.isArray(forwarded)
+      ? forwarded[0]
+      : forwarded || req.headers.host || "")
+      .split(",")[0]
+      .trim()
+      .replace(/:\d+$/, "")
+      .toLowerCase();
+
     if (host === "gigxo.com") {
+      const proto = req.headers["x-forwarded-proto"] || "https";
       return res.redirect(301, `https://www.gigxo.com${req.originalUrl}`);
     }
     next();

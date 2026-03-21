@@ -24,6 +24,7 @@ The app expects:
 | **BUILT_IN_FORGE_API_URL** | Storage (profile image, tracks) — Forge proxy |
 | **BUILT_IN_FORGE_API_KEY** | Storage auth |
 | **PORT** | Optional; default 3000 |
+| **RAILWAY_TRUST_PROXY** | Set `true` on Railway so edge/proxy headers align with `app.set("trust proxy", true)` and apex→www redirects |
 
 Optional for launch: MICROSOFT_* (outreach inbox), APIFY_API_TOKEN, SCRAPER_API_KEY, OAUTH_SERVER_URL, VITE_APP_ID, OWNER_OPEN_ID, etc.
 
