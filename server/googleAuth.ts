@@ -71,15 +71,26 @@ export function registerGoogleAuthRoutes(app: Express) {
 
   // Step 2: Handle Google callback — exchange code, fetch profile, find/create user, set session, redirect into app
   app.get("/api/auth/google/callback", async (req: Request, res: Response) => {
+    console.log(
+      "[oauth] callback hit, host:",
+      req.headers.host,
+      "forwarded:",
+      req.headers["x-forwarded-host"],
+    );
+
     const { clientId, clientSecret, redirectUri, configured } = getGoogleConfig(req);
     if (!configured || !clientId || !clientSecret || !redirectUri) {
-      return res.redirect(302, `${GIGXO_WWW_ORIGIN}/login?error=google_failed`);
+      const redirectTo = `${GIGXO_WWW_ORIGIN}/login?error=google_failed`;
+      console.log("[oauth] redirecting to:", redirectTo);
+      return res.redirect(302, redirectTo);
     }
 
     const code = req.query.code as string;
 
     if (!code) {
-      return res.redirect(302, `${GIGXO_WWW_ORIGIN}/login?error=google_cancelled`);
+      const redirectTo = `${GIGXO_WWW_ORIGIN}/login?error=google_cancelled`;
+      console.log("[oauth] redirecting to:", redirectTo);
+      return res.redirect(302, redirectTo);
     }
 
     try {
@@ -134,10 +145,13 @@ export function registerGoogleAuthRoutes(app: Express) {
 
       const appUrl = "https://www.gigxo.com";
       const redirectTo = `${appUrl}/dashboard`;
+      console.log("[oauth] redirecting to:", redirectTo);
       res.redirect(302, redirectTo);
     } catch (error) {
       console.error("[Google Auth] Error:", error);
-      res.redirect(302, `${GIGXO_WWW_ORIGIN}/login?error=google_failed`);
+      const redirectTo = `${GIGXO_WWW_ORIGIN}/login?error=google_failed`;
+      console.log("[oauth] redirecting to:", redirectTo);
+      res.redirect(302, redirectTo);
     }
   });
 }
