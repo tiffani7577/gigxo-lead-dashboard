@@ -840,6 +840,11 @@ export default function AdminDashboard() {
                   .filter((lead: any) => {
                     const lt = (lead as any).leadType as string | undefined;
                     if (leadPod === "marketplace") {
+                      const lc = (lead as any).leadCategory as string | undefined;
+                      const src = (lead as any).source as string | undefined;
+                      // Exclude venue intelligence leads even if leadType is null
+                      if (lc === "venue_intelligence") return false;
+                      if (src === "google_maps") return false;
                       if (!lt) return true;
                       return lt === "scraped_signal" ||
                              lt === "client_submitted" ||
