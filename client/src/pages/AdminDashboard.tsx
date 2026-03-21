@@ -835,7 +835,7 @@ export default function AdminDashboard() {
                 </Button>
               </div>
             ) : leads && leads.length > 0 ? (
-              <div className={leadFilter === "approved" ? "space-y-3 max-h-[70vh] overflow-y-auto pr-1" : "space-y-3"}>
+              <div className="space-y-3">
                 {leads
                   .filter((lead: any) => {
                     const lt = (lead as any).leadType as string | undefined;
