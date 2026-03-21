@@ -319,25 +319,9 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
     return { otherCities, relatedServices };
   })();
 
-  // Optional JSON-LD structured data for SEO (FAQ + Service/Offer)
+  // Optional JSON-LD structured data for SEO (Service only — FAQPage is emitted once next to the FAQ section)
   const jsonLdScripts: string[] = [];
   try {
-    if (faq.length > 0) {
-      jsonLdScripts.push(
-        JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "FAQPage",
-          mainEntity: faq.map((item) => ({
-            "@type": "Question",
-            name: item?.question ?? "",
-            acceptedAnswer: {
-              "@type": "Answer",
-              text: item?.answer ?? "",
-            },
-          })),
-        }),
-      );
-    }
     jsonLdScripts.push(
       JSON.stringify({
         "@context": "https://schema.org",
