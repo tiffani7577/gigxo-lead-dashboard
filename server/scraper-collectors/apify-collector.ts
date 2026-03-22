@@ -4,6 +4,7 @@
 
 import { ApifyClient } from "apify-client";
 import type { RawLeadDoc } from "./raw-lead-doc";
+import { CRAIGSLIST_RSS_FETCH_HEADERS } from "./scrape-fetch-headers";
 
 const REDDIT_SEARCHES = [
   "need a dj miami",
@@ -376,7 +377,7 @@ async function collectCraigslistRss(): Promise<RawLeadDoc[]> {
   for (const { url, city } of CRAIGSLIST_RSS_URLS) {
     try {
       const res = await fetch(url, {
-        headers: { "User-Agent": "GigxoScraper/1.0 (+https://gigxo.com)" },
+        headers: { ...CRAIGSLIST_RSS_FETCH_HEADERS },
       });
       if (!res.ok) continue;
       const xml = await res.text();

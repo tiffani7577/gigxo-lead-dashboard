@@ -4,11 +4,12 @@
  */
 
 import type { RawLeadDoc } from "./raw-lead-doc";
+import { CRAIGSLIST_RSS_FETCH_HEADERS } from "./scrape-fetch-headers";
 
 async function safeFetch(url: string): Promise<string | null> {
   try {
     const res = await fetch(url, {
-      headers: { "User-Agent": "GigxoScraper/1.0 (+https://gigxo.com)" },
+      headers: { ...CRAIGSLIST_RSS_FETCH_HEADERS },
     });
     if (!res.ok) {
       console.warn("[craigslist-collector] Fetch failed", url, res.status);

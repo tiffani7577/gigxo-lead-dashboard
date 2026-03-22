@@ -5,6 +5,7 @@
  */
 
 import type { RawDocument } from "../scraper";
+import { REDDIT_JSON_FETCH_HEADERS } from "./scrape-fetch-headers";
 
 // Keyword filters (same as in scraper.ts)
 const SEEKING_KEYWORDS = [
@@ -178,11 +179,7 @@ export async function collectFromRedditExpanded(market: { id: string; displayNam
   for (const query of queries) {
     try {
       const response = await fetch(query.url, {
-        headers: {
-          "User-Agent": "Gigxo/1.0 (Lead scraper for entertainment gigs; contact: support@gigxo.com)",
-          "Accept": "application/json",
-          "Accept-Language": "en-US,en;q=0.9",
-        },
+        headers: { ...REDDIT_JSON_FETCH_HEADERS },
       });
 
       if (!response.ok) {
