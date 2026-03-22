@@ -293,7 +293,7 @@ export default function LiveLeadSearch() {
             <CardHeader>
               <CardTitle>Results</CardTitle>
               <CardDescription>
-                Collected {stats.collected} → negative rejected: {stats.negativeRejected}, intent rejected: {stats.intentRejected}, not a buyer: {stats.classificationRejected ?? 0}, accepted: {stats.accepted}
+                Collected {stats.collected} → negative rejected: {stats.negativeRejected}, intent rejected: {stats.intentRejected}, accepted: {stats.accepted}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">

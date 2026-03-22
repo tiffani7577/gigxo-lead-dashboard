@@ -2618,30 +2618,21 @@ export const appRouter = router({
             const leadTier = (lead as any).leadTier ?? undefined;
             const { getLeadUnlockPriceCents } = await import("../shared/leadPricing");
             const unlockPriceCents = getLeadUnlockPriceCents(lead.budget, null, leadTier);
-            const formattedFull = String((lead as any).fullDescription ?? lead.description ?? "").trim();
-            const formattedPreview = String((lead as any).publicPreviewDescription ?? "").trim();
-            const pricingReason = String((lead as any).pricingReason ?? "").trim();
-            const noteParts: string[] = [];
-            if (needsEnrichment) noteParts.push("needs_enrichment");
-            if (pricingReason) noteParts.push(`[Pricing] ${pricingReason}`);
-            const notesJoined = noteParts.length > 0 ? noteParts.join("\n\n") : undefined;
             const insertData: any = {
               externalId:    lead.externalId,
               source:        lead.source as any,
               sourceLabel:   lead.sourceLabel ?? null,
               title:         lead.title,
-              description:   formattedFull || lead.description,
+              description:   lead.description,
               rawText:       lead.rawText ?? null,
-              fullDescription: formattedFull || lead.description,
-              publicPreviewDescription:
-                formattedPreview ||
-                buildPublicPreviewDescription({
-                  fullDescription: (formattedFull || lead.description) ?? "",
-                  eventType: lead.eventType,
-                  location: lead.location,
-                  eventDate: lead.eventDate,
-                  performerType: lead.performerType,
-                }),
+              fullDescription: lead.description,
+              publicPreviewDescription: buildPublicPreviewDescription({
+                fullDescription: lead.description ?? "",
+                eventType: lead.eventType,
+                location: lead.location,
+                eventDate: lead.eventDate,
+                performerType: lead.performerType,
+              }),
               eventType:     lead.eventType,
               budget:        lead.budget,
               location:      lead.location,
@@ -2662,9 +2653,8 @@ export const appRouter = router({
               isRejected:    false,
               isHidden:      false,
               isReserved:    false,
-              notes:         notesJoined,
+              notes:         needsEnrichment ? "needs_enrichment" : undefined,
               status:        (lead as any).status ?? undefined,
-              regionTag:     (lead as any).regionTag ?? undefined,
             };
             await db.insert(gigLeads).values(insertData);
             inserted++;
@@ -2773,7 +2763,6 @@ export const appRouter = router({
           errors:     stats.errors,
           saved:      inserted,
           duplicates: skipped,
-          classificationRejected: stats.classificationRejected,
           message:    `Scraped ${stats.collected} posts → ${inserted} new leads added to approval queue`,
           sourceCounts,
         };
@@ -3795,12 +3784,6 @@ export const appRouter = router({
           venueUrl: z.string(),
           performerType: z.string(),
           intentScore: z.number().optional(),
-          leadTier: z.enum(["starter_friendly", "standard", "premium"]).optional(),
-          publicPreviewDescription: z.string().optional().nullable(),
-          fullDescription: z.string().optional().nullable(),
-          pricingReason: z.string().optional().nullable(),
-          regionTag: z.enum(["miami", "fort_lauderdale", "boca", "west_palm", "south_florida"]).optional().nullable(),
-          rawText: z.string().optional().nullable(),
         })),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -3840,30 +3823,12 @@ export const appRouter = router({
             continue;
           }
           try {
-            const formattedFull = String(lead.fullDescription ?? lead.description ?? "").trim();
-            const formattedPreview = String(lead.publicPreviewDescription ?? "").trim();
-            const pricingReason = String(lead.pricingReason ?? "").trim();
-            const notesFromPricing = pricingReason ? `[Pricing] ${pricingReason}` : undefined;
-            const { getLeadUnlockPriceCents } = await import("../shared/leadPricing");
-            const unlockPriceCents = getLeadUnlockPriceCents(lead.budget ?? null, null, lead.leadTier as any);
             const insertRow = {
               externalId: lead.externalId,
               source: lead.source as any,
               sourceLabel: lead.sourceLabel ?? null,
               title: lead.title,
-              description: formattedFull || lead.description || null,
-              fullDescription: formattedFull || lead.description || null,
-              publicPreviewDescription:
-                formattedPreview ||
-                buildPublicPreviewDescription({
-                  fullDescription: formattedFull || String(lead.description ?? ""),
-                  eventType: lead.eventType,
-                  location: lead.location,
-                  eventDate: lead.eventDate,
-                  performerType: lead.performerType,
-                }) ||
-                null,
-              rawText: lead.rawText ?? null,
+              description: lead.description ?? null,
               eventType: lead.eventType ?? null,
               budget: lead.budget ?? null,
               location: lead.location,
@@ -3876,10 +3841,6 @@ export const appRouter = router({
               venueUrl: lead.venueUrl ?? null,
               performerType: (lead.performerType as any) ?? "other",
               intentScore: lead.intentScore ?? null,
-              leadTier: lead.leadTier as any,
-              unlockPriceCents,
-              regionTag: lead.regionTag ?? undefined,
-              notes: notesFromPricing,
               isApproved: false,
               isRejected: false,
               isHidden: false,

@@ -22,11 +22,6 @@ import { collectFromApify, cityFromPostText } from "./apify-collector";
 import { getEnabledLeadSourceKeys } from "./source-config";
 import type { RawLeadDoc } from "./raw-lead-doc";
 import { extractContactFromRawLeadDoc } from "../contact-extraction";
-import {
-  classifyBuyerLeadForDashboard,
-  formatLeadForDashboard as applyDashboardFormat,
-  assertFullDescriptionEndsWithSourceUrl,
-} from "./lead-dashboard-format";
 
 // Re-export for backward compat and for future collectors
 export type { RawDoc };
@@ -46,8 +41,6 @@ export interface PipelineStats {
   intentRejected: number;  // trash: rejected by intent gate
   /** Total docs routed to trash (negativeRejected + intentRejected); separated from usable opportunities */
   trashCount: number;
-  /** Rejected: not a buyer_request (self-promo, gig-seeking, etc.) */
-  classificationRejected: number;
 }
 
 export interface PipelineResult {
@@ -83,16 +76,8 @@ export interface ScrapedLead {
   isApproved: boolean;           // false = goes to admin approval queue
   leadType?: "scraped_signal" | "client_submitted" | "venue_intelligence" | "referral" | "manual_outreach";
   leadCategory?: "general" | "wedding" | "corporate" | "private_party" | "club" | "other" | "venue_intelligence";
-  /** Auto-assigned from contact + source + intent: starter_friendly ($3), standard ($7), premium ($15) */
+  /** Auto-assigned from contact + source + intent: starter_friendly ($1), standard ($7), premium ($15) */
   leadTier?: "starter_friendly" | "standard" | "premium";
-  /** Rule-based preview (no URL); set by formatLeadForDashboard for buyer leads */
-  publicPreviewDescription?: string | null;
-  /** Full copy after unlock; ends with Original post link */
-  fullDescription?: string | null;
-  /** Appended to gigLeads.notes on insert */
-  pricingReason?: string | null;
-  /** gigLeads.regionTag; null when not South Florida */
-  regionTag?: "miami" | "fort_lauderdale" | "boca" | "west_palm" | "south_florida" | null;
 }
 
 // ─── Intent classifier (lightweight local version) ────────────────────────────
@@ -615,16 +600,6 @@ function buildDescriptionFromRawLeadDoc(doc: RawLeadDoc, subredditHint: string):
   return `${desc}\n\nSource: ${doc.url}`;
 }
 
-/**
- * Rule-based title, preview, full description (with Original post link), tier, regionTag, pricingReason.
- * Mutates `lead`. Do not use for DBPR / venue-intelligence docs.
- */
-export function formatLeadForDashboard(doc: RawLeadDoc, lead: ScrapedLead): void {
-  applyDashboardFormat(doc, lead as any);
-}
-
-export { classifyBuyerLeadForDashboard, assertFullDescriptionEndsWithSourceUrl };
-
 // ─── RawLeadDoc → legacy RawDoc for backward-compat return ─────────────────────
 
 function rawLeadDocToLegacyDoc(doc: RawLeadDoc): RawDoc {
@@ -665,7 +640,6 @@ export async function runScraperPipeline(
     negativeRejected: 0,
     intentRejected: 0,
     trashCount: 0,
-    classificationRejected: 0,
   };
 
   // Step 1 — Which sources are enabled (source config), minus any excluded by options
@@ -745,7 +719,6 @@ export async function runScraperPipeline(
         doc.source === "dbpr" ||
         doc.sourceType === "sunbiz" ||
         doc.source === "sunbiz" ||
-        doc.source === "google_maps" ||
         doc.metadata?.leadType === "venue_intelligence";
       if (isVenueIntel) {
         const lead = rawLeadDocToLead(doc, 50);
@@ -791,13 +764,6 @@ export async function runScraperPipeline(
         stats.filtered++;
         continue;
       }
-
-      // Buyer vs self-promo / gig-seeking (scraped entertainment leads only)
-      if (classifyBuyerLeadForDashboard(doc, lead) !== "buyer_request") {
-        stats.classificationRejected++;
-        continue;
-      }
-
       if (passesContactGate(lead)) {
         // TIER 1 — Has contact: auto-approve if intent >= 65 and other conditions
         const sourceStr = (lead as { source?: string }).source;
@@ -809,13 +775,6 @@ export async function runScraperPipeline(
           passesContactGate(lead);
         lead.isApproved = autoApprove;
         if (autoApprove) (lead as any).autoApproved = true;
-        try {
-          formatLeadForDashboard(doc, lead);
-        } catch (fmtErr) {
-          stats.errors++;
-          console.error("[scraper-pipeline] formatLeadForDashboard failed:", doc.externalId, fmtErr);
-          continue;
-        }
         tier1Count++;
         leads.push(lead);
         stats.filtered++;
@@ -823,13 +782,6 @@ export async function runScraperPipeline(
         // TIER 2 — No contact but high intent + allowed source: insert pending enrichment
         lead.isApproved = false;
         (lead as any).needsEnrichment = true;
-        try {
-          formatLeadForDashboard(doc, lead);
-        } catch (fmtErr) {
-          stats.errors++;
-          console.error("[scraper-pipeline] formatLeadForDashboard failed:", doc.externalId, fmtErr);
-          continue;
-        }
         tier2Count++;
         leads.push(lead);
         stats.filtered++;
@@ -884,7 +836,6 @@ export async function runScraperPipeline(
     trashCount: stats.trashCount,
     negativeRejected: stats.negativeRejected,
     intentRejected: stats.intentRejected,
-    classificationRejected: stats.classificationRejected,
     accepted: leadsForOutput.length,
   });
 
@@ -961,13 +912,7 @@ export interface LiveSearchResultItem {
 
 export interface LiveSearchResult {
   results: LiveSearchResultItem[];
-  stats: {
-    collected: number;
-    negativeRejected: number;
-    intentRejected: number;
-    classificationRejected: number;
-    accepted: number;
-  };
+  stats: { collected: number; negativeRejected: number; intentRejected: number; accepted: number };
 }
 
 export async function runLiveLeadSearch(params: LiveSearchParams): Promise<LiveSearchResult> {
@@ -1014,13 +959,7 @@ export async function runLiveLeadSearch(params: LiveSearchParams): Promise<LiveS
   }
   rawLeadDocs = rawLeadDocs.slice(0, maxResults);
 
-  const stats = {
-    collected: rawLeadDocs.length,
-    negativeRejected: 0,
-    intentRejected: 0,
-    classificationRejected: 0,
-    accepted: 0,
-  };
+  const stats = { collected: rawLeadDocs.length, negativeRejected: 0, intentRejected: 0, accepted: 0 };
   const results: LiveSearchResultItem[] = [];
 
   for (const doc of rawLeadDocs) {
@@ -1047,26 +986,6 @@ export async function runLiveLeadSearch(params: LiveSearchParams): Promise<LiveS
       }
       const intentScore = localIntentScoreWithLists(normalized, negativeList, includeList);
       const lead = rawLeadDocToLead(doc, intentScore);
-      if (classifyBuyerLeadForDashboard(doc, lead) !== "buyer_request") {
-        stats.classificationRejected++;
-        results.push({
-          doc: legacyDoc,
-          status: "intent_rejected",
-          reason: "Not a buyer request (self-promo, gig-seeking, or unclear)",
-        });
-        continue;
-      }
-      try {
-        formatLeadForDashboard(doc, lead);
-      } catch (fmtErr) {
-        stats.intentRejected++;
-        results.push({
-          doc: legacyDoc,
-          status: "intent_rejected",
-          reason: fmtErr instanceof Error ? fmtErr.message : "Dashboard format error",
-        });
-        continue;
-      }
       stats.accepted++;
       results.push({
         doc: legacyDoc,
