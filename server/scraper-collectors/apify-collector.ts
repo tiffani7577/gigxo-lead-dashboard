@@ -101,6 +101,8 @@ const FACEBOOK_GROUP_URLS = [
   "https://www.facebook.com/groups/miamicorporateevents",
   "https://www.facebook.com/groups/djjobsdjneeddj",
   "https://www.facebook.com/groups/southfloridaweddingvendors",
+  "https://www.facebook.com/groups/fortlauderdalebrides",
+  "https://www.facebook.com/groups/southfloridaeventplanning",
 ];
 
 const FACEBOOK_POST_KEYWORDS = ["dj", "entertainment", "performer", "band", "musician"];
@@ -202,6 +204,12 @@ const GOOGLE_SERP_QUERIES = [
   'site:bark.com/quotes "dj" "fort lauderdale"',
   'site:thumbtack.com/hire "dj" "miami, fl"',
   'site:thumbtack.com/hire "dj" "fort lauderdale"',
+  "site:bark.com DJ Miami request",
+  "site:bark.com DJ Fort Lauderdale",
+  "site:bark.com wedding DJ South Florida",
+  "site:thebash.com DJ Miami",
+  "site:weddingwire.com DJ needed Miami",
+  "site:theknot.com DJ Fort Lauderdale",
   // WeddingWire and Knot forum posts
   'site:weddingwire.com/discuss "dj" "miami" 2026',
   'site:theknot.com/forums "dj" "miami" 2026',
