@@ -19,6 +19,7 @@ interface FormData {
   description: string;
   name: string;
   email: string;
+  phone: string;
   // Yacht calculator fields (used when calculatorVariant === "yachtCost")
   durationHours?: string;
   guestCount?: string;
@@ -83,6 +84,7 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
     description: "",
     name: "",
     email: "",
+    phone: "",
     durationHours: "",
     guestCount: "",
     yachtEventType: "",
@@ -185,6 +187,7 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
         description: finalDescription,
         contactName: formData.name,
         contactEmail: formData.email,
+        contactPhone: formData.phone.trim() || undefined,
         pageSlug: slug,
       });
       setSubmitted(true);
@@ -197,6 +200,7 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
           description: "",
           name: "",
           email: "",
+          phone: "",
           durationHours: "",
           guestCount: "",
           yachtEventType: "",
@@ -294,6 +298,15 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     placeholder="your@email.com"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Phone Number</label>
+                  <Input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    placeholder="Your phone number"
                   />
                 </div>
                 <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700" disabled={submitEventRequest.isPending}>
@@ -802,6 +815,16 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       placeholder="your@email.com"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Phone Number</label>
+                    <Input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      placeholder="Your phone number"
                     />
                   </div>
 

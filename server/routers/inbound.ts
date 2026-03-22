@@ -64,7 +64,7 @@ export const inboundRouter = router({
           eventDate: new Date(input.eventDate),
           contactName: input.contactName,
           contactEmail: input.contactEmail,
-          contactPhone: input.contactPhone || null,
+          contactPhone: input.contactPhone ?? null,
           performerType: (performerTypeMap[input.eventType] || "other") as any,
           isApproved: true,
           isRejected: false,
