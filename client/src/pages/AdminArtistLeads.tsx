@@ -38,7 +38,7 @@ We send DJs real event leads.
 
 Right now we have new South Florida party leads.
 
-Leads unlock for $7.
+Leads unlock for starting at $3.
 
 Want the link?`;
 
