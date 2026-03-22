@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
@@ -31,16 +31,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Search, RefreshCw, ExternalLink, Copy, Check, UserPlus, Users, DollarSign, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
-
-const OUTREACH_SCRIPT = `Hey — I run Gigxo.
-
-We send DJs real event leads.
-
-Right now we have new South Florida party leads.
-
-Leads unlock for starting at $3.
-
-Want the link?`;
+import { useAuth } from "@/_core/hooks/useAuth";
 
 const STATUS_OPTIONS = [
   { value: "all", label: "All statuses" },
@@ -70,7 +61,11 @@ function statusLabel(s: string) {
   return labels[s] ?? s;
 }
 
+type ScriptTab = "snarky" | "executive" | "fomo";
+
 export default function AdminArtistLeads() {
+  const { user } = useAuth();
+  const [activeScript, setActiveScript] = useState<ScriptTab>("snarky");
   const [search, setSearch] = useState("");
   const [city, setCity] = useState("");
   const [genre, setGenre] = useState("");
@@ -96,6 +91,9 @@ export default function AdminArtistLeads() {
 
   const { data: list = [], isLoading, refetch } = trpc.admin.getArtistOutreachList.useQuery(filters);
   const { data: stats } = trpc.admin.getArtistOutreachStats.useQuery();
+  const { data: sampleLead, refetch: refreshLead } = trpc.leads.getRandomMarketplaceLead.useQuery(undefined, {
+    enabled: user?.role === "admin",
+  });
   const createMutation = trpc.admin.createArtistOutreach.useMutation({
     onSuccess: () => {
       toast.success("Artist added");
@@ -112,8 +110,65 @@ export default function AdminArtistLeads() {
     onError: (e) => toast.error(e.message),
   });
 
+  const leadSnippet = useMemo(() => {
+    if (!sampleLead) return "a wedding in Fort Lauderdale — budget around $800";
+    return [
+      sampleLead.eventType ?? "event",
+      sampleLead.location ? `in ${sampleLead.location}` : "in South Florida",
+      sampleLead.budget ? `— budget around $${Math.round(sampleLead.budget / 100)}` : "",
+      sampleLead.eventDate
+        ? `on ${new Date(sampleLead.eventDate).toLocaleDateString("en-US", { month: "long", day: "numeric" })}`
+        : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
+  }, [sampleLead]);
+
+  const scripts = useMemo(
+    () => ({
+      snarky: `hey — saw your page
+
+while you were on here a client posted looking 
+for a DJ for ${leadSnippet}
+
+they didn't find you yet
+
+gigxo.com — leads start at $3
+
+just saying`,
+      executive: `Hi [Name],
+
+Earlier today a client posted looking for a DJ 
+for ${leadSnippet}.
+
+We thought of you.
+
+Gigxo pulls real booking requests daily from 
+South Florida clients. You unlock the contact 
+info and reach out directly. No commission ever.
+
+First lead is $1.
+
+gigxo.com
+
+— Teryn
+Gigxo South Florida`,
+      fomo: `hey quick update —
+
+that lead I mentioned? ${leadSnippet}
+
+3 other DJs viewed it today
+
+just wanted you to know before someone else 
+picks it up
+
+gigxo.com`,
+    }),
+    [leadSnippet]
+  );
+
   const copyScript = () => {
-    navigator.clipboard.writeText(OUTREACH_SCRIPT);
+    navigator.clipboard.writeText(scripts[activeScript]);
     setCopied(true);
     toast.success("Outreach script copied");
     setTimeout(() => setCopied(false), 2000);
@@ -171,20 +226,48 @@ export default function AdminArtistLeads() {
           </Card>
         </div>
 
-        {/* Outreach script */}
+        {/* Outreach scripts */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Outreach script</CardTitle>
-            <CardDescription>Copy and paste when reaching out on Instagram (manual only).</CardDescription>
+            <CardTitle className="text-base">Outreach Scripts</CardTitle>
+            <CardDescription>Real lead auto-inserted. Copy and send.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-2">
-            <pre className="text-sm bg-muted/50 p-4 rounded-md whitespace-pre-wrap font-sans">
-              {OUTREACH_SCRIPT}
+          <CardContent>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {(
+                [
+                  { key: "snarky" as const, label: "Snarky DM" },
+                  { key: "executive" as const, label: "Executive Email" },
+                  { key: "fomo" as const, label: "FOMO Follow-up" },
+                ] as const
+              ).map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setActiveScript(tab.key)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                    activeScript === tab.key
+                      ? "bg-purple-600 text-white"
+                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+            <pre className="text-sm bg-muted/50 p-4 rounded-md whitespace-pre-wrap font-sans mb-3">
+              {scripts[activeScript]}
             </pre>
-            <Button variant="outline" size="sm" onClick={copyScript}>
-              {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
-              {copied ? "Copied" : "Copy script"}
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" onClick={copyScript}>
+                {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+                {copied ? "Copied" : "Copy script"}
+              </Button>
+              <Button variant="outline" size="sm" type="button" onClick={() => refreshLead()} disabled={!user || user.role !== "admin"}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                New sample lead
+              </Button>
+            </div>
           </CardContent>
         </Card>
 

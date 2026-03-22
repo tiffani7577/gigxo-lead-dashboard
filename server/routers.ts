@@ -1587,6 +1587,36 @@ export const appRouter = router({
           });
         }
       }),
+
+    /** Admin: one random approved marketplace-style lead for outreach script snippets */
+    getRandomMarketplaceLead: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+      const { getDb } = await import("./db");
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+      const { gigLeads } = await import("../drizzle/schema");
+      const lead = await db
+        .select({
+          id: gigLeads.id,
+          title: gigLeads.title,
+          eventType: gigLeads.eventType,
+          location: gigLeads.location,
+          budget: gigLeads.budget,
+          eventDate: gigLeads.eventDate,
+        })
+        .from(gigLeads)
+        .where(
+          and(
+            eq(gigLeads.isApproved, true),
+            eq(gigLeads.isRejected, false),
+            eq(gigLeads.isHidden, false),
+            eq(gigLeads.artistUnlockEnabled, true),
+          )
+        )
+        .orderBy(sql`RAND()`)
+        .limit(1);
+      return lead[0] ?? null;
+    }),
   }),
   
   // Referral procedures
