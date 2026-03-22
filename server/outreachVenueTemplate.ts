@@ -9,26 +9,38 @@ export interface VenueTemplateInput {
   contactName?: string | null;
 }
 
-const DEFAULT_SUBJECT = "Congratulations on opening {{venueName}} 🎉 — Free entertainment quotes inside";
+function toTitleCase(name: string): string {
+  if (!name.trim()) return name;
+  return name
+    .split(/\s+/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+}
 
-const DEFAULT_BODY = `Hi {{ownerName}},
+const DEFAULT_SUBJECT = "Quick question about entertainment for {{venueName}}";
 
-Congratulations on opening {{venueName}} in {{city}}!
+const DEFAULT_BODY = `Hey {{ownerName}},
 
-We noticed you recently received your license and wanted to reach out at the perfect time.
+Congrats on the new spot in {{city}},
+exciting time.
 
-I run Gigxo — a South Florida entertainment marketplace connecting new venues with verified DJs, live bands, and performers.
+I run Gigxo, we connect South Florida venues
+with local DJs, live acts, and performers.
+Thought I'd reach out while you're still in
+the setup phase, since that's usually when
+it's easiest to lock in your entertainment
+situation before opening night chaos hits.
 
-We'd love to send you 3 free entertainment quotes from artists who specialize in venues just like yours — no commitment, no cost to you.
+We work with vetted performers across Miami,
+Fort Lauderdale, and Boca; everything from
+background lounge sets to full club nights.
 
-New venues that book entertainment in their first 60 days see significantly higher opening night attendance and social media buzz.
+No fees to you. We send you a few options,
+you pick who fits.
 
-Interested? Just reply to this email and I'll send you your free quotes within 24 hours.
+Worth a quick conversation?
 
-Looking forward to helping {{venueName}} have an incredible opening,
-
-Teryn
-Gigxo — South Florida Entertainment
+-Teryn
 gigxo.com`;
 
 function extractCity(location: string | null | undefined): string {
@@ -41,7 +53,8 @@ function extractCity(location: string | null | undefined): string {
 }
 
 export function renderVenueTemplate(venue: VenueTemplateInput): { subject: string; body: string } {
-  const venueName = venue.title?.trim() || "your venue";
+  const rawTitle = venue.title?.trim() || "";
+  const venueName = rawTitle ? toTitleCase(rawTitle) : "your venue";
   const city = extractCity(venue.location);
   const ownerName = venue.contactName?.trim() || "there";
 
