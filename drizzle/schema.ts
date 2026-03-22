@@ -205,7 +205,7 @@ export const gigLeads = mysqlTable("gigLeads", {
     "archived",
   ]),
   subscriptionVisibility: boolean("subscriptionVisibility").default(false).notNull(),
-  regionTag: mysqlEnum("regionTag", ["miami", "fort_lauderdale", "boca", "west_palm", "south_florida"]),
+  regionTag: mysqlEnum("regionTag", ["miami", "fort_lauderdale", "boca", "west_palm", "south_florida", "nationwide"]),
   /** Admin kill-switch for marketplace unlock flow (default true for backward compat). */
   artistUnlockEnabled: boolean("artistUnlockEnabled").default(true).notNull(),
   /** Admin: restrict unlock to premium subscribers only (default false). */

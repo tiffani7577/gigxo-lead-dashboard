@@ -78,6 +78,8 @@ export interface ScrapedLead {
   leadCategory?: "general" | "wedding" | "corporate" | "private_party" | "club" | "other" | "venue_intelligence";
   /** Auto-assigned from contact + source + intent: starter_friendly ($1), standard ($7), premium ($15) */
   leadTier?: "starter_friendly" | "standard" | "premium";
+  /** Scraped demand leads: South Florida vs nationwide (from location token match); persisted to gigLeads.regionTag */
+  regionTag?: "south_florida" | "nationwide";
 }
 
 // ─── Intent classifier (lightweight local version) ────────────────────────────
@@ -428,6 +430,11 @@ function passesGeoFilter(location: string | null | undefined): boolean {
   return SOUTH_FLORIDA_GEO_TOKENS.some((token) => lower.includes(token));
 }
 
+/** Region tag for marketplace segmentation; does not drop leads — use with passesGeoFilter. */
+export function regionTagFromLocation(location: string | null | undefined): "south_florida" | "nationwide" {
+  return passesGeoFilter(location) ? "south_florida" : "nationwide";
+}
+
 function postedAtWithin30OrNull(postedAt: Date | string | null | undefined): boolean {
   if (postedAt == null) return true;
   const d = new Date(postedAt);
@@ -752,11 +759,8 @@ export async function runScraperPipeline(
         }
       }
 
-      // Non-DBPR only: geo filter — skip if location populated and not in South Florida
-      if (lead.location && String(lead.location).trim() && !passesGeoFilter(lead.location)) {
-        console.log("[pipeline] Rejected out of market:", lead.title);
-        continue;
-      }
+      // Non-DBPR only: tag by region (never drop by location — nationwide shows under Nationwide)
+      lead.regionTag = regionTagFromLocation(lead.location);
 
       // Three-tier contact gate: DBPR and inbound bypass; others go through Tier1 / Tier2 / Tier3
       if (lead.source === "dbpr" || (lead as { source?: string }).source === "inbound") {

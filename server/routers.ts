@@ -2165,7 +2165,7 @@ export const appRouter = router({
         outreachStatus: z.enum(["not_sent", "queued", "sent", "replied", "interested", "not_interested", "bounced"]).optional(),
         venueClientStatus: z.enum(["prospect", "contacted", "qualified", "active_client", "archived"]).optional(),
         subscriptionVisibility: z.boolean().optional(),
-        regionTag: z.enum(["miami", "fort_lauderdale", "boca", "west_palm", "south_florida"]).optional(),
+        regionTag: z.enum(["miami", "fort_lauderdale", "boca", "west_palm", "south_florida", "nationwide"]).optional(),
         artistUnlockEnabled: z.boolean().optional(),
         premiumOnly: z.boolean().optional(),
         outreachNextFollowUpAt: z.date().optional(),
@@ -2685,6 +2685,7 @@ export const appRouter = router({
               isReserved:    false,
               notes:         needsEnrichment ? "needs_enrichment" : undefined,
               status:        (lead as any).status ?? undefined,
+              regionTag:     (lead as any).regionTag ?? undefined,
             };
             await db.insert(gigLeads).values(insertData);
             inserted++;
@@ -2913,7 +2914,7 @@ export const appRouter = router({
         outreachStatus: z.enum(["not_sent", "queued", "sent", "replied", "interested", "not_interested", "bounced"]).optional(),
         venueClientStatus: z.enum(["prospect", "contacted", "qualified", "active_client", "archived"]).optional(),
         subscriptionVisibility: z.boolean().optional(),
-        regionTag: z.enum(["miami", "fort_lauderdale", "boca", "west_palm", "south_florida"]).optional(),
+        regionTag: z.enum(["miami", "fort_lauderdale", "boca", "west_palm", "south_florida", "nationwide"]).optional(),
       }))
       .query(async ({ ctx, input }) => {
         if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
@@ -3049,7 +3050,7 @@ export const appRouter = router({
         outreachStatus: z.enum(["not_sent", "queued", "sent", "replied", "interested", "not_interested", "bounced"]).optional(),
         venueClientStatus: z.enum(["prospect", "contacted", "qualified", "active_client", "archived"]).optional(),
         subscriptionVisibility: z.boolean().optional(),
-        regionTag: z.enum(["miami", "fort_lauderdale", "boca", "west_palm", "south_florida"]).optional(),
+        regionTag: z.enum(["miami", "fort_lauderdale", "boca", "west_palm", "south_florida", "nationwide"]).optional(),
       }))
       .query(async ({ ctx, input }) => {
         if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
@@ -3148,7 +3149,7 @@ export const appRouter = router({
         outreachStatus: z.enum(["not_sent", "queued", "sent", "replied", "interested", "not_interested", "bounced"]).optional(),
         venueClientStatus: z.enum(["prospect", "contacted", "qualified", "active_client", "archived"]).optional(),
         subscriptionVisibility: z.boolean().optional(),
-        regionTag: z.enum(["miami", "fort_lauderdale", "boca", "west_palm", "south_florida"]).optional(),
+        regionTag: z.enum(["miami", "fort_lauderdale", "boca", "west_palm", "south_florida", "nationwide"]).optional(),
         artistUnlockEnabled: z.boolean().optional(),
         premiumOnly: z.boolean().optional(),
         outreachNextFollowUpAt: z.date().optional(),
@@ -3181,7 +3182,7 @@ export const appRouter = router({
         outreachStatus: z.enum(["not_sent", "queued", "sent", "replied", "interested", "not_interested", "bounced"]).optional(),
         venueClientStatus: z.enum(["prospect", "contacted", "qualified", "active_client", "archived"]).optional(),
         subscriptionVisibility: z.boolean().optional(),
-        regionTag: z.enum(["miami", "fort_lauderdale", "boca", "west_palm", "south_florida"]).optional(),
+        regionTag: z.enum(["miami", "fort_lauderdale", "boca", "west_palm", "south_florida", "nationwide"]).optional(),
         artistUnlockEnabled: z.boolean().optional(),
         premiumOnly: z.boolean().optional(),
       }))
@@ -4481,7 +4482,7 @@ export const appRouter = router({
       .input(z.object({
         limit: z.number().min(1).max(100).default(50),
         offset: z.number().min(0).default(0),
-        regionTag: z.enum(["miami", "fort_lauderdale", "boca", "west_palm", "south_florida"]).optional(),
+        regionTag: z.enum(["miami", "fort_lauderdale", "boca", "west_palm", "south_florida", "nationwide"]).optional(),
         venueClientStatus: z.enum(["prospect", "contacted", "qualified", "active_client", "archived"]).optional(),
         outreachStatus: z.enum(["not_sent", "queued", "sent", "replied", "interested", "not_interested", "bounced"]).optional(),
         minIntentScore: z.number().min(0).max(100).optional(),
