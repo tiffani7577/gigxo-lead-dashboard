@@ -1671,7 +1671,7 @@ export const appRouter = router({
     
     getAllLeads: protectedProcedure
       .input(z.object({
-        status: z.enum(["all", "approved", "pending", "rejected"]).default("all"),
+        status: z.enum(["all", "approved", "pending", "rejected", "hidden"]).default("all"),
         limit: z.number().default(100),
         performerType: z.string().optional(),
       }))
@@ -1739,13 +1739,16 @@ export const appRouter = router({
 
         try {
           if (input.status === "approved") {
-            return await runListQuery(eq(gigLeads.isApproved, true));
+            return await runListQuery(and(eq(gigLeads.isApproved, true), eq(gigLeads.isHidden, false)));
           }
           if (input.status === "pending") {
             return await runListQuery(and(eq(gigLeads.isApproved, false), eq(gigLeads.isRejected, false)));
           }
           if (input.status === "rejected") {
             return await runListQuery(eq(gigLeads.isRejected, true));
+          }
+          if (input.status === "hidden") {
+            return await runListQuery(eq(gigLeads.isHidden, true));
           }
           return await runListQuery(null);
         } catch (err) {

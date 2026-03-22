@@ -105,7 +105,7 @@ export default function AdminDashboard() {
   const { user, isAuthenticated } = useAuth();
   const [adminSection, setAdminSection] = useState<"leads" | "worksheet" | "outreach">("leads");
   const [showAddForm, setShowAddForm] = useState(false);
-  const [leadFilter, setLeadFilter] = useState<"all" | "approved" | "pending" | "rejected">("pending");
+  const [leadFilter, setLeadFilter] = useState<"all" | "approved" | "pending" | "rejected" | "hidden">("pending");
   const [filterPerformerType, setFilterPerformerType] = useState<string>("all");
   const [scrapeCity, setScrapeCity] = useState<string>("all");
   const [scrapePerformerType, setScrapePerformerType] = useState<string>("all");
@@ -759,7 +759,7 @@ export default function AdminDashboard() {
 
             {/* Filter Tabs */}
             <div className="bg-white rounded-xl border border-slate-200 p-1 flex gap-1">
-              {(["pending", "approved", "all", "rejected"] as const).map((status) => (
+              {(["pending", "approved", "hidden", "all", "rejected"] as const).map((status) => (
                 <button
                   key={status}
                   onClick={() => setLeadFilter(status)}
@@ -843,6 +843,7 @@ export default function AdminDashboard() {
               <div className="space-y-3">
                 {leads
                   .filter((lead: any) => {
+                    if (leadFilter === "approved" && (lead as any).isHidden === true) return false;
                     const lt = (lead as any).leadType as string | undefined;
                     if (leadPod === "marketplace") {
                       const lc = (lead as any).leadCategory as string | undefined;
