@@ -346,7 +346,7 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
     return { otherCities, relatedServices };
   })();
 
-  // JSON-LD: Service + BreadcrumbList (FAQPage script lives next to FAQ section)
+  // JSON-LD: Service + BreadcrumbList only. FAQPage must NOT be pushed here — it is emitted once inside the FAQ <section> below (avoids duplicate FAQPage).
   const jsonLdScripts: string[] = [];
   try {
     jsonLdScripts.push(
@@ -397,9 +397,11 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
       <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white">
         {/* JSON-LD scripts */}
         <div className="hidden">
-          {jsonLdScripts.map((script, idx) => (
-            <script key={idx} type="application/ld+json" dangerouslySetInnerHTML={{ __html: script }} />
-          ))}
+          {jsonLdScripts
+            .filter((script) => !script.includes('"@type":"FAQPage"'))
+            .map((script, idx) => (
+              <script key={idx} type="application/ld+json" dangerouslySetInnerHTML={{ __html: script }} />
+            ))}
         </div>
       {/* Hero Section */}
         <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-16 px-4">
@@ -487,29 +489,28 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
                   })),
                 });
                 return (
-                  <>
+                  <section className="mt-12">
                     <script
+                      key={`faq-jsonld-${slug}`}
                       type="application/ld+json"
                       dangerouslySetInnerHTML={{ __html: faqSchema }}
                     />
-                    <section className="mt-12">
-                      <h2 className="text-2xl font-bold text-slate-900 mb-6">
-                        Frequently Asked Questions
-                      </h2>
-                      <div className="space-y-4">
-                        {pageConfig.faq.map((item, i) => (
-                          <div key={i} className="border border-slate-200 rounded-lg p-5">
-                            <h3 className="font-semibold text-slate-900 mb-2">
-                              {item.question}
-                            </h3>
-                            <p className="text-slate-600 text-sm leading-relaxed">
-                              {item.answer}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    </section>
-                  </>
+                    <h2 className="text-2xl font-bold text-slate-900 mb-6">
+                      Frequently Asked Questions
+                    </h2>
+                    <div className="space-y-4">
+                      {pageConfig.faq.map((item, i) => (
+                        <div key={i} className="border border-slate-200 rounded-lg p-5">
+                          <h3 className="font-semibold text-slate-900 mb-2">
+                            {item.question}
+                          </h3>
+                          <p className="text-slate-600 text-sm leading-relaxed">
+                            {item.answer}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
                 );
               } catch {
                 return null;
