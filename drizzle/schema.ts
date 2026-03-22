@@ -88,6 +88,8 @@ export const gigLeads = mysqlTable("gigLeads", {
   leadType: mysqlEnum("leadType", ["scraped_signal", "client_submitted", "venue_intelligence", "referral", "manual_outreach", "event_demand", "artist_signup", "outreach", "trash", "other"]).default("scraped_signal"),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
+  /** Original source/scrape text (e.g. Reddit body); admin edit modal fallback when description is generic */
+  rawText: text("rawText"),
   publicPreviewDescription: text("publicPreviewDescription"),
   fullDescription: text("fullDescription"),
   eventType: varchar("eventType", { length: 100 }),

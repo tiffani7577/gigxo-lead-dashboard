@@ -59,6 +59,8 @@ export interface ScrapedLead {
   sourceLabel: string;
   title: string;
   description: string;
+  /** Original combined source text (persisted to gigLeads.rawText for admin) */
+  rawText?: string | null;
   eventType: string;
   budget: number | null;         // cents, null = unknown
   location: string;
@@ -545,6 +547,7 @@ export function rawLeadDocToLead(doc: RawLeadDoc, baseIntentScore: number): Scra
     sourceLabel: doc.sourceLabel,
     title: doc.title.slice(0, 255),
     description: buildDescriptionFromRawLeadDoc(doc, subredditHint),
+    rawText: doc.rawText,
     eventType: classifyEventType(doc.rawText),
     budget: extractBudgetCents(doc.rawText),
     location,

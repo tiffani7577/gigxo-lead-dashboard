@@ -1689,6 +1689,7 @@ export const appRouter = router({
           id: gigLeads.id,
           title: gigLeads.title,
           description: gigLeads.description,
+          rawText: gigLeads.rawText,
           publicPreviewDescription: gigLeads.publicPreviewDescription,
           eventType: gigLeads.eventType,
           budget: gigLeads.budget,
@@ -2620,6 +2621,7 @@ export const appRouter = router({
               sourceLabel:   lead.sourceLabel ?? null,
               title:         lead.title,
               description:   lead.description,
+              rawText:       lead.rawText ?? null,
               fullDescription: lead.description,
               publicPreviewDescription: buildPublicPreviewDescription({
                 fullDescription: lead.description ?? "",
@@ -2794,6 +2796,7 @@ export const appRouter = router({
             sourceLabel:   lead.sourceLabel ?? null,
             title:         lead.title,
             description:   lead.description,
+            rawText:       lead.rawText ?? null,
             fullDescription: lead.description,
             publicPreviewDescription: buildPublicPreviewDescription({
               fullDescription: lead.description ?? "",

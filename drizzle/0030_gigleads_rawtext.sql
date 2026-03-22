@@ -1,0 +1,2 @@
+ALTER TABLE gigLeads
+  ADD COLUMN rawText TEXT NULL;
