@@ -180,49 +180,18 @@ const LINKEDIN_SEARCH_QUERIES = [
   '"product launch" "miami" "entertainment"',
 ];
 
-// Google SERP: apify/google-search-scraper — demand-only queries (client requests, not DJ service/directory pages)
+// Google SERP: apify/google-search-scraper — high-intent queries only
 const GOOGLE_SERP_QUERIES = [
-  // Facebook group posts (client requests only)
-  'site:facebook.com/groups "need a dj" "miami" 2026',
-  'site:facebook.com/groups "looking for dj" "miami" 2026',
-  'site:facebook.com/groups "need a dj" "fort lauderdale" 2026',
-  'site:facebook.com/groups "looking for dj" "fort lauderdale" 2026',
-  'site:facebook.com/groups "wedding dj" "miami" 2026',
-  'site:facebook.com/groups "need entertainment" "miami" 2026',
-  'site:facebook.com/groups "need a band" "miami" 2026',
-  'site:facebook.com/groups "quinceañera" "dj" "miami" 2026',
-  'site:facebook.com/groups "sweet 16" "dj" "miami" 2026',
-  // Reddit demand posts
-  'site:reddit.com "need a dj" "miami" 2026',
-  'site:reddit.com "looking for dj" "south florida" 2026',
-  'site:reddit.com "hire musician" "miami" 2026',
-  // Nextdoor neighborhood requests
-  'site:nextdoor.com "need a dj" "miami"',
-  'site:nextdoor.com "need a dj" "fort lauderdale"',
-  'site:nextdoor.com "looking for entertainment" "miami"',
-  // Bark and Thumbtack REQUEST pages only
-  'site:bark.com/quotes "dj" "miami"',
-  'site:bark.com/quotes "dj" "fort lauderdale"',
-  'site:thumbtack.com/hire "dj" "miami, fl"',
-  'site:thumbtack.com/hire "dj" "fort lauderdale"',
-  "site:bark.com DJ Miami request",
-  "site:bark.com DJ Fort Lauderdale",
-  "site:bark.com wedding DJ South Florida",
-  "site:thebash.com DJ Miami",
-  "site:weddingwire.com DJ needed Miami",
-  "site:theknot.com DJ Fort Lauderdale",
-  // WeddingWire and Knot forum posts
-  'site:weddingwire.com/discuss "dj" "miami" 2026',
-  'site:theknot.com/forums "dj" "miami" 2026',
-  // High intent general (exclude ALL directory sites)
-  '"need a dj" "miami" 2026 -site:gigsalad.com -site:thumbtack.com -site:aisellr.com -site:bark.com -site:thebash.com -site:gig-salad.com',
-  '"looking for dj" "fort lauderdale" 2026 -site:gigsalad.com -site:aisellr.com -site:bark.com',
-  '"wedding dj" "miami" "recommendations" 2026',
-  '"need entertainment" "miami" "event" 2026 -site:gigsalad.com',
-  '"boat party" "dj" "miami" 2026',
-  '"yacht" "dj" "miami" 2026',
-  '"corporate event" "dj" "miami" 2026 -site:gigsalad.com',
-  '"grand opening" "entertainment" "miami" 2026',
+  `site:facebook.com/groups "need a dj" "miami" 2026`,
+  `site:facebook.com/groups "looking for dj" "miami" 2026`,
+  `site:facebook.com/groups "need a dj" "fort lauderdale" 2026`,
+  `site:facebook.com/groups "wedding dj" "miami" 2026`,
+  `site:facebook.com/groups "quinceañera" "dj" "miami" 2026`,
+  `"need a dj" "miami" 2026 -site:gigsalad.com -site:thumbtack.com`,
+  `"looking for dj" "fort lauderdale" 2026`,
+  `"yacht" "dj" "miami" 2026`,
+  `"corporate event" "dj" "miami" 2026 -site:gigsalad.com`,
+  `"boat party" "dj" "miami" 2026`,
 ];
 
 /** Domains to strip from SERP results (DJ directories/listings, not client demand). */
@@ -836,7 +805,7 @@ export async function collectFromApify(): Promise<CollectFromApifyResult> {
   try {
     const fbInput = {
       startUrls: FACEBOOK_GROUP_URLS.map((url) => ({ url })),
-      resultsLimit: 100,
+      resultsLimit: 25,
       viewOption: "CHRONOLOGICAL",
     };
     const run = await client.actor("apify/facebook-groups-scraper").call(fbInput as any);
@@ -858,44 +827,44 @@ export async function collectFromApify(): Promise<CollectFromApifyResult> {
     console.warn("[apify-collector] Facebook Groups actor failed:", err);
   }
 
-  // 5) Twitter/X — apify/twitter-scraper (scraped_signal)
-  try {
-    const twitterInput = {
-      searchQueries: TWITTER_SEARCH_QUERIES,
-      maxTweets: 100,
-    };
-    const run = await client.actor("apify/twitter-scraper").call(twitterInput as any);
-    if (run?.id) apifyRunIds.push(run.id);
-    const twitterItems = await client.dataset(run.defaultDatasetId).listItems();
-    const twitterCollected = twitterItems.items.length;
-    let twitterFreshnessPassed = 0;
-    for (let i = 0; i < twitterItems.items.length; i++) {
-      const doc = normalizeTwitterItem(twitterItems.items[i] as Record<string, unknown>, twitterFreshnessPassed);
-      if (!passesFreshnessFilter(doc.postedAt)) continue;
-      twitterFreshnessPassed++;
-      docs.push(doc);
-    }
-    console.log("[apify-collector] Twitter:", twitterCollected, "collected,", twitterFreshnessPassed, "passed freshness filter");
-  } catch (err) {
-    console.warn("[apify-collector] Twitter actor failed:", err);
-  }
+  // 5) Twitter/X — DISABLED (cost / scope)
+  // try {
+  //   const twitterInput = {
+  //     searchQueries: TWITTER_SEARCH_QUERIES,
+  //     maxTweets: 100,
+  //   };
+  //   const run = await client.actor("apify/twitter-scraper").call(twitterInput as any);
+  //   if (run?.id) apifyRunIds.push(run.id);
+  //   const twitterItems = await client.dataset(run.defaultDatasetId).listItems();
+  //   const twitterCollected = twitterItems.items.length;
+  //   let twitterFreshnessPassed = 0;
+  //   for (let i = 0; i < twitterItems.items.length; i++) {
+  //     const doc = normalizeTwitterItem(twitterItems.items[i] as Record<string, unknown>, twitterFreshnessPassed);
+  //     if (!passesFreshnessFilter(doc.postedAt)) continue;
+  //     twitterFreshnessPassed++;
+  //     docs.push(doc);
+  //   }
+  //   console.log("[apify-collector] Twitter:", twitterCollected, "collected,", twitterFreshnessPassed, "passed freshness filter");
+  // } catch (err) {
+  //   console.warn("[apify-collector] Twitter actor failed:", err);
+  // }
 
-  // 6) LinkedIn — apify/linkedin-scraper (venue_intelligence: event planners / wedding coordinators)
-  try {
-    const linkedInInput = {
-      search: LINKEDIN_SEARCH_QUERIES.join(" OR "),
-      maxResults: 50,
-    };
-    const run = await client.actor("apify/linkedin-scraper").call(linkedInInput as any);
-    if (run?.id) apifyRunIds.push(run.id);
-    const linkedInItems = await client.dataset(run.defaultDatasetId).listItems();
-    for (let i = 0; i < linkedInItems.items.length; i++) {
-      docs.push(normalizeLinkedInItem(linkedInItems.items[i] as Record<string, unknown>, i));
-    }
-    console.log("[apify-collector] LinkedIn:", linkedInItems.items.length, "items (venue_intelligence)");
-  } catch (err) {
-    console.warn("[apify-collector] LinkedIn actor failed:", err);
-  }
+  // 6) LinkedIn — DISABLED (cost / scope)
+  // try {
+  //   const linkedInInput = {
+  //     search: LINKEDIN_SEARCH_QUERIES.join(" OR "),
+  //     maxResults: 50,
+  //   };
+  //   const run = await client.actor("apify/linkedin-scraper").call(linkedInInput as any);
+  //   if (run?.id) apifyRunIds.push(run.id);
+  //   const linkedInItems = await client.dataset(run.defaultDatasetId).listItems();
+  //   for (let i = 0; i < linkedInItems.items.length; i++) {
+  //     docs.push(normalizeLinkedInItem(linkedInItems.items[i] as Record<string, unknown>, i));
+  //   }
+  //   console.log("[apify-collector] LinkedIn:", linkedInItems.items.length, "items (venue_intelligence)");
+  // } catch (err) {
+  //   console.warn("[apify-collector] LinkedIn actor failed:", err);
+  // }
 
   // 7) Google Maps Venues — compass/google-maps-extractor (venue_intelligence)
   try {
@@ -916,58 +885,58 @@ export async function collectFromApify(): Promise<CollectFromApifyResult> {
     console.warn("[apify-collector] Google Maps actor failed:", err);
   }
 
-  // 8) Eventbrite — parseforge/eventbrite-scraper (only future events)
-  try {
-    const eventbriteInput = {
-      startUrls: [
-        { url: "https://www.eventbrite.com/d/fl--miami/events/" },
-        { url: "https://www.eventbrite.com/d/fl--fort-lauderdale/events/" },
-        { url: "https://www.eventbrite.com/d/fl--boca-raton/events/" },
-        { url: "https://www.eventbrite.com/d/fl--miami-beach/events/" },
-      ],
-      maxItems: 50,
-    };
-    const run = await client.actor("parseforge/eventbrite-scraper").call(eventbriteInput as any);
-    if (run?.id) apifyRunIds.push(run.id);
-    const eventbriteItems = await client.dataset(run.defaultDatasetId).listItems();
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    let eventbriteAdded = 0;
-    for (let i = 0; i < eventbriteItems.items.length; i++) {
-      const item = eventbriteItems.items[i] as Record<string, unknown>;
-      const startDate = safeDate(item.eventStartDate ?? item.startDate ?? item.start ?? item.date ?? 0);
-      if (startDate < today) continue;
-      docs.push(normalizeEventbriteItem(item, i));
-      eventbriteAdded++;
-    }
-    console.log("[apify-collector] Eventbrite:", eventbriteItems.items.length, "collected,", eventbriteAdded, "future events added");
-  } catch (err) {
-    console.warn("[apify-collector] Eventbrite actor failed:", err);
-  }
+  // 8) Eventbrite — DISABLED (cost / scope)
+  // try {
+  //   const eventbriteInput = {
+  //     startUrls: [
+  //       { url: "https://www.eventbrite.com/d/fl--miami/events/" },
+  //       { url: "https://www.eventbrite.com/d/fl--fort-lauderdale/events/" },
+  //       { url: "https://www.eventbrite.com/d/fl--boca-raton/events/" },
+  //       { url: "https://www.eventbrite.com/d/fl--miami-beach/events/" },
+  //     ],
+  //     maxItems: 50,
+  //   };
+  //   const run = await client.actor("parseforge/eventbrite-scraper").call(eventbriteInput as any);
+  //   if (run?.id) apifyRunIds.push(run.id);
+  //   const eventbriteItems = await client.dataset(run.defaultDatasetId).listItems();
+  //   const today = new Date();
+  //   today.setHours(0, 0, 0, 0);
+  //   let eventbriteAdded = 0;
+  //   for (let i = 0; i < eventbriteItems.items.length; i++) {
+  //     const item = eventbriteItems.items[i] as Record<string, unknown>;
+  //     const startDate = safeDate(item.eventStartDate ?? item.startDate ?? item.start ?? item.date ?? 0);
+  //     if (startDate < today) continue;
+  //     docs.push(normalizeEventbriteItem(item, i));
+  //     eventbriteAdded++;
+  //   }
+  //   console.log("[apify-collector] Eventbrite:", eventbriteItems.items.length, "collected,", eventbriteAdded, "future events added");
+  // } catch (err) {
+  //   console.warn("[apify-collector] Eventbrite actor failed:", err);
+  // }
 
-  // 9) Facebook Events — apify/facebook-events-scraper (only future events)
-  try {
-    const fbEventsInput = {
-      startUrls: FACEBOOK_EVENTS_START_URLS,
-      maxItems: 30,
-    };
-    const run = await client.actor("apify/facebook-events-scraper").call(fbEventsInput as any);
-    if (run?.id) apifyRunIds.push(run.id);
-    const fbEventsItems = await client.dataset(run.defaultDatasetId).listItems();
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    let fbEventsAdded = 0;
-    for (let i = 0; i < fbEventsItems.items.length; i++) {
-      const item = fbEventsItems.items[i] as Record<string, unknown>;
-      const startDate = safeDate(item.startTime ?? item.start ?? item.eventStartDate ?? item.date ?? 0);
-      if (startDate < today) continue;
-      docs.push(normalizeFacebookEventItem(item, fbEventsAdded));
-      fbEventsAdded++;
-    }
-    console.log("[apify-collector] Facebook Events:", fbEventsItems.items.length, "collected,", fbEventsAdded, "future events added");
-  } catch (err) {
-    console.warn("[apify-collector] Facebook Events actor failed:", err);
-  }
+  // 9) Facebook Events — DISABLED (cost / scope)
+  // try {
+  //   const fbEventsInput = {
+  //     startUrls: FACEBOOK_EVENTS_START_URLS,
+  //     maxItems: 30,
+  //   };
+  //   const run = await client.actor("apify/facebook-events-scraper").call(fbEventsInput as any);
+  //   if (run?.id) apifyRunIds.push(run.id);
+  //   const fbEventsItems = await client.dataset(run.defaultDatasetId).listItems();
+  //   const today = new Date();
+  //   today.setHours(0, 0, 0, 0);
+  //   let fbEventsAdded = 0;
+  //   for (let i = 0; i < fbEventsItems.items.length; i++) {
+  //     const item = fbEventsItems.items[i] as Record<string, unknown>;
+  //     const startDate = safeDate(item.startTime ?? item.start ?? item.eventStartDate ?? item.date ?? 0);
+  //     if (startDate < today) continue;
+  //     docs.push(normalizeFacebookEventItem(item, fbEventsAdded));
+  //     fbEventsAdded++;
+  //   }
+  //   console.log("[apify-collector] Facebook Events:", fbEventsItems.items.length, "collected,", fbEventsAdded, "future events added");
+  // } catch (err) {
+  //   console.warn("[apify-collector] Facebook Events actor failed:", err);
+  // }
 
   let apifyCostUsd = 0;
   for (const runId of apifyRunIds) {
