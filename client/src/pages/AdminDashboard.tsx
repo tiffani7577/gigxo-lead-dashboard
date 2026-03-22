@@ -251,12 +251,17 @@ export default function AdminDashboard() {
 
   const openEditModal = (lead: any) => {
     setEditingLeadId(lead.id);
+    const descTrimmed =
+      typeof lead.description === "string" ? lead.description.trim() : String(lead.description ?? "").trim();
+    const rawTrimmed =
+      typeof lead.rawText === "string" ? lead.rawText.trim() : String(lead.rawText ?? "").trim();
+    const descriptionForEdit = descTrimmed || rawTrimmed || "";
     setEditFormData({
       title: lead.title || "",
       location: lead.location || "",
       eventType: lead.eventType || "",
       budget: lead.budget ? String(lead.budget / 100) : "",
-      description: lead.description || "",
+      description: descriptionForEdit,
       publicPreviewDescription: (lead as any).publicPreviewDescription || "",
       contactName: lead.contactName || "",
       contactEmail: lead.contactEmail || "",
