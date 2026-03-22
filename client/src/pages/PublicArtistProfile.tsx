@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { Link, useRoute } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,6 +58,7 @@ function TrackPlayer({ track }: { track: { id: number; title: string; fileUrl: s
 export default function PublicArtistProfile() {
   const [, params] = useRoute("/artist/:slug");
   const slug = params?.slug ?? "";
+  const { user } = useAuth();
 
   const { data: artist, isLoading } = trpc.directory.getArtistBySlug.useQuery(
     { slug },
@@ -105,6 +107,8 @@ export default function PublicArtistProfile() {
       </div>
     );
   }
+
+  const isOwnProfile = user?.id === artist?.userId;
 
   if (!artist) {
     return (
@@ -361,15 +365,17 @@ export default function PublicArtistProfile() {
               )}
             </div>
 
-            {/* Are you this artist? */}
-            <div className="mt-4 bg-slate-900 border border-slate-700 rounded-xl p-4 text-center">
-              <p className="text-slate-400 text-xs mb-2">Are you this artist?</p>
-              <Link href="/profile">
-                <Button variant="outline" size="sm" className="border-slate-600 text-slate-300 bg-transparent hover:bg-slate-800 text-xs w-full">
-                  Edit Your Profile
-                </Button>
-              </Link>
-            </div>
+            {/* Are you this artist? — only the logged-in profile owner sees edit controls */}
+            {isOwnProfile ? (
+              <div className="mt-4 bg-slate-900 border border-slate-700 rounded-xl p-4 text-center">
+                <p className="text-slate-400 text-xs mb-2">Are you this artist?</p>
+                <Link href="/profile">
+                  <Button variant="outline" size="sm" className="border-slate-600 text-slate-300 bg-transparent hover:bg-slate-800 text-xs w-full">
+                    Edit Your Profile
+                  </Button>
+                </Link>
+              </div>
+            ) : null}
           </div>
         </div>
       </div>

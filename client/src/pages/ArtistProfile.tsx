@@ -76,7 +76,9 @@ export default function ArtistProfile() {
   const { user } = useAuth();
   const utils = trpc.useUtils();
 
-  const { data: profile, isLoading } = trpc.artist.getMyArtistProfile.useQuery();
+  const { data: profile, isLoading } = trpc.artist.getMyArtistProfile.useQuery(undefined, {
+    enabled: !!user,
+  });
 
   const [form, setForm] = useState({
     stageName: "",
@@ -117,7 +119,9 @@ export default function ArtistProfile() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const profileImageRef = useRef<HTMLInputElement>(null);
 
-  const { data: myTracks = [], refetch: refetchTracks } = trpc.tracks.getMyTracks.useQuery();
+  const { data: myTracks = [], refetch: refetchTracks } = trpc.tracks.getMyTracks.useQuery(undefined, {
+    enabled: !!user,
+  });
 
   const uploadTrack = trpc.tracks.uploadTrack.useMutation({
     onSuccess: () => {
@@ -310,6 +314,29 @@ export default function ArtistProfile() {
         <div className="text-center">
           <p className="text-slate-400 mb-4">Please log in to edit your profile.</p>
           <Link href="/login"><Button className="bg-purple-600 hover:bg-purple-700">Log In</Button></Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+        <div className="text-center">
+          <p className="text-slate-400 mb-4">Could not load your artist profile.</p>
+          <Link href="/dashboard"><Button variant="outline" className="border-slate-600">Back to dashboard</Button></Link>
+        </div>
+      </div>
+    );
+  }
+
+  const isOwnProfile = user.id === profile.userId;
+  if (!isOwnProfile) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+        <div className="text-center max-w-md">
+          <p className="text-slate-400 mb-4">You can only edit your own artist profile.</p>
+          <Link href="/dashboard"><Button className="bg-purple-600 hover:bg-purple-700">Back to dashboard</Button></Link>
         </div>
       </div>
     );

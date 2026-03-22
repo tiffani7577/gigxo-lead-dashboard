@@ -634,13 +634,15 @@ export const appRouter = router({
         
         const db = await getDb();
         if (!db) throw new Error("Database not available");
+
+        const sessionUserId = ctx.user.id;
         
         const existing = await db.select().from(artistProfiles)
-          .where(eq(artistProfiles.userId, ctx.user.id)).limit(1);
+          .where(eq(artistProfiles.userId, sessionUserId)).limit(1);
         
         if (existing.length === 0) {
           await db.insert(artistProfiles).values({
-            userId: ctx.user.id,
+            userId: sessionUserId,
             djName: input.djName,
             slug: input.slug,
             photoUrl: input.photoUrl,
@@ -668,7 +670,7 @@ export const appRouter = router({
           if (input.bio !== undefined) updateData.bio = input.bio;
           if (input.soundcloudUrl !== undefined) updateData.soundcloudUrl = input.soundcloudUrl;
           if (input.mixcloudUrl !== undefined) updateData.mixcloudUrl = input.mixcloudUrl;
-          await db.update(artistProfiles).set(updateData).where(eq(artistProfiles.userId, ctx.user.id));
+          await db.update(artistProfiles).set(updateData).where(eq(artistProfiles.userId, sessionUserId));
         }
         return { success: true };
       }),
@@ -705,6 +707,12 @@ export const appRouter = router({
         // Ensure profile exists (auto-create with defaults if missing)
         const profile = await getOrCreateArtistProfile(ctx.user.id);
         if (!profile) throw new Error("Failed to load or create artist profile");
+        if (profile.userId !== ctx.user.id) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "You can only update your own artist profile.",
+          });
+        }
 
         const updateData: Record<string, unknown> = {};
         if (input.stageName !== undefined) {
@@ -773,6 +781,17 @@ export const appRouter = router({
 
         const db = await getDb();
         if (!db) throw new Error("Database not available");
+        const [ownedProfile] = await db
+          .select({ userId: artistProfiles.userId })
+          .from(artistProfiles)
+          .where(eq(artistProfiles.userId, ctx.user.id))
+          .limit(1);
+        if (!ownedProfile || ownedProfile.userId !== ctx.user.id) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "You can only update your own artist profile.",
+          });
+        }
         await db.update(artistProfiles).set({ profileImageUrl: url, photoUrl: url, avatarUrl: url }).where(eq(artistProfiles.userId, ctx.user.id));
 
         return { url };
