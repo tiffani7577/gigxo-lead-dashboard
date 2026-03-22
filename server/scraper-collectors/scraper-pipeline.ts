@@ -370,7 +370,7 @@ export function isRealWebsiteUrl(venueUrl: string, venueUrlSource: string | unde
 
 /** Sources allowed for Tier 2 (no contact but high intent → insert pending enrichment). */
 const TIER2_SOURCES = new Set([
-  "reddit", "apify", "facebook", "twitter", "linkedin", "bark", "thumbtack", "eventbrite", "google_serp",
+  "reddit", "apify", "facebook", "twitter", "linkedin", "bark", "thumbtack", "eventbrite", "google_serp", "gigxo",
 ]);
 
 function isTier2Source(lead: ScrapedLead): boolean {
@@ -782,7 +782,7 @@ export async function runScraperPipeline(
         tier1Count++;
         leads.push(lead);
         stats.filtered++;
-      } else if (lead.intentScore >= 70 && isTier2Source(lead)) {
+      } else if (lead.intentScore >= 55 && isTier2Source(lead)) {
         // TIER 2 — No contact but high intent + allowed source: insert pending enrichment
         lead.isApproved = false;
         (lead as any).needsEnrichment = true;
