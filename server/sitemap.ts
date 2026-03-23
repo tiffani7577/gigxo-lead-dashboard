@@ -1,11 +1,11 @@
 /**
  * Dynamic sitemap generator for Gigxo SEO
  * Serves /sitemap.xml with all public pages + artist profiles + dynamic SEO pages
- * Services and cities match client/src/lib/seoConfig.ts (13 services × 9 cities).
+ * Services and cities match client/src/lib/seoConfig.ts (14 services × 20 cities).
  */
 import type { Express } from "express";
 
-// Synced with client/src/lib/seoConfig.ts — 13 services
+// Synced with client/src/lib/seoConfig.ts — 14 services
 const SERVICES = [
   { id: "dj", priority: "0.90" },
   { id: "wedding-dj", priority: "0.90" },
@@ -20,19 +20,31 @@ const SERVICES = [
   { id: "band", priority: "0.90" },
   { id: "dj-gigs", priority: "0.80" },
   { id: "venues-hiring-djs", priority: "0.80" },
+  { id: "av-work", priority: "0.90" },
 ];
 
-// Synced with client/src/lib/seoConfig.ts — 9 cities
+// Synced with client/src/lib/seoConfig.ts — 20 cities
 const CITIES = [
   "miami",
   "fort-lauderdale",
-  "boca-raton",
-  "west-palm-beach",
   "orlando",
   "tampa",
   "jacksonville",
+  "boca-raton",
+  "west-palm-beach",
   "naples",
+  "sarasota",
+  "gainesville",
+  "tallahassee",
+  "pensacola",
+  "daytona-beach",
+  "melbourne",
+  "fort-myers",
   "key-west",
+  "clearwater",
+  "st-petersburg",
+  "ocala",
+  "palm-beach",
 ];
 
 function minimalSitemap(baseUrl: string): string {
@@ -63,6 +75,8 @@ async function buildSitemapResponse(baseUrl: string): Promise<string> {
         { url: "/privacy", priority: "0.3", changefreq: "monthly" },
         { url: "/terms", priority: "0.3", changefreq: "monthly" },
         { url: "/artists", priority: "0.9", changefreq: "daily" },
+        { url: "/av-staffing", priority: "0.9", changefreq: "weekly" },
+        { url: "/av-work", priority: "0.9", changefreq: "weekly" },
       ];
 
       // SEO landing pages - service × city (matches seoConfig)

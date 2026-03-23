@@ -80,12 +80,30 @@ export const artistProfiles = mysqlTable("artistProfiles", {
 export type ArtistProfile = typeof artistProfiles.$inferSelect;
 export type InsertArtistProfile = typeof artistProfiles.$inferInsert;
 
+// AV workers who want to receive staffing calls
+export const avWorkers = mysqlTable("avWorkers", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  phone: varchar("phone", { length: 32 }).notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
+  city: varchar("city", { length: 128 }).notNull(),
+  skills: text("skills").notNull(), // JSON array string
+  yearsExperience: varchar("yearsExperience", { length: 32 }),
+  minDayRate: varchar("minDayRate", { length: 32 }),
+  availableSameDay: boolean("availableSameDay").default(false).notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AVWorker = typeof avWorkers.$inferSelect;
+export type InsertAVWorker = typeof avWorkers.$inferInsert;
+
 // Gig leads table
 export const gigLeads = mysqlTable("gigLeads", {
   id: int("id").autoincrement().primaryKey(),
   externalId: varchar("externalId", { length: 255 }).notNull().unique(),
-  source: mysqlEnum("source", ["gigxo", "eventbrite", "thumbtack", "yelp", "craigslist", "nextdoor", "facebook", "manual", "gigsalad", "thebash", "weddingwire", "theknot", "inbound", "reddit", "dbpr", "sunbiz", "google_maps"]).notNull(),
-  leadType: mysqlEnum("leadType", ["scraped_signal", "client_submitted", "venue_intelligence", "referral", "manual_outreach", "event_demand", "artist_signup", "outreach", "trash", "other"]).default("scraped_signal"),
+  source: mysqlEnum("source", ["gigxo", "eventbrite", "thumbtack", "yelp", "craigslist", "nextdoor", "facebook", "manual", "gigsalad", "thebash", "weddingwire", "theknot", "inbound", "reddit", "dbpr", "sunbiz", "google_maps", "av_staffing"]).notNull(),
+  leadType: mysqlEnum("leadType", ["scraped_signal", "client_submitted", "venue_intelligence", "referral", "manual_outreach", "event_demand", "artist_signup", "outreach", "trash", "other", "av_request"]).default("scraped_signal"),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
   /** Original source/scrape text (e.g. Reddit body); admin edit modal fallback when description is generic */

@@ -3,6 +3,7 @@
  * Generates dynamic page configs from services and cities arrays
  * Supports manual overrides for custom pages
  */
+import { AV_WORK_MANUAL_OVERRIDES } from "./avWorkManualOverrides";
 
 export interface FAQ {
   question: string;
@@ -141,6 +142,7 @@ export const SERVICES: ServiceConfig[] = [
   { id: "band", name: "Band", plural: "Bands", description: "Live bands and musicians for events", eventTypes: ["wedding", "corporate", "party"], keywords: ["band", "live band", "musicians"] },
   { id: "dj-gigs", name: "DJ Gigs", plural: "DJ Gigs", description: "DJ gig opportunities and bookings", eventTypes: ["wedding", "party", "corporate"], keywords: ["dj gigs", "dj jobs", "gig opportunities"] },
   { id: "venues-hiring-djs", name: "Venues Hiring DJs", plural: "Venues Hiring DJs", description: "Venues and events looking for DJs", eventTypes: ["wedding", "party", "corporate", "club"], keywords: ["venues hiring djs", "dj bookings", "event entertainment"] },
+  { id: "av-work", name: "AV Work", plural: "AV Work", description: "Audio visual crew jobs and AV staffing opportunities", eventTypes: ["corporate", "event"], keywords: ["av work", "av jobs", "audio visual crew"] },
   /** Pricing / calculator-style slugs (only whitelisted city combos in generateAllPageConfigs) */
   { id: "dj-cost", name: "DJ cost", plural: "DJ costs", description: "DJ pricing and cost guides by city", eventTypes: ["party", "wedding", "corporate"], keywords: ["dj cost", "dj prices", "how much is a dj"] },
   { id: "wedding-dj-cost", name: "Wedding DJ cost", plural: "Wedding DJ costs", description: "Wedding DJ pricing guides", eventTypes: ["wedding"], keywords: ["wedding dj cost", "wedding dj prices"] },
@@ -195,13 +197,24 @@ const VIDEOGRAPHER_FAQ: FAQ[] = [
 export const CITIES: CityConfig[] = [
   { id: "miami", name: "Miami", state: "FL", region: "South Florida" },
   { id: "fort-lauderdale", name: "Fort Lauderdale", state: "FL", region: "South Florida" },
-  { id: "boca-raton", name: "Boca Raton", state: "FL", region: "South Florida" },
-  { id: "west-palm-beach", name: "West Palm Beach", state: "FL", region: "South Florida" },
   { id: "orlando", name: "Orlando", state: "FL", region: "Central Florida" },
   { id: "tampa", name: "Tampa", state: "FL", region: "Tampa Bay" },
   { id: "jacksonville", name: "Jacksonville", state: "FL", region: "North Florida" },
+  { id: "boca-raton", name: "Boca Raton", state: "FL", region: "South Florida" },
+  { id: "west-palm-beach", name: "West Palm Beach", state: "FL", region: "South Florida" },
   { id: "naples", name: "Naples", state: "FL", region: "Southwest Florida" },
+  { id: "sarasota", name: "Sarasota", state: "FL", region: "Southwest Florida" },
+  { id: "gainesville", name: "Gainesville", state: "FL", region: "North Florida" },
+  { id: "tallahassee", name: "Tallahassee", state: "FL", region: "North Florida" },
+  { id: "pensacola", name: "Pensacola", state: "FL", region: "Northwest Florida" },
+  { id: "daytona-beach", name: "Daytona Beach", state: "FL", region: "Central Florida" },
+  { id: "melbourne", name: "Melbourne", state: "FL", region: "Space Coast" },
+  { id: "fort-myers", name: "Fort Myers", state: "FL", region: "Southwest Florida" },
   { id: "key-west", name: "Key West", state: "FL", region: "Florida Keys" },
+  { id: "clearwater", name: "Clearwater", state: "FL", region: "Tampa Bay" },
+  { id: "st-petersburg", name: "St Petersburg", state: "FL", region: "Tampa Bay" },
+  { id: "ocala", name: "Ocala", state: "FL", region: "Central Florida" },
+  { id: "palm-beach", name: "Palm Beach", state: "FL", region: "South Florida" },
 ];
 
 /** Only these URLs are generated for dj-cost / wedding-dj-cost (avoid thin city×service spam). */
@@ -533,6 +546,13 @@ const MANUAL_OVERRIDES: Record<string, Partial<PageConfig>> = {
     pageType: "hire",
   },
 };
+
+for (const [slug, override] of Object.entries(AV_WORK_MANUAL_OVERRIDES)) {
+  MANUAL_OVERRIDES[slug] = {
+    ...override,
+    faq: override.faq ?? override.faqs,
+  } as Partial<PageConfig>;
+}
 
 /**
  * Generate page config from service + city combination.

@@ -36,6 +36,8 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Pricing from "./pages/Pricing";
 import SEOLandingPage from "./pages/SEOLandingPage";
+import AVStaffing from "./pages/AVStaffing";
+import AVWorkerSignup from "./pages/AVWorkerSignup";
 
 function Router() {
   return (
@@ -72,6 +74,9 @@ function Router() {
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={Terms} />
       <Route path="/pricing" component={Pricing} />
+      <Route path="/av-staffing" component={AVStaffing} />
+      <Route path="/av-work" component={AVWorkerSignup} />
+      <Route path="/av-work/:city" component={SEOLandingPage} />
       {/* SEO Landing Pages - Dynamic route for all service+city combinations */}
       <Route path="/:slug" component={SEOLandingPage} />
       <Route path="/404" component={NotFound} />

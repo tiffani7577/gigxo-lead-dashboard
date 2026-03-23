@@ -244,6 +244,74 @@ export async function sendInboundLeadNotification(lead: {
   return sendEmail(ADMIN_EMAIL, subject, html);
 }
 
+export async function sendAVRequestNotification(payload: {
+  companyName: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone: string;
+  eventDate: string;
+  callTime: string;
+  endTime: string;
+  location: string;
+  rolesNeeded: string[];
+  numberOfCrew: number;
+  payRate: string;
+  urgency: string;
+  readyToBook: "yes" | "no";
+  additionalNotes?: string;
+}): Promise<boolean> {
+  const subject = `🚨 New AV Request — ${payload.companyName} — ${payload.urgency}`;
+  const body = [
+    `Company/Event: ${payload.companyName}`,
+    `Contact: ${payload.contactName}`,
+    `Email: ${payload.contactEmail}`,
+    `Phone: ${payload.contactPhone}`,
+    `Event date: ${payload.eventDate}`,
+    `Call time: ${payload.callTime}`,
+    `End time: ${payload.endTime}`,
+    `Location/Venue: ${payload.location}`,
+    `Roles needed: ${payload.rolesNeeded.join(", ")}`,
+    `Number of crew: ${payload.numberOfCrew}`,
+    `Pay rate per person: ${payload.payRate}`,
+    `Urgency: ${payload.urgency}`,
+    `Ready to book immediately: ${payload.readyToBook}`,
+    payload.additionalNotes ? `\nAdditional notes:\n${payload.additionalNotes}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+  const html = `<!DOCTYPE html><html><body style="font-family: sans-serif; white-space: pre-wrap;">${body.replace(/\n/g, "<br>")}</body></html>`;
+  return sendEmail(ADMIN_EMAIL, subject, html);
+}
+
+export async function sendAVWorkerNotification(payload: {
+  name: string;
+  phone: string;
+  email: string;
+  city: string;
+  skills: string[];
+  yearsExperience?: string;
+  minDayRate?: string;
+  availableSameDay: boolean;
+  notes?: string;
+}): Promise<boolean> {
+  const subject = `New AV Worker — ${payload.name} — ${payload.city}`;
+  const body = [
+    `Name: ${payload.name}`,
+    `Phone: ${payload.phone}`,
+    `Email: ${payload.email}`,
+    `City: ${payload.city}`,
+    `Skills: ${payload.skills.join(", ")}`,
+    `Years experience: ${payload.yearsExperience ?? "Not specified"}`,
+    `Minimum day rate: ${payload.minDayRate ?? "Not specified"}`,
+    `Available for same-day calls: ${payload.availableSameDay ? "Yes" : "No"}`,
+    payload.notes ? `\nNotes:\n${payload.notes}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+  const html = `<!DOCTYPE html><html><body style="font-family: sans-serif; white-space: pre-wrap;">${body.replace(/\n/g, "<br>")}</body></html>`;
+  return sendEmail(ADMIN_EMAIL, subject, html);
+}
+
 /**
  * Lead unlock confirmation email with contact details
  */
