@@ -1,7 +1,7 @@
 /**
  * Dynamic sitemap generator for Gigxo SEO
  * Serves /sitemap.xml with all public pages + artist profiles + dynamic SEO pages
- * Services and cities match client/src/lib/seoConfig.ts (13 services × 12 cities).
+ * Services and cities match client/src/lib/seoConfig.ts (13 services × 9 cities).
  */
 import type { Express } from "express";
 
@@ -22,7 +22,7 @@ const SERVICES = [
   { id: "venues-hiring-djs", priority: "0.80" },
 ];
 
-// Synced with client/src/lib/seoConfig.ts — 12 cities
+// Synced with client/src/lib/seoConfig.ts — 9 cities
 const CITIES = [
   "miami",
   "fort-lauderdale",
@@ -33,9 +33,6 @@ const CITIES = [
   "jacksonville",
   "naples",
   "key-west",
-  "bahia-mar-marina",
-  "pier-sixty-six-marina",
-  "port-everglades-yacht",
 ];
 
 function minimalSitemap(baseUrl: string): string {

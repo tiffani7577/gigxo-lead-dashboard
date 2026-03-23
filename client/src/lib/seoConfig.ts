@@ -202,10 +202,6 @@ export const CITIES: CityConfig[] = [
   { id: "jacksonville", name: "Jacksonville", state: "FL", region: "North Florida" },
   { id: "naples", name: "Naples", state: "FL", region: "Southwest Florida" },
   { id: "key-west", name: "Key West", state: "FL", region: "Florida Keys" },
-  // Pseudo-city IDs for specific marinas / yacht venues, mapped to real cities
-  { id: "bahia-mar-marina", name: "Bahia Mar Marina", state: "FL", region: "Fort Lauderdale" },
-  { id: "pier-sixty-six-marina", name: "Pier Sixty-Six Marina", state: "FL", region: "Fort Lauderdale" },
-  { id: "port-everglades-yacht", name: "Port Everglades Yacht", state: "FL", region: "Fort Lauderdale" },
 ];
 
 /** Only these URLs are generated for dj-cost / wedding-dj-cost (avoid thin city×service spam). */
@@ -504,27 +500,6 @@ const MANUAL_OVERRIDES: Record<string, Partial<PageConfig>> = {
       },
     ],
   },
-  // Venue / marina pages (pageType: "venue")
-  "dj-bahia-mar-marina": {
-    seoTitle: "DJ for Bahia Mar Marina | Fort Lauderdale Yacht & Dockside Events",
-    seoDescription:
-      "Book DJs for Bahia Mar Marina yacht parties and dockside events in Fort Lauderdale. Discover boat-friendly DJs and request a quick quote.",
-    heading: "Hire DJs for Bahia Mar Marina",
-    subheading: "Boat-friendly DJs for Bahia Mar Marina charters and dockside events",
-    content:
-      "Bahia Mar Marina sits right off Fort Lauderdale Beach and hosts everything from private yacht charters to marina-side celebrations. This page focuses on DJs who understand on-water events—compact rigs, careful cable runs and respectful volume along the intracoastal. Share your slip, timing and guest count so we can match you with Bahia Mar–ready DJs.",
-    pageType: "venue",
-  },
-  "dj-pier-sixty-six-marina": {
-    seoTitle: "DJ for Pier Sixty-Six Marina | Fort Lauderdale Yacht DJs",
-    seoDescription:
-      "Hire DJs for Pier Sixty-Six Marina yacht charters and events. Find yacht-ready, compact setups and request a quote for your Fort Lauderdale departure.",
-    heading: "Hire DJs for Pier Sixty-Six Marina",
-    subheading: "Yacht-ready DJs for Pier Sixty-Six Marina departures",
-    content:
-      "Pier Sixty-Six Marina is a launch point for high-end charters and private events. Use this page to find DJs who are comfortable loading in through marina access points, working around tight decks and keeping sound controlled for nearby vessels. Tell us about your yacht size, itinerary and preferred genres to see the best fits.",
-    pageType: "venue",
-  },
   "dj-orlando": {
     seoTitle: "Hire DJs in Orlando | Event & Wedding DJs",
     seoDescription: "Browse professional DJs in Orlando for weddings, events and parties. Request a quote.",
@@ -556,16 +531,6 @@ const MANUAL_OVERRIDES: Record<string, Partial<PageConfig>> = {
     subheading: "Miami venues and events looking for DJ entertainment",
     content: "Discover Miami venues and events actively looking for DJs. Unlock leads and connect with decision-makers.",
     pageType: "hire",
-  },
-  "dj-port-everglades-yacht": {
-    seoTitle: "DJ for Port Everglades Yacht Charters | Fort Lauderdale DJs",
-    seoDescription:
-      "Hire DJs for Port Everglades yacht charters and corporate cruises. Boat-friendly, compact DJ setups with Fort Lauderdale departure coverage.",
-    heading: "Hire DJs for Port Everglades Yacht Charters",
-    subheading: "Corporate and private yacht DJs for Port Everglades departures",
-    content:
-      "Port Everglades is a starting point for corporate cruises, incentive trips and private yacht charters. This page highlights DJs who can handle early load-ins, strict timelines and compact, seaworthy setups. Share your vessel details, boarding window and vibe so we can recommend DJs who are a fit for Port Everglades operations.",
-    pageType: "venue",
   },
 };
 

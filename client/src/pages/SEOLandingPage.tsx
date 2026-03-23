@@ -844,9 +844,6 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
         {/* Fort Lauderdale yacht cluster links */}
         {(() => {
           const fortYachtSlugs = [
-            "dj-bahia-mar-marina",
-            "dj-pier-sixty-six-marina",
-            "dj-port-everglades-yacht",
             "yacht-dj-fort-lauderdale",
             "yacht-dj-cost-miami",
             "yacht-dj-cost-fort-lauderdale",
@@ -860,7 +857,7 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
               <CardHeader>
                 <CardTitle className="text-base">Fort Lauderdale yacht & marina pages</CardTitle>
                 <CardDescription className="text-xs">
-                  Jump between high-intent yacht hire, marina-specific, and pricing pages.
+                  Jump between Fort Lauderdale yacht hire and yacht DJ pricing pages.
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-2 text-xs">
