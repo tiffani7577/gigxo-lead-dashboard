@@ -638,7 +638,7 @@ export default function ArtistProfile() {
           </CardContent>
         </Card>
 
-        {/* Music Tracks */}
+        {/* Music Tracks — temporarily hidden (entire card)
         <Card className="bg-slate-900 border-slate-700">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
@@ -647,7 +647,6 @@ export default function ArtistProfile() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Existing tracks */}
             {myTracks.length > 0 ? (
               <div className="space-y-2">
                 {myTracks.map(track => (
@@ -665,7 +664,6 @@ export default function ArtistProfile() {
               </div>
             )}
 
-            {/* Upload new track — temporarily hidden
             <div className="border border-dashed border-slate-600 rounded-lg p-4 space-y-3">
               <p className="text-slate-400 text-sm font-medium flex items-center gap-2">
                 <Upload className="w-4 h-4" /> Upload a Track
@@ -693,9 +691,9 @@ export default function ArtistProfile() {
               </div>
               <p className="text-xs text-slate-500">Supported: MP3, WAV, M4A, OGG - Max 16MB per file</p>
             </div>
-            */}
           </CardContent>
         </Card>
+        */}
 
         {/* SoundCloud / Mixcloud Embeds */}
         <Card className="border-slate-200">
