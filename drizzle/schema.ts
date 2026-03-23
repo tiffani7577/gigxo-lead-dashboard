@@ -40,7 +40,7 @@ export const artistProfiles = mysqlTable("artistProfiles", {
 
   // Visuals
   photoUrl: mediumtext("photoUrl"), // legacy main photo (URLs or base64 data)
-  heroImageUrl: text("heroImageUrl"),
+  heroImageUrl: mediumtext("heroImageUrl"),
   avatarUrl: mediumtext("avatarUrl"),
   profileImageUrl: mediumtext("profileImageUrl"), // uploaded profile image (S3/storage or data URL)
 
