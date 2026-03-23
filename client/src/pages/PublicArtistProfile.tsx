@@ -58,11 +58,12 @@ function TrackPlayer({ track }: { track: { id: number; title: string; fileUrl: s
 export default function PublicArtistProfile() {
   const [, params] = useRoute("/artist/:slug");
   const slug = params?.slug ?? "";
-  const { user } = useAuth();
+  // auth.me is publicProcedure — returns null when logged out; no protected queries on this page
+  const { user, loading: authLoading } = useAuth();
 
   const { data: artist, isLoading } = trpc.directory.getArtistBySlug.useQuery(
     { slug },
-    { enabled: !!slug }
+    { enabled: !!slug, retry: false }
   );
 
   const [inquiryForm, setInquiryForm] = useState({
@@ -131,6 +132,15 @@ export default function PublicArtistProfile() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
+      {isOwnProfile && (
+        <div className="bg-purple-950/60 border-b border-purple-800/50 text-center px-4 py-2.5 text-sm text-slate-200">
+          This is your public profile.{" "}
+          <Link href="/profile" className="text-purple-300 underline hover:text-purple-200 font-medium">
+            Edit Profile
+          </Link>
+        </div>
+      )}
+
       {/* Nav */}
       <div className="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -139,9 +149,19 @@ export default function PublicArtistProfile() {
               <ArrowLeft className="w-4 h-4" /> Artist Directory
             </Button>
           </Link>
-          <Link href="/signup">
-            <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white">Join as Artist</Button>
-          </Link>
+          {authLoading ? (
+            <Button size="sm" className="bg-slate-800 text-slate-400" disabled>
+              <Loader2 className="w-4 h-4 animate-spin" />
+            </Button>
+          ) : user ? (
+            <Link href="/dashboard">
+              <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white">Dashboard</Button>
+            </Link>
+          ) : (
+            <Link href="/signup">
+              <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white">Join as Artist</Button>
+            </Link>
+          )}
         </div>
       </div>
 
