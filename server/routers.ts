@@ -1685,6 +1685,57 @@ export const appRouter = router({
   
   // Admin procedures
   admin: router({
+    getAVRequests: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user?.role !== "admin") throw new Error("Unauthorized");
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+      const { gigLeads } = await import("../drizzle/schema");
+      return await db
+        .select()
+        .from(gigLeads)
+        .where(eq(gigLeads.source, "av_staffing" as any))
+        .orderBy(desc(gigLeads.createdAt));
+    }),
+
+    getAVWorkers: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user?.role !== "admin") throw new Error("Unauthorized");
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+      const { avWorkers } = await import("../drizzle/schema");
+      return await db
+        .select()
+        .from(avWorkers)
+        .orderBy(desc(avWorkers.createdAt));
+    }),
+
+    updateAVRequestStatus: protectedProcedure
+      .input(
+        z.object({
+          id: z.number(),
+          status: z.enum(["new", "in_progress", "fulfilled"]),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin") throw new Error("Unauthorized");
+        const db = await getDb();
+        if (!db) throw new Error("Database not available");
+        const { gigLeads } = await import("../drizzle/schema");
+        const [existing] = await db
+          .select({ id: gigLeads.id, notes: gigLeads.notes })
+          .from(gigLeads)
+          .where(eq(gigLeads.id, input.id))
+          .limit(1);
+        if (!existing) throw new TRPCError({ code: "NOT_FOUND", message: "Request not found" });
+        const current = existing.notes ?? "";
+        const cleaned = current
+          .split("\n")
+          .filter((line) => !line.startsWith("avStatus="))
+          .join("\n");
+        const notes = `${cleaned}${cleaned ? "\n" : ""}avStatus=${input.status}`;
+        await db.update(gigLeads).set({ notes }).where(eq(gigLeads.id, input.id));
+        return { success: true };
+      }),
+
     getPendingLeads: protectedProcedure.query(async ({ ctx }) => {
       if (ctx.user?.role !== 'admin') throw new Error("Unauthorized");
       
