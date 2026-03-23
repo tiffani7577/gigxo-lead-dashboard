@@ -39,9 +39,9 @@ export const artistProfiles = mysqlTable("artistProfiles", {
   slug: varchar("slug", { length: 128 }).unique(), // URL slug e.g. dj-nova
 
   // Visuals
-  photoUrl: text("photoUrl"), // legacy main photo
+  photoUrl: mediumtext("photoUrl"), // legacy main photo (URLs or base64 data)
   heroImageUrl: text("heroImageUrl"),
-  avatarUrl: text("avatarUrl"),
+  avatarUrl: mediumtext("avatarUrl"),
   profileImageUrl: mediumtext("profileImageUrl"), // uploaded profile image (S3/storage or data URL)
 
   // Content & metadata
