@@ -1151,7 +1151,7 @@ export default function ArtistDashboard() {
                             {/* Tier explanation moved to global banner to reduce per-card noise */}
                           </div>
                           <div className="flex-shrink-0 text-right">
-                            <div className="text-base font-bold text-emerald-600">{formatBudget(lead.budget)}</div>
+                            <div className="text-base font-bold text-emerald-600">Client budget: {formatBudget(lead.budget)}</div>
                             <div className="flex flex-wrap items-center gap-1.5">
                               {lead.performerType && lead.performerType !== "other" && (
                                 <span className="text-xs font-medium bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full">
@@ -1376,7 +1376,7 @@ export default function ArtistDashboard() {
                           <DollarSign className="w-4 h-4 text-emerald-600" />
                         </div>
                         <div>
-                          <p className="text-xs text-slate-500">Budget</p>
+                          <p className="text-xs text-slate-500">Client budget</p>
                           <p className="font-bold text-slate-900 text-lg">{formatBudget(selectedLeadData.budget)}</p>
                         </div>
                       </div>

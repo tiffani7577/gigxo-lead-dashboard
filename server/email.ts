@@ -237,7 +237,7 @@ export async function sendInboundLeadNotification(lead: {
     `Event type: ${lead.eventType}`,
     `Event date: ${lead.eventDate}`,
     `Location: ${lead.location}`,
-    `Budget: ${budgetDisplay}`,
+    `Client's stated budget: ${budgetDisplay}`,
     lead.description ? `\nDescription:\n${lead.description}` : "",
   ].filter(Boolean).join("\n");
   const html = `<!DOCTYPE html><html><body style="font-family: sans-serif; white-space: pre-wrap;">${body.replace(/\n/g, "<br>")}</body></html>`;
@@ -550,13 +550,16 @@ export async function sendLeadMatchEmail(
     eventDate: Date | null;
     budget: number | null;
     description: string | null;
+    unlockPriceCents?: number | null;
   },
   matchScore: number,
   origin: string = "https://gigxo.com"
 ): Promise<boolean> {
   const budgetDisplay = lead.budget
-    ? `$${(lead.budget / 100).toLocaleString()}`
-    : "Budget not listed";
+    ? `Client budget: $${(lead.budget / 100).toLocaleString()}`
+    : null;
+  const unlockPriceCents = lead.unlockPriceCents ?? 700;
+  const unlockPriceLabel = `$${Math.round(unlockPriceCents / 100)}`;
   const dateDisplay = lead.eventDate
     ? new Date(lead.eventDate).toLocaleDateString("en-US", {
         weekday: "long", month: "long", day: "numeric",
@@ -572,7 +575,7 @@ export async function sendLeadMatchEmail(
     raw.slice(25, 80).replace(/[a-zA-Z0-9]/g, "\u2588") +
     "...";
   const unlockUrl = `${origin}/dashboard?lead=${lead.id}`;
-  const subject = `${scoreLabel}: "${lead.title}" - Unlock for $7`;
+  const subject = `${scoreLabel}: "${lead.title}" - Unlock for ${unlockPriceLabel}`;
   const html = [
     "<!DOCTYPE html><html><head><meta charset='utf-8'></head>",
     "<body style='font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px;background:#f8f9fa;'>",
@@ -583,15 +586,16 @@ export async function sendLeadMatchEmail(
     `<h2 style='color:#1f2937;margin:12px 0 8px;'>${lead.title}</h2>`,
     "<div style='color:#374151;font-size:14px;line-height:1.8;'>",
     `<div>Location: ${lead.location}</div>`,
-    `<div style='color:#059669;font-weight:700;font-size:16px;'>${budgetDisplay}</div>`,
+    ...(budgetDisplay ? [`<div style='color:#059669;font-weight:700;font-size:16px;'>${budgetDisplay}</div>`] : []),
     `<div>${dateDisplay}</div>`,
     "</div></div>",
     "<div style='background:#f9fafb;border:1px dashed #d1d5db;border-radius:8px;padding:16px;margin:16px 0;'>",
     `<p style='color:#374151;font-size:14px;margin:0;'>${descPreview}</p>`,
     "</div>",
     "<div style='text-align:center;margin:28px 0;'>",
-    `<a href='${unlockUrl}' style='background:#7c3aed;color:white;padding:14px 36px;border-radius:8px;text-decoration:none;font-weight:700;font-size:16px;display:inline-block;'>Unlock This Lead for $7</a>`,
+    `<a href='${unlockUrl}' style='background:#7c3aed;color:white;padding:14px 36px;border-radius:8px;text-decoration:none;font-weight:700;font-size:16px;display:inline-block;'>Unlock This Lead for ${unlockPriceLabel}</a>`,
     "</div>",
+    `<p style='color:#4b5563;font-size:13px;text-align:center;margin:0 0 10px;'>This is a lead - unlock to get client contact info.</p>`,
     `<p style='color:#9ca3af;font-size:12px;text-align:center;'>Gigxo Miami - <a href='${origin}/dashboard' style='color:#9ca3af;'>View All Leads</a></p>`,
     "</div></body></html>",
   ].join("\n");
@@ -626,7 +630,7 @@ export async function sendDay3DripEmail(
       <h3 style="color: #1f2937; margin: 0 0 10px;">${sampleLeadTitle}</h3>
       <div style="color: #374151; font-size: 14px; line-height: 1.8;">
         <div>📍 ${sampleLocation}</div>
-        <div style="color: #059669; font-weight: 700; font-size: 16px;">💰 ${budgetDisplay}</div>
+        ${budgetDisplay ? `<div style="color: #059669; font-weight: 700; font-size: 16px;">💰 ${budgetDisplay}</div>` : ""}
         <div style="color: #6b7280; margin-top: 8px;">Contact info hidden — unlock for $7 to see name, email & phone</div>
       </div>
     </div>
@@ -710,7 +714,7 @@ export async function sendNewLeadAlertEmail(
   topLead: { title: string; budget: number | null; location: string; eventType: string | null },
   origin: string = "https://gigxo.com"
 ): Promise<boolean> {
-  const budgetDisplay = topLead.budget ? `$${(topLead.budget / 100).toLocaleString()}` : "Budget TBD";
+  const budgetDisplay = topLead.budget ? `Client budget: $${(topLead.budget / 100).toLocaleString()}` : null;
   const subject = `🔔 ${leadCount} new gig${leadCount > 1 ? "s" : ""} match your profile — act fast`;
   const html = `
 <!DOCTYPE html>
@@ -730,7 +734,7 @@ export async function sendNewLeadAlertEmail(
       <div style="color: #374151; font-size: 14px; line-height: 1.8;">
         <div>📍 ${topLead.location}</div>
         ${topLead.eventType ? `<div>🎪 ${topLead.eventType}</div>` : ""}
-        <div style="color: #059669; font-weight: 700; font-size: 16px;">💰 ${budgetDisplay}</div>
+        ${budgetDisplay ? `<div style="color: #059669; font-weight: 700; font-size: 16px;">💰 ${budgetDisplay}</div>` : ""}
       </div>
     </div>
     <div style="text-align: center; margin: 28px 0;">
