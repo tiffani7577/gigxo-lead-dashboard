@@ -192,6 +192,13 @@ const GOOGLE_SERP_QUERIES = [
   `"yacht" "dj" "miami" 2026`,
   `"corporate event" "dj" "miami" 2026 -site:gigsalad.com`,
   `"boat party" "dj" "miami" 2026`,
+  `"need a singer" "miami" 2026`,
+  `"looking for dancer" "miami" 2026`,
+  `"need entertainment" "fort lauderdale" 2026`,
+  `"event model" "south florida" 2026`,
+  `"need live music" "miami" 2026`,
+  `"hire vocalist" "miami" 2026`,
+  `"need performer" "fort lauderdale" 2026`,
 ];
 
 /** Domains to strip from SERP results (DJ directories/listings, not client demand). */
