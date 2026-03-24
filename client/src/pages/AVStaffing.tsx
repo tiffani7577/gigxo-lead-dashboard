@@ -97,7 +97,7 @@ function AVStaffingContent() {
             <CardContent className="pt-8 text-center">
               <h2 className="text-2xl font-bold mb-3">Request received!</h2>
               <p className="text-slate-600">
-                Our team will contact you at <span className="font-semibold">{submittedEmail}</span> within 1 hour with crew options.
+                Our team will contact you at <span className="font-semibold">{submittedEmail}</span>. We&apos;ll follow up same day. Large requests may require up to 24 hours.
               </p>
             </CardContent>
           </Card>
@@ -113,7 +113,7 @@ function AVStaffingContent() {
           <CardContent className="pt-8">
             <h1 className="text-3xl font-bold mb-3">Need Last-Minute AV Crew in South Florida?</h1>
             <p className="text-slate-600 text-lg">
-              Tell us what you need and we&apos;ll have someone for you within the hour.
+              We&apos;ll follow up same day. Large requests may require up to 24 hours.
             </p>
           </CardContent>
         </Card>
@@ -125,7 +125,7 @@ function AVStaffingContent() {
           <CardContent className="space-y-3">
             <ul className="text-slate-600 space-y-1 text-sm">
               <li>✓ Personal matching by our team</li>
-              <li>✓ Response within 1 hour</li>
+              <li>✓ We&apos;ll follow up same day. Large requests may require up to 24 hours.</li>
               <li>✓ Vetted professionals only</li>
               <li>✓ Same-day availability</li>
             </ul>

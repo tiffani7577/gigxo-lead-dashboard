@@ -255,7 +255,7 @@ export async function sendAVRequestNotification(payload: {
   urgency: string;
   additionalNotes?: string;
 }): Promise<boolean> {
-  const subject = `🚨 New AV Request — ${payload.companyName} — ${payload.urgency}`;
+  const subject = `🚨 New AV Request — ${payload.companyName} — ${payload.urgency} (same-day follow-up)`;
   const body = [
     `Company/Event: ${payload.companyName}`,
     `Contact: ${payload.contactName}`,
@@ -265,6 +265,7 @@ export async function sendAVRequestNotification(payload: {
     `Location/Venue: ${payload.location}`,
     `Crew needed: ${payload.crewNeeded}`,
     `Urgency: ${payload.urgency}`,
+    `Response commitment to customer: same day; large requests may require up to 24 hours.`,
     payload.additionalNotes ? `\nAdditional notes:\n${payload.additionalNotes}` : "",
   ]
     .filter(Boolean)
