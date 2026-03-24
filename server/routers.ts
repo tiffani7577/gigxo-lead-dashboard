@@ -4303,16 +4303,12 @@ export const appRouter = router({
         })
         .from(artistProfiles)
         .innerJoin(users, eq(artistProfiles.userId, users.id));
-        // Exclude seeded/sample performers (e.g. seed-performer-N@gigxo.local) from public SEO/directory
-        const isSeedEmail = (email: string | null) => (email ?? "").toLowerCase().endsWith("@gigxo.local");
         // Filter in JS (small dataset, avoids complex SQL JSON queries))
         let filtered = profiles.filter((p: typeof profiles[number]) => {
           // Admin directory visibility (default true for legacy rows)
           if (p.showInDirectory === false) return false;
-          // Exclude admin accounts from public directory
-          if (p.userRole === 'admin') return false;
-          // Exclude seed/sample performers so public SEO pages never show fake profiles
-          if (isSeedEmail(p.userEmail ?? null)) return false;
+          // Exclude admin accounts from public directory unless opted in via showInDirectory
+          if (p.userRole === 'admin' && !p.showInDirectory) return false;
           // Exclude only truly empty profiles lacking all key identity/content fields
           if (!p.djName && !p.userName && !p.avatarUrl && !p.bio) return false;
 
