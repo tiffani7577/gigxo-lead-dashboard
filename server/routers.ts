@@ -2550,8 +2550,7 @@ export const appRouter = router({
             }).from(users)
               .leftJoin(artistProfiles, eq(artistProfiles.userId, users.id))
               .orderBy(desc(users.createdAt));
-        const realUsers = list.filter((u) => !String(u.email ?? "").toLowerCase().endsWith("@gigxo.local"));
-        const userIds = realUsers.map((u) => u.id);
+        const userIds = list.map((u) => u.id);
         const unlockMap: Record<number, number> = {};
         if (userIds.length > 0) {
           const unlockRows = await db.select({
@@ -2572,7 +2571,7 @@ export const appRouter = router({
           .from(subscriptions).where(inArray(subscriptions.userId, userIds));
         const subMap: Record<number, string> = {};
         subRows.forEach((r) => { subMap[r.userId] = r.status === "active" && r.tier === "premium" ? "Pro" : r.tier === "premium" ? "Premium (inactive)" : "Free"; });
-        return realUsers.map((u) => ({
+        return list.map((u) => ({
           id: u.id,
           email: u.email ?? "",
           name: u.name ?? "",
