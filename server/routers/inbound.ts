@@ -170,14 +170,9 @@ export const inboundRouter = router({
         contactEmail: z.string().email(),
         contactPhone: z.string().min(1),
         eventDate: z.string().min(1),
-        callTime: z.string().min(1),
-        endTime: z.string().min(1),
         location: z.string().min(1),
-        rolesNeeded: z.array(z.string().min(1)).min(1),
-        numberOfCrew: z.number().int().positive(),
-        payRate: z.enum(["$150-200/day", "$200-300/day", "$300-400/day", "$400+/day", "To be discussed"]),
+        crewNeeded: z.number().int().positive(),
         urgency: z.enum(["Same day", "Within 24 hours", "2-3 days", "Planning ahead"]),
-        readyToBook: z.enum(["yes", "no"]),
         additionalNotes: z.string().optional(),
       })
     )
@@ -191,21 +186,16 @@ export const inboundRouter = router({
       }
 
       const externalId = `av-request-${randomUUID()}`;
-      const title = `${input.rolesNeeded.join(", ")} needed — ${input.location} on ${input.eventDate}`;
+      const title = `AV crew (${input.crewNeeded}) — ${input.location} — ${input.eventDate}`;
       const description = [
         `Company/Event Name: ${input.companyName}`,
         `Contact Name: ${input.contactName}`,
         `Contact Email: ${input.contactEmail}`,
         `Contact Phone: ${input.contactPhone}`,
         `Event Date: ${input.eventDate}`,
-        `Call Time: ${input.callTime}`,
-        `End Time: ${input.endTime}`,
         `Location/Venue: ${input.location}`,
-        `Roles Needed: ${input.rolesNeeded.join(", ")}`,
-        `Number of Crew: ${input.numberOfCrew}`,
-        `Pay Rate per Person: ${input.payRate}`,
+        `Crew needed: ${input.crewNeeded}`,
         `Urgency: ${input.urgency}`,
-        `Ready to book immediately: ${input.readyToBook}`,
         `Stripe Checkout Session: ${input.stripeCheckoutSessionId}`,
         input.additionalNotes ? `Additional notes: ${input.additionalNotes}` : "",
       ]
@@ -224,7 +214,7 @@ export const inboundRouter = router({
         contactName: input.contactName,
         contactEmail: input.contactEmail,
         contactPhone: input.contactPhone,
-        notes: `urgency=${input.urgency}; readyToBook=${input.readyToBook}; notes=${input.additionalNotes ?? ""}`,
+        notes: `urgency=${input.urgency}; crewNeeded=${input.crewNeeded}; notes=${input.additionalNotes ?? ""}`,
         artistUnlockEnabled: false,
         isApproved: true,
         isRejected: false,
@@ -246,14 +236,9 @@ export const inboundRouter = router({
           contactEmail: input.contactEmail,
           contactPhone: input.contactPhone,
           eventDate: input.eventDate,
-          callTime: input.callTime,
-          endTime: input.endTime,
           location: input.location,
-          rolesNeeded: input.rolesNeeded,
-          numberOfCrew: input.numberOfCrew,
-          payRate: input.payRate,
+          crewNeeded: input.crewNeeded,
           urgency: input.urgency,
-          readyToBook: input.readyToBook,
           additionalNotes: input.additionalNotes,
         });
       } catch (emailErr: any) {

@@ -8,20 +8,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 
-const ROLES = [
-  "A1 Audio Engineer",
-  "A2 Audio Assistant",
-  "Lighting Designer",
-  "Lighting Tech",
-  "LED Tech",
-  "Stage Manager",
-  "Stagehand",
-  "Video Tech",
-  "Backline Tech",
-  "Other",
-] as const;
-
-const PAY_RATES = ["$150-200/day", "$200-300/day", "$300-400/day", "$400+/day", "To be discussed"] as const;
 const URGENCY = ["Same day", "Within 24 hours", "2-3 days", "Planning ahead"] as const;
 
 function AVStaffingContent() {
@@ -35,14 +21,9 @@ function AVStaffingContent() {
   const [contactEmail, setContactEmail] = useState("");
   const [contactPhone, setContactPhone] = useState("");
   const [eventDate, setEventDate] = useState("");
-  const [callTime, setCallTime] = useState("");
-  const [endTime, setEndTime] = useState("");
   const [location, setLocation] = useState("");
-  const [rolesNeeded, setRolesNeeded] = useState<string[]>([]);
-  const [numberOfCrew, setNumberOfCrew] = useState("1");
-  const [payRate, setPayRate] = useState<(typeof PAY_RATES)[number] | "">("");
+  const [crewNeeded, setCrewNeeded] = useState("1");
   const [urgency, setUrgency] = useState<(typeof URGENCY)[number] | "">("");
-  const [readyToBook, setReadyToBook] = useState<"yes" | "no">("yes");
   const [additionalNotes, setAdditionalNotes] = useState("");
   const [submittedEmail, setSubmittedEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -62,10 +43,6 @@ function AVStaffingContent() {
     onError: (err) => toast.error(err.message || "Could not submit request"),
   });
 
-  const toggleRole = (role: string) => {
-    setRolesNeeded((prev) => (prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]));
-  };
-
   const startCheckout = () => {
     if (!companyName.trim()) {
       toast.error("Company/Event Name is required before checkout");
@@ -83,16 +60,17 @@ function AVStaffingContent() {
       toast.error("Please complete payment first.");
       return;
     }
-    if (!companyName || !contactName || !contactEmail || !contactPhone || !eventDate || !callTime || !endTime || !location) {
+    if (!companyName || !contactName || !contactEmail || !contactPhone || !eventDate || !location) {
       toast.error("Please fill all required fields.");
       return;
     }
-    if (rolesNeeded.length === 0) {
-      toast.error("Please select at least one role.");
+    const n = Number(crewNeeded);
+    if (!Number.isFinite(n) || n < 1) {
+      toast.error("Please enter how many crew you need (at least 1).");
       return;
     }
-    if (!payRate || !urgency) {
-      toast.error("Please select pay rate and urgency.");
+    if (!urgency) {
+      toast.error("Please select urgency.");
       return;
     }
 
@@ -104,14 +82,9 @@ function AVStaffingContent() {
       contactEmail,
       contactPhone,
       eventDate,
-      callTime,
-      endTime,
       location,
-      rolesNeeded,
-      numberOfCrew: Number(numberOfCrew) || 1,
-      payRate,
+      crewNeeded: n,
       urgency,
-      readyToBook,
       additionalNotes: additionalNotes || undefined,
     });
   };
@@ -138,12 +111,9 @@ function AVStaffingContent() {
       <div className="max-w-4xl mx-auto px-4 py-10 space-y-6">
         <Card className="bg-white border-slate-200">
           <CardContent className="pt-8">
-            <h1 className="text-3xl font-bold mb-3">Need AV Crew in South Florida?</h1>
+            <h1 className="text-3xl font-bold mb-3">Need Last-Minute AV Crew in South Florida?</h1>
             <p className="text-slate-600 text-lg">
-              Submit your request and our team personally matches you with vetted, available AV professionals — often within the hour.
-            </p>
-            <p className="text-slate-500 text-sm mt-3">
-              Requests are fulfilled manually by our team. You will hear from us within 1 hour of submission.
+              Tell us what you need and we&apos;ll have someone for you within the hour.
             </p>
           </CardContent>
         </Card>
@@ -173,7 +143,7 @@ function AVStaffingContent() {
 
         <Card className="bg-white border-slate-200">
           <CardHeader>
-            <CardTitle>AV Crew Request Form</CardTitle>
+            <CardTitle>Quick request</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -190,52 +160,19 @@ function AVStaffingContent() {
             </div>
             <div>
               <Label>Contact Phone</Label>
-              <Input type="tel" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} />
+              <Input type="tel" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} required />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div>
-                <Label>Event Date</Label>
-                <Input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} />
-              </div>
-              <div>
-                <Label>Call Time</Label>
-                <Input type="time" value={callTime} onChange={(e) => setCallTime(e.target.value)} />
-              </div>
-              <div>
-                <Label>End Time</Label>
-                <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
-              </div>
+            <div>
+              <Label>Event Date</Label>
+              <Input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} />
             </div>
             <div>
               <Label>Location/Venue</Label>
               <Input value={location} onChange={(e) => setLocation(e.target.value)} />
             </div>
             <div>
-              <Label>Roles Needed</Label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
-                {ROLES.map((role) => (
-                  <label key={role} className="text-sm flex items-center gap-2">
-                    <input type="checkbox" checked={rolesNeeded.includes(role)} onChange={() => toggleRole(role)} />
-                    <span>{role}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-            <div>
-              <Label>Number of Crew</Label>
-              <Input type="number" min={1} value={numberOfCrew} onChange={(e) => setNumberOfCrew(e.target.value)} />
-            </div>
-            <div>
-              <Label>Pay Rate per Person</Label>
-              <Select
-                value={payRate || undefined}
-                onValueChange={(v) => setPayRate(v as (typeof PAY_RATES)[number])}
-              >
-                <SelectTrigger className="w-full max-w-full"><SelectValue placeholder="Select a range" /></SelectTrigger>
-                <SelectContent>
-                  {PAY_RATES.map((rate) => <SelectItem key={rate} value={rate}>{rate}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <Label>Crew needed</Label>
+              <Input type="number" min={1} value={crewNeeded} onChange={(e) => setCrewNeeded(e.target.value)} />
             </div>
             <div>
               <Label>Urgency</Label>
@@ -250,17 +187,7 @@ function AVStaffingContent() {
               </Select>
             </div>
             <div>
-              <Label>Ready to book immediately?</Label>
-              <Select value={readyToBook} onValueChange={(v) => setReadyToBook(v as "yes" | "no")}>
-                <SelectTrigger className="w-full max-w-full"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="yes">Yes</SelectItem>
-                  <SelectItem value="no">No</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Additional notes</Label>
+              <Label>Additional notes (optional)</Label>
               <Textarea rows={4} value={additionalNotes} onChange={(e) => setAdditionalNotes(e.target.value)} />
             </div>
             <Button onClick={onSubmit} disabled={submitRequest.isPending} className="bg-purple-600 hover:bg-purple-700">
