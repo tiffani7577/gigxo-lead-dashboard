@@ -300,7 +300,8 @@ export default function ArtistProfile() {
     if (profileImageRef.current) profileImageRef.current.value = "";
   };
 
-  if (authLoading) return (
+  // useAuth().loading can stay true briefly after user is hydrated; render when we already have user
+  if (authLoading && !user) return (
     <div className="min-h-screen flex items-center justify-center">
       <Loader2 className="w-6 h-6 animate-spin text-purple-600" />
     </div>
