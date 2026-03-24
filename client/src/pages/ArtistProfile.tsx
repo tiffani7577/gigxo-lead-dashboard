@@ -73,7 +73,7 @@ function TrackPlayer({ track, onDelete }: { track: { id: number; title: string; 
 }
 
 export default function ArtistProfile() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const utils = trpc.useUtils();
 
   const { data: profile, isLoading } = trpc.artist.getMyArtistProfile.useQuery(undefined, {
@@ -299,6 +299,8 @@ export default function ArtistProfile() {
     reader.readAsDataURL(file);
     if (profileImageRef.current) profileImageRef.current.value = "";
   };
+
+  if (authLoading) return null;
 
   if (isLoading) {
     return (

@@ -4246,8 +4246,8 @@ export const appRouter = router({
           if (p.userRole === 'admin') return false;
           // Exclude seed/sample performers so public SEO pages never show fake profiles
           if (isSeedEmail(p.userEmail ?? null)) return false;
-          // Must have at least a name or DJ name
-          if (!p.djName && !p.userName) return false;
+          // Exclude only truly empty profiles lacking all key identity/content fields
+          if (!p.djName && !p.userName && !p.avatarUrl && !p.bio) return false;
 
           if (input.query) {
             const q = input.query.toLowerCase();
