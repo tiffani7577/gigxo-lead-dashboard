@@ -59,7 +59,7 @@ function Router() {
       <Route path="/share" component={SharePage} />
       <Route path="/request-entertainment" component={RequestEntertainment} />
       <Route path="/book-dj" component={BookDj} />
-      <Route path="/admin" component={AdminOverview} />
+      {/* Specific /admin/* routes must come before /admin — wouter matches first route */}
       <Route path="/admin/queue" component={AdminDashboard} />
       <Route path="/admin/event-windows" component={AdminEventWindows} />
       <Route path="/admin/scraper-config" component={ScraperConfig} />
@@ -72,6 +72,7 @@ function Router() {
       <Route path="/admin/outreach/leads" component={AdminOutreachLeads} />
       <Route path="/admin/outreach/templates" component={AdminOutreachTemplates} />
       <Route path="/admin/live-lead-search" component={LiveLeadSearch} />
+      <Route path="/admin" component={AdminOverview} />
       <Route path="/contracts" component={Contracts} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={Terms} />
