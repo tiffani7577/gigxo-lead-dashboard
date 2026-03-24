@@ -99,12 +99,12 @@ function AVWorkerSignupContent() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white">
+      <div className="min-h-screen bg-white text-slate-900">
         <div className="max-w-3xl mx-auto px-4 py-16">
-          <Card className="bg-slate-900 border-slate-700">
+          <Card className="bg-white border-slate-200">
             <CardContent className="pt-8 text-center">
               <h2 className="text-2xl font-bold mb-3">You're registered!</h2>
-              <p className="text-slate-300">
+              <p className="text-slate-600">
                 We'll reach out when a gig matches your profile. Make sure your phone is on.
               </p>
             </CardContent>
@@ -115,18 +115,18 @@ function AVWorkerSignupContent() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-white text-slate-900">
       <div className="max-w-4xl mx-auto px-4 py-10 space-y-6">
-        <Card className="bg-slate-900 border-slate-700">
+        <Card className="bg-white border-slate-200">
           <CardContent className="pt-8">
             <h1 className="text-3xl font-bold mb-3">Get Hired for AV Gigs in Florida</h1>
-            <p className="text-slate-300 text-lg">
+            <p className="text-slate-600 text-lg">
               Register once, get matched with paid crew calls that fit your skills and location. Free to join.
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-slate-900 border-slate-700">
+        <Card className="bg-white border-slate-200">
           <CardHeader>
             <CardTitle>AV Worker Registration</CardTitle>
           </CardHeader>
@@ -235,10 +235,10 @@ class AVWorkerSignupBoundary extends Component<BoundaryProps, BoundaryState> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center px-4">
-          <div className="max-w-md w-full rounded-xl border border-slate-700 bg-slate-900 p-8 text-center shadow-xl">
-            <h1 className="text-xl font-semibold text-white mb-2">AV Worker Signup</h1>
-            <p className="text-slate-400 text-sm mb-6">
+        <div className="min-h-screen bg-white text-slate-900 flex flex-col items-center justify-center px-4">
+          <div className="max-w-md w-full rounded-xl border border-slate-200 bg-white p-8 text-center shadow-xl">
+            <h1 className="text-xl font-semibold text-slate-900 mb-2">AV Worker Signup</h1>
+            <p className="text-slate-500 text-sm mb-6">
               Something went wrong loading this page. Try refreshing, or contact support if it keeps happening.
             </p>
             <Button
