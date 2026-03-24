@@ -10,7 +10,7 @@ import { useState, useEffect, useRef, Component } from "react";
 import { Link } from "wouter";
 import {
   Loader2, MapPin, DollarSign, Calendar, Phone, Mail, Lock, Unlock,
-  Search, Music, TrendingUp, User, Gift, Copy, Check, Eye,
+  Search, Music, User, Gift, Copy, Check, Eye,
   ChevronRight, Zap, Star, LogOut, Users, Sparkles, Flame, ThumbsUp, ThumbsDown, MessageSquare, BarChart2, Building2, ExternalLink, Clock3,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -852,10 +852,6 @@ export default function ArtistDashboard() {
           <div className="flex items-center gap-4">
             {stats && (
               <div className="hidden md:flex items-center gap-4 text-sm text-slate-600">
-                <span className="flex items-center gap-1">
-                  <TrendingUp className="w-4 h-4 text-purple-600" />
-                  {stats.totalAvailable} leads available
-                </span>
                 <span className="flex items-center gap-1">
                   <Unlock className="w-4 h-4 text-green-600" />
                   {stats.myUnlocks} unlocked
