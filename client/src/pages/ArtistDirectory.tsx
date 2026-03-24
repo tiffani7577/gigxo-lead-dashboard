@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Input } from "@/components/ui/input";
@@ -24,35 +24,42 @@ const EXPERIENCE_LABELS: Record<string, string> = {
   expert: "Expert",
 };
 
+/** First paint: small curated grid; "Load more" grows the window from the start of the result set (offset 0). */
+const INITIAL_ARTIST_LIMIT = 8;
+const LOAD_MORE_BATCH = 12;
+
 export default function ArtistDirectory() {
   const [query, setQuery] = useState("");
   const [selectedGenre, setSelectedGenre] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("");
   const [selectedExp, setSelectedExp] = useState("");
   const [showFilters, setShowFilters] = useState(false);
-  const [page, setPage] = useState(0);
-  const PAGE_SIZE = 24;
+  const [visibleLimit, setVisibleLimit] = useState(INITIAL_ARTIST_LIMIT);
 
-  const { data, isLoading } = trpc.directory.searchArtists.useQuery({
+  const { data, isLoading, isFetching } = trpc.directory.searchArtists.useQuery({
     query: query || undefined,
     genre: selectedGenre || undefined,
     location: selectedLocation || undefined,
     experienceLevel: (selectedExp as any) || undefined,
-    limit: PAGE_SIZE,
-    offset: page * PAGE_SIZE,
+    limit: visibleLimit,
+    offset: 0,
   });
 
   const artists = data?.artists ?? [];
   const total = data?.total ?? 0;
+  const hasMore = total > artists.length;
+  const loadMorePending = isFetching && !isLoading;
 
   const hasFilters = !!(query || selectedGenre || selectedLocation || selectedExp);
+
+  const resetVisibleWindow = () => setVisibleLimit(INITIAL_ARTIST_LIMIT);
 
   const clearFilters = () => {
     setQuery("");
     setSelectedGenre("");
     setSelectedLocation("");
     setSelectedExp("");
-    setPage(0);
+    resetVisibleWindow();
   };
 
   return (
@@ -95,7 +102,7 @@ export default function ArtistDirectory() {
             <Input
               placeholder="Search by name, DJ name, or genre..."
               value={query}
-              onChange={e => { setQuery(e.target.value); setPage(0); }}
+              onChange={e => { setQuery(e.target.value); resetVisibleWindow(); }}
               className="pl-12 pr-4 py-3 bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 text-base h-12 rounded-xl"
             />
           </div>
@@ -121,7 +128,7 @@ export default function ArtistDirectory() {
             {["House", "Hip-Hop", "Latin", "Wedding DJ", "Club DJ"].map(g => (
               <button
                 key={g}
-                onClick={() => { setSelectedGenre(selectedGenre === g ? "" : g); setPage(0); }}
+                onClick={() => { setSelectedGenre(selectedGenre === g ? "" : g); resetVisibleWindow(); }}
                 className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                   selectedGenre === g
                     ? "bg-purple-600 text-white"
@@ -153,7 +160,7 @@ export default function ArtistDirectory() {
                 {GENRE_FILTERS.map(g => (
                   <button
                     key={g}
-                    onClick={() => { setSelectedGenre(selectedGenre === g ? "" : g); setPage(0); }}
+                    onClick={() => { setSelectedGenre(selectedGenre === g ? "" : g); resetVisibleWindow(); }}
                     className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
                       selectedGenre === g ? "bg-purple-600 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
                     }`}
@@ -171,7 +178,7 @@ export default function ArtistDirectory() {
                 {LOCATION_FILTERS.map(loc => (
                   <button
                     key={loc}
-                    onClick={() => { setSelectedLocation(selectedLocation === loc ? "" : loc); setPage(0); }}
+                    onClick={() => { setSelectedLocation(selectedLocation === loc ? "" : loc); resetVisibleWindow(); }}
                     className={`px-3 py-1.5 rounded-lg text-xs text-left font-medium transition-colors ${
                       selectedLocation === loc ? "bg-purple-600 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
                     }`}
@@ -189,7 +196,7 @@ export default function ArtistDirectory() {
                 {Object.entries(EXPERIENCE_LABELS).map(([val, label]) => (
                   <button
                     key={val}
-                    onClick={() => { setSelectedExp(selectedExp === val ? "" : val); setPage(0); }}
+                    onClick={() => { setSelectedExp(selectedExp === val ? "" : val); resetVisibleWindow(); }}
                     className={`px-3 py-1.5 rounded-lg text-xs text-left font-medium transition-colors ${
                       selectedExp === val ? "bg-purple-600 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
                     }`}
@@ -202,11 +209,36 @@ export default function ArtistDirectory() {
           </div>
         )}
 
-        {/* Results count */}
-        <div className="flex items-center justify-between mb-5">
-          <p className="text-slate-400 text-sm">
-            {isLoading ? "Searching..." : `${total} artist${total !== 1 ? "s" : ""} found`}
-          </p>
+        {/* Results count — total pool + how many are on screen */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-5">
+          <div>
+            <p className="text-slate-300 text-sm font-medium">
+              {isLoading && !data ? (
+                "Searching..."
+              ) : total === 0 ? (
+                "No matching artists"
+              ) : (
+                <>
+                  <span className="text-white">{total}</span>
+                  <span className="text-slate-400">
+                    {" "}
+                    {total === 1 ? "artist matches" : "artists match"} your filters
+                  </span>
+                </>
+              )}
+            </p>
+            {!isLoading && total > 0 && (
+              <p className="text-slate-500 text-xs mt-1">
+                Showing {artists.length} now
+                {hasMore ? " — load more to see additional profiles." : " — you’re viewing the full list."}
+              </p>
+            )}
+          </div>
+          {total > 0 && hasMore && (
+            <Badge variant="outline" className="border-purple-500/50 text-purple-200 bg-purple-950/30 w-fit">
+              +{total - artists.length} more in directory
+            </Badge>
+          )}
         </div>
 
         {/* Artist grid */}
@@ -233,30 +265,31 @@ export default function ArtistDirectory() {
           </div>
         )}
 
-        {/* Pagination */}
-        {total > PAGE_SIZE && (
-          <div className="flex items-center justify-center gap-3 mt-10">
+        {/* Load more — curated first screen, then expand */}
+        {!isLoading && total > 0 && hasMore && (
+          <div className="flex flex-col items-center gap-3 mt-10">
             <Button
+              type="button"
               variant="outline"
-              size="sm"
-              disabled={page === 0}
-              onClick={() => setPage(p => p - 1)}
-              className="border-slate-600 text-slate-300 bg-transparent hover:bg-slate-800"
+              size="lg"
+              disabled={loadMorePending}
+              onClick={() =>
+                setVisibleLimit((n) => Math.min(n + LOAD_MORE_BATCH, Math.max(total, n)))
+              }
+              className="border-purple-500/40 text-white bg-slate-900/80 hover:bg-slate-800 min-w-[220px]"
             >
-              Previous
+              {loadMorePending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin inline" />
+                  Loading…
+                </>
+              ) : (
+                "Load more artists"
+              )}
             </Button>
-            <span className="text-slate-400 text-sm">
-              Page {page + 1} of {Math.ceil(total / PAGE_SIZE)}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={(page + 1) * PAGE_SIZE >= total}
-              onClick={() => setPage(p => p + 1)}
-              className="border-slate-600 text-slate-300 bg-transparent hover:bg-slate-800"
-            >
-              Next
-            </Button>
+            <p className="text-slate-500 text-xs text-center max-w-md">
+              Showing {artists.length} of {total}. Gigxo lists every matching profile—load more to browse the full directory.
+            </p>
           </div>
         )}
 

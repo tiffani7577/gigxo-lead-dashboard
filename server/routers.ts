@@ -655,6 +655,7 @@ export const appRouter = router({
             bio: input.bio,
             soundcloudUrl: input.soundcloudUrl,
             mixcloudUrl: input.mixcloudUrl,
+            showInDirectory: true,
           });
         } else {
           const updateData: Record<string, unknown> = {};
@@ -2406,6 +2407,57 @@ export const appRouter = router({
         lastSignedIn: u.lastSignedIn,
       }));
     }),
+
+    /** List artist profiles for admin control of /artists directory visibility */
+    listDirectoryArtistProfiles: protectedProcedure
+      .input(z.object({ limit: z.number().min(1).max(500).default(250) }).optional())
+      .query(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+        const { artistProfiles, users } = await import("../drizzle/schema");
+        const lim = input?.limit ?? 250;
+        const rows = await db
+          .select({
+            id: artistProfiles.id,
+            userId: artistProfiles.userId,
+            slug: artistProfiles.slug,
+            djName: artistProfiles.djName,
+            location: artistProfiles.location,
+            showInDirectory: artistProfiles.showInDirectory,
+            userName: users.name,
+            userEmail: users.email,
+            userRole: users.role,
+          })
+          .from(artistProfiles)
+          .innerJoin(users, eq(artistProfiles.userId, users.id))
+          .where(ne(users.role, "admin"))
+          .orderBy(desc(artistProfiles.updatedAt))
+          .limit(lim);
+        const isSeed = (email: string | null) => (email ?? "").toLowerCase().endsWith("@gigxo.local");
+        return rows
+          .filter((r) => !isSeed(r.userEmail))
+          .map(({ userEmail: _e, userRole: _r, ...rest }) => ({
+            ...rest,
+            displayName: rest.djName || rest.userName || "Artist",
+          }));
+      }),
+
+    setArtistShowInDirectory: protectedProcedure
+      .input(z.object({ profileId: z.number(), showInDirectory: z.boolean() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+        const { artistProfiles } = await import("../drizzle/schema");
+        await db
+          .update(artistProfiles)
+          .set({ showInDirectory: input.showInDirectory, updatedAt: new Date() })
+          .where(eq(artistProfiles.id, input.profileId));
+        return { success: true as const };
+      }),
 
     /** Unified admin command center: business metrics for overview page */
     getAdminOverview: protectedProcedure.query(async ({ ctx }) => {
@@ -4243,6 +4295,7 @@ export const appRouter = router({
           bio: artistProfiles.bio,
           soundcloudUrl: artistProfiles.soundcloudUrl,
           mixcloudUrl: artistProfiles.mixcloudUrl,
+          showInDirectory: artistProfiles.showInDirectory,
           userName: users.name,
           userEmail: users.email,
           avatarUrl: users.avatarUrl,
@@ -4254,6 +4307,8 @@ export const appRouter = router({
         const isSeedEmail = (email: string | null) => (email ?? "").toLowerCase().endsWith("@gigxo.local");
         // Filter in JS (small dataset, avoids complex SQL JSON queries))
         let filtered = profiles.filter((p: typeof profiles[number]) => {
+          // Admin directory visibility (default true for legacy rows)
+          if (p.showInDirectory === false) return false;
           // Exclude admin accounts from public directory
           if (p.userRole === 'admin') return false;
           // Exclude seed/sample performers so public SEO pages never show fake profiles
@@ -4301,7 +4356,7 @@ export const appRouter = router({
 
         return {
           artists: paginated.map(p => {
-            const { userEmail: _e, userRole: _r, ...rest } = p;
+            const { userEmail: _e, userRole: _r, showInDirectory: _sid, ...rest } = p;
             return {
               ...rest,
               displayName: p.djName || p.userName || "Artist",

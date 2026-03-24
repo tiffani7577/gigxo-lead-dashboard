@@ -35,6 +35,8 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 function formatDate(d: Date | string) {
   return new Date(d).toLocaleDateString("en-US", {
@@ -59,6 +61,7 @@ type SignupRow = {
 
 export default function AdminOverview() {
   const { user, isAuthenticated } = useAuth();
+  const utils = trpc.useUtils();
   const [signupFilter, setSignupFilter] = useState<"7d" | "30d" | "all">("7d");
   const [selectedUser, setSelectedUser] = useState<SignupRow | null>(null);
 
@@ -83,6 +86,20 @@ export default function AdminOverview() {
     trpc.admin.getPendingLeads.useQuery(undefined, {
       enabled: user?.role === "admin",
     });
+
+  const { data: directoryProfiles = [], isLoading: directoryProfilesLoading } =
+    trpc.admin.listDirectoryArtistProfiles.useQuery(
+      { limit: 250 },
+      { enabled: user?.role === "admin" }
+    );
+
+  const setDirectoryVisibility = trpc.admin.setArtistShowInDirectory.useMutation({
+    onSuccess: () => {
+      toast.success("Directory visibility updated");
+      void utils.admin.listDirectoryArtistProfiles.invalidate();
+    },
+    onError: (e) => toast.error(e.message),
+  });
 
   const runDbpr = trpc.admin.runDbprPipeline.useMutation({
     onSuccess: (d) => {
@@ -238,6 +255,90 @@ export default function AdminOverview() {
                 </div>
               </div>
             ) : null}
+          </CardContent>
+        </Card>
+
+        {/* Public /artists directory — who appears in browse + SEO grids (not /artist/:slug) */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Artist directory visibility</CardTitle>
+            <p className="text-sm text-slate-600 mt-1 max-w-3xl">
+              Controls which registered artist profiles appear on the public{" "}
+              <Link href="/artists" className="text-purple-600 hover:underline">
+                /artists
+              </Link>{" "}
+              page and artist strips on SEO landing pages. Turning off hides them from browse only — direct profile
+              links still work.
+            </p>
+          </CardHeader>
+          <CardContent>
+            {directoryProfilesLoading ? (
+              <div className="flex items-center gap-2 text-slate-500">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Loading profiles…
+              </div>
+            ) : directoryProfiles.length === 0 ? (
+              <p className="text-slate-500 text-sm">No artist profiles found.</p>
+            ) : (
+              <div className="rounded-md border overflow-x-auto max-h-[min(420px,70vh)] overflow-y-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Artist</TableHead>
+                      <TableHead>Slug</TableHead>
+                      <TableHead>Location</TableHead>
+                      <TableHead className="text-right w-[200px]">
+                        <span className="sr-only md:not-sr-only">Show in directory</span>
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {directoryProfiles.map((row) => (
+                      <TableRow key={row.id}>
+                        <TableCell className="font-medium text-slate-900 max-w-[200px] truncate">
+                          {row.displayName}
+                        </TableCell>
+                        <TableCell className="text-slate-600 text-sm">
+                          {row.slug ? (
+                            <Link
+                              href={`/artist/${row.slug}`}
+                              className="text-purple-600 hover:underline"
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {row.slug}
+                            </Link>
+                          ) : (
+                            "—"
+                          )}
+                        </TableCell>
+                        <TableCell className="text-slate-600 text-sm max-w-[160px] truncate">
+                          {row.location ?? "—"}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Label htmlFor={`dir-${row.id}`} className="text-xs text-slate-500 sr-only">
+                              Show in public artist directory
+                            </Label>
+                            <Switch
+                              id={`dir-${row.id}`}
+                              checked={row.showInDirectory}
+                              disabled={setDirectoryVisibility.isPending}
+                              onCheckedChange={(checked) =>
+                                setDirectoryVisibility.mutate({
+                                  profileId: row.id,
+                                  showInDirectory: checked,
+                                })
+                              }
+                            />
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </CardContent>
         </Card>
 

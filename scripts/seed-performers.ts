@@ -65,6 +65,7 @@ async function main() {
       experienceLevel: "professional",
       isPublished: true,
       isClaimed: false,
+      showInDirectory: true,
       templateId: "default",
     } as typeof artistProfiles.$inferInsert);
 

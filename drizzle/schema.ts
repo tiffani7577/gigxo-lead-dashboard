@@ -70,6 +70,8 @@ export const artistProfiles = mysqlTable("artistProfiles", {
   // State flags
   isPublished: boolean("isPublished").default(false).notNull(),
   isClaimed: boolean("isClaimed").default(false).notNull(),
+  /** Admin: when false, profile is hidden from /artists directory & SEO artist grids; /artist/:slug still works. */
+  showInDirectory: boolean("showInDirectory").default(true).notNull(),
 
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

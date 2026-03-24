@@ -179,6 +179,7 @@ export async function getOrCreateArtistProfile(userId: number) {
     maxDistance: 30,
     isPublished: false,
     isClaimed: false,
+    showInDirectory: true,
     templateId: "default",
   } as any);
 
