@@ -2470,7 +2470,7 @@ export const appRouter = router({
         const { getDb } = await import("./db");
         const db = await getDb();
         if (!db) throw new Error("Database not available");
-        const { users, leadUnlocks, transactions, subscriptions } = await import("../drizzle/schema");
+        const { users, artistProfiles, leadUnlocks, transactions, subscriptions } = await import("../drizzle/schema");
         let since: Date | null = null;
         if (input.filter === "7d") since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
         else if (input.filter === "30d") since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
@@ -2481,15 +2481,25 @@ export const appRouter = router({
               name: users.name,
               createdAt: users.createdAt,
               emailVerified: users.emailVerified,
-            }).from(users).where(gte(users.createdAt, since)).orderBy(desc(users.createdAt)).limit(200)
+              city: artistProfiles.location,
+              phone: sql<string | null>`NULL`,
+            }).from(users)
+              .leftJoin(artistProfiles, eq(artistProfiles.userId, users.id))
+              .where(gte(users.createdAt, since))
+              .orderBy(desc(users.createdAt))
           : await db.select({
               id: users.id,
               email: users.email,
               name: users.name,
               createdAt: users.createdAt,
               emailVerified: users.emailVerified,
-            }).from(users).orderBy(desc(users.createdAt)).limit(200);
-        const userIds = list.map((u) => u.id);
+              city: artistProfiles.location,
+              phone: sql<string | null>`NULL`,
+            }).from(users)
+              .leftJoin(artistProfiles, eq(artistProfiles.userId, users.id))
+              .orderBy(desc(users.createdAt));
+        const realUsers = list.filter((u) => !String(u.email ?? "").toLowerCase().endsWith("@gigxo.local"));
+        const userIds = realUsers.map((u) => u.id);
         const unlockMap: Record<number, number> = {};
         if (userIds.length > 0) {
           const unlockRows = await db.select({
@@ -2510,11 +2520,13 @@ export const appRouter = router({
           .from(subscriptions).where(inArray(subscriptions.userId, userIds));
         const subMap: Record<number, string> = {};
         subRows.forEach((r) => { subMap[r.userId] = r.status === "active" && r.tier === "premium" ? "Pro" : r.tier === "premium" ? "Premium (inactive)" : "Free"; });
-        return list.map((u) => ({
+        return realUsers.map((u) => ({
           id: u.id,
           email: u.email ?? "",
           name: u.name ?? "",
           joinedAt: u.createdAt,
+          phone: u.phone ?? null,
+          city: u.city ?? null,
           emailVerified: !!u.emailVerified,
           leadsUnlocked: unlockMap[u.id] ?? 0,
           totalSpentDollars: spentMap[u.id] ?? 0,

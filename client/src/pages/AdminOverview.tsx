@@ -49,6 +49,8 @@ type SignupRow = {
   email: string;
   name: string | null;
   joinedAt: Date;
+  phone: string | null;
+  city: string | null;
   emailVerified: boolean;
   leadsUnlocked: number;
   totalSpentDollars: number;
@@ -96,6 +98,15 @@ export default function AdminOverview() {
     },
     onError: (e) => toast.error(e.message),
   });
+
+  const copyEmail = async (email: string) => {
+    try {
+      await navigator.clipboard.writeText(email);
+      toast.success("Email copied");
+    } catch {
+      toast.error("Could not copy email");
+    }
+  };
 
   if (!isAuthenticated || user?.role !== "admin") {
     return (
@@ -261,6 +272,8 @@ export default function AdminOverview() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Email</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>City</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Joined</TableHead>
                     <TableHead>Verified</TableHead>
@@ -276,7 +289,21 @@ export default function AdminOverview() {
                       className="cursor-pointer hover:bg-slate-50"
                       onClick={() => setSelectedUser(row)}
                     >
-                      <TableCell className="font-medium">{row.email}</TableCell>
+                      <TableCell className="font-medium">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            void copyEmail(row.email);
+                          }}
+                          className="text-left text-purple-700 hover:text-purple-900 underline underline-offset-2"
+                          title="Click to copy email"
+                        >
+                          {row.email}
+                        </button>
+                      </TableCell>
+                      <TableCell>{row.phone || "—"}</TableCell>
+                      <TableCell>{row.city || "—"}</TableCell>
                       <TableCell>{row.name || "—"}</TableCell>
                       <TableCell>{formatDate(row.joinedAt)}</TableCell>
                       <TableCell>
@@ -329,6 +356,14 @@ export default function AdminOverview() {
                 <p>
                   <span className="text-slate-500">Name:</span>{" "}
                   {selectedUser.name || "—"}
+                </p>
+                <p>
+                  <span className="text-slate-500">Phone:</span>{" "}
+                  {selectedUser.phone || "—"}
+                </p>
+                <p>
+                  <span className="text-slate-500">City:</span>{" "}
+                  {selectedUser.city || "—"}
                 </p>
                 <p>
                   <span className="text-slate-500">Joined:</span>{" "}
