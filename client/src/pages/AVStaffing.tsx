@@ -1,4 +1,4 @@
-import { Component, type ReactNode, useMemo, useState } from "react";
+import { Component, type ErrorInfo, type ReactNode, useMemo, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -227,8 +227,11 @@ function AVStaffingContent() {
             </div>
             <div>
               <Label>Pay Rate per Person</Label>
-              <Select value={payRate} onValueChange={(v) => setPayRate(v as (typeof PAY_RATES)[number])}>
-                <SelectTrigger><SelectValue placeholder="Select a range" /></SelectTrigger>
+              <Select
+                value={payRate || undefined}
+                onValueChange={(v) => setPayRate(v as (typeof PAY_RATES)[number])}
+              >
+                <SelectTrigger className="w-full max-w-full"><SelectValue placeholder="Select a range" /></SelectTrigger>
                 <SelectContent>
                   {PAY_RATES.map((rate) => <SelectItem key={rate} value={rate}>{rate}</SelectItem>)}
                 </SelectContent>
@@ -236,8 +239,11 @@ function AVStaffingContent() {
             </div>
             <div>
               <Label>Urgency</Label>
-              <Select value={urgency} onValueChange={(v) => setUrgency(v as (typeof URGENCY)[number])}>
-                <SelectTrigger><SelectValue placeholder="Select urgency" /></SelectTrigger>
+              <Select
+                value={urgency || undefined}
+                onValueChange={(v) => setUrgency(v as (typeof URGENCY)[number])}
+              >
+                <SelectTrigger className="w-full max-w-full"><SelectValue placeholder="Select urgency" /></SelectTrigger>
                 <SelectContent>
                   {URGENCY.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
                 </SelectContent>
@@ -246,7 +252,7 @@ function AVStaffingContent() {
             <div>
               <Label>Ready to book immediately?</Label>
               <Select value={readyToBook} onValueChange={(v) => setReadyToBook(v as "yes" | "no")}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-full max-w-full"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="yes">Yes</SelectItem>
                   <SelectItem value="no">No</SelectItem>
@@ -280,9 +286,29 @@ class AVStaffingBoundary extends Component<BoundaryProps, BoundaryState> {
     return { hasError: true };
   }
 
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error("[AVStaffing] render error:", error, info.componentStack);
+  }
+
   render() {
     if (this.state.hasError) {
-      return <div>AV Staffing</div>;
+      return (
+        <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center px-4">
+          <div className="max-w-md w-full rounded-xl border border-slate-700 bg-slate-900 p-8 text-center shadow-xl">
+            <h1 className="text-xl font-semibold text-white mb-2">AV Staffing</h1>
+            <p className="text-slate-400 text-sm mb-6">
+              Something went wrong loading this page. Try refreshing, or contact support if it keeps happening.
+            </p>
+            <Button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="bg-purple-600 hover:bg-purple-700 text-white w-full sm:w-auto"
+            >
+              Refresh page
+            </Button>
+          </div>
+        </div>
+      );
     }
     return this.props.children;
   }

@@ -1,4 +1,4 @@
-import { Component, type ReactNode, useState } from "react";
+import { Component, type ErrorInfo, type ReactNode, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -145,8 +145,8 @@ function AVWorkerSignupContent() {
             </div>
             <div>
               <Label>City</Label>
-              <Select value={city} onValueChange={setCity}>
-                <SelectTrigger><SelectValue placeholder="Select city" /></SelectTrigger>
+              <Select value={city || undefined} onValueChange={setCity}>
+                <SelectTrigger className="w-full max-w-full"><SelectValue placeholder="Select city" /></SelectTrigger>
                 <SelectContent>
                   {CITIES.map((c) => (
                     <SelectItem key={c} value={c}>
@@ -169,8 +169,11 @@ function AVWorkerSignupContent() {
             </div>
             <div>
               <Label>Years experience</Label>
-              <Select value={yearsExperience} onValueChange={(v) => setYearsExperience(v as (typeof EXPERIENCE)[number])}>
-                <SelectTrigger><SelectValue placeholder="Select experience" /></SelectTrigger>
+              <Select
+                value={yearsExperience || undefined}
+                onValueChange={(v) => setYearsExperience(v as (typeof EXPERIENCE)[number])}
+              >
+                <SelectTrigger className="w-full max-w-full"><SelectValue placeholder="Select experience" /></SelectTrigger>
                 <SelectContent>
                   {EXPERIENCE.map((x) => <SelectItem key={x} value={x}>{x}</SelectItem>)}
                 </SelectContent>
@@ -178,8 +181,11 @@ function AVWorkerSignupContent() {
             </div>
             <div>
               <Label>Minimum day rate</Label>
-              <Select value={minDayRate} onValueChange={(v) => setMinDayRate(v as (typeof MIN_RATE)[number])}>
-                <SelectTrigger><SelectValue placeholder="Select day rate" /></SelectTrigger>
+              <Select
+                value={minDayRate || undefined}
+                onValueChange={(v) => setMinDayRate(v as (typeof MIN_RATE)[number])}
+              >
+                <SelectTrigger className="w-full max-w-full"><SelectValue placeholder="Select day rate" /></SelectTrigger>
                 <SelectContent>
                   {MIN_RATE.map((x) => <SelectItem key={x} value={x}>{x}</SelectItem>)}
                 </SelectContent>
@@ -188,7 +194,7 @@ function AVWorkerSignupContent() {
             <div>
               <Label>Available for same-day calls?</Label>
               <Select value={availableSameDay} onValueChange={(v) => setAvailableSameDay(v as "yes" | "no")}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-full max-w-full"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="yes">Yes</SelectItem>
                   <SelectItem value="no">No</SelectItem>
@@ -222,9 +228,29 @@ class AVWorkerSignupBoundary extends Component<BoundaryProps, BoundaryState> {
     return { hasError: true };
   }
 
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error("[AVWorkerSignup] render error:", error, info.componentStack);
+  }
+
   render() {
     if (this.state.hasError) {
-      return <div>AV Worker Signup</div>;
+      return (
+        <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center px-4">
+          <div className="max-w-md w-full rounded-xl border border-slate-700 bg-slate-900 p-8 text-center shadow-xl">
+            <h1 className="text-xl font-semibold text-white mb-2">AV Worker Signup</h1>
+            <p className="text-slate-400 text-sm mb-6">
+              Something went wrong loading this page. Try refreshing, or contact support if it keeps happening.
+            </p>
+            <Button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="bg-purple-600 hover:bg-purple-700 text-white w-full sm:w-auto"
+            >
+              Refresh page
+            </Button>
+          </div>
+        </div>
+      );
     }
     return this.props.children;
   }

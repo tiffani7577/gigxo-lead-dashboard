@@ -208,10 +208,18 @@ export default function PipelineBoard() {
   const { isAuthenticated } = useAuth();
   const utils = trpc.useUtils();
 
+  const { data: myArtistProfile, isLoading: profileLoading } = trpc.artist.getMyArtistProfile.useQuery(
+    undefined,
+    { enabled: isAuthenticated }
+  );
+
   const { data: board, isLoading } = trpc.pipeline.getBoard.useQuery(undefined, {
     enabled: isAuthenticated,
     refetchInterval: 30000,
   });
+
+  const publicProfileSlug = myArtistProfile?.slug?.trim() ?? "";
+  const publicProfilePath = publicProfileSlug ? `/artist/${encodeURIComponent(publicProfileSlug)}` : null;
 
   const moveCard = trpc.pipeline.moveCard.useMutation({
     onSuccess: () => utils.pipeline.getBoard.invalidate(),
@@ -288,11 +296,23 @@ export default function PipelineBoard() {
             <p className="text-slate-400 text-sm mb-6">
               When clients submit booking inquiries from your public profile, they'll appear here.
             </p>
-            <Link href="/artists">
-              <Button className="bg-purple-600 hover:bg-purple-700 text-white">
-                View Your Public Profile
-              </Button>
-            </Link>
+            {profileLoading ? (
+              <div className="flex justify-center">
+                <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+              </div>
+            ) : publicProfilePath ? (
+              <Link href={publicProfilePath}>
+                <Button className="bg-purple-600 hover:bg-purple-700 text-white">
+                  View Your Public Profile
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/artists">
+                <Button className="bg-purple-600 hover:bg-purple-700 text-white">
+                  Browse Artists
+                </Button>
+              </Link>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
