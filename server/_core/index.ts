@@ -50,12 +50,9 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 
 async function startServer() {
   const app = express();
-  // Railway / reverse proxies: correct client IP, protocol, and host for redirects.
-  // In Railway project variables, set RAILWAY_TRUST_PROXY=true (recommended with this app).
   app.set("trust proxy", true);
   const server = createServer(app);
 
-  // MUST stay first: 301 apex → www. Aggressive host detection for proxy chains (X-Forwarded-Host, Host).
   app.use((req, res, next) => {
     const forwarded = req.headers["x-forwarded-host"];
     const host = (Array.isArray(forwarded)
@@ -67,7 +64,6 @@ async function startServer() {
       .toLowerCase();
 
     if (host === "gigxo.com") {
-      const proto = req.headers["x-forwarded-proto"] || "https";
       return res.redirect(301, `https://www.gigxo.com${req.originalUrl}`);
     }
     next();
