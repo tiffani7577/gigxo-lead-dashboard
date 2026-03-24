@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Component, type ReactNode, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -54,7 +54,7 @@ function prettyCity(cityId: string) {
     .join(" ");
 }
 
-export default function AVWorkerSignup() {
+function AVWorkerSignupContent() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -206,5 +206,34 @@ export default function AVWorkerSignup() {
         </Card>
       </div>
     </div>
+  );
+}
+
+type BoundaryProps = { children: ReactNode };
+type BoundaryState = { hasError: boolean };
+
+class AVWorkerSignupBoundary extends Component<BoundaryProps, BoundaryState> {
+  constructor(props: BoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(): BoundaryState {
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <div>AV Worker Signup</div>;
+    }
+    return this.props.children;
+  }
+}
+
+export default function AVWorkerSignup() {
+  return (
+    <AVWorkerSignupBoundary>
+      <AVWorkerSignupContent />
+    </AVWorkerSignupBoundary>
   );
 }

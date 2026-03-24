@@ -50,7 +50,7 @@ class AVAdminErrorBoundary extends Component<{ children: ReactNode }, { hasError
 }
 
 export default function AdminAVRequests() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading } = useAuth();
   const [tab, setTab] = useState<Tab>("requests");
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [citySearch, setCitySearch] = useState("");
@@ -95,6 +95,10 @@ export default function AdminAVRequests() {
       return cityOk && skillOk;
     });
   }, [workers, citySearch, skillSearch]);
+
+  if (loading) {
+    return <div>AV Staffing</div>;
+  }
 
   if (!isAuthenticated || user?.role !== "admin") {
     return (

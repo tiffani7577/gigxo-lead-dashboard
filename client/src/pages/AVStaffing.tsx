@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { Component, type ReactNode, useMemo, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,8 +24,9 @@ const ROLES = [
 const PAY_RATES = ["$150-200/day", "$200-300/day", "$300-400/day", "$400+/day", "To be discussed"] as const;
 const URGENCY = ["Same day", "Within 24 hours", "2-3 days", "Planning ahead"] as const;
 
-export default function AVStaffing() {
-  const query = useMemo(() => new URLSearchParams(window.location.search), []);
+function AVStaffingContent() {
+  const search = typeof window !== "undefined" ? window.location.search : "";
+  const query = useMemo(() => new URLSearchParams(search), [search]);
   const startsPaid = query.get("paid") === "1";
 
   const [isPaid, setIsPaid] = useState(startsPaid);
@@ -263,5 +264,34 @@ export default function AVStaffing() {
         </Card>
       </div>
     </div>
+  );
+}
+
+type BoundaryProps = { children: ReactNode };
+type BoundaryState = { hasError: boolean };
+
+class AVStaffingBoundary extends Component<BoundaryProps, BoundaryState> {
+  constructor(props: BoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(): BoundaryState {
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <div>AV Staffing</div>;
+    }
+    return this.props.children;
+  }
+}
+
+export default function AVStaffing() {
+  return (
+    <AVStaffingBoundary>
+      <AVStaffingContent />
+    </AVStaffingBoundary>
   );
 }
