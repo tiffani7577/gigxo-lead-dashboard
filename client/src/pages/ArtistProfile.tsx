@@ -76,7 +76,7 @@ export default function ArtistProfile() {
   const { user, loading: authLoading } = useAuth();
   const utils = trpc.useUtils();
 
-  const { data: profile, isLoading } = trpc.artist.getMyArtistProfile.useQuery(undefined, {
+  const { data: profile, isLoading: profileLoading } = trpc.artist.getMyArtistProfile.useQuery(undefined, {
     enabled: !!user,
   });
 
@@ -300,9 +300,13 @@ export default function ArtistProfile() {
     if (profileImageRef.current) profileImageRef.current.value = "";
   };
 
-  if (authLoading) return null;
+  if (authLoading) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <Loader2 className="w-6 h-6 animate-spin text-purple-600" />
+    </div>
+  );
 
-  if (isLoading) {
+  if (profileLoading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
