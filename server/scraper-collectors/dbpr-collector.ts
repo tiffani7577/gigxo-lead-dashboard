@@ -47,7 +47,7 @@ const HIGH_VALUE_CITY_TOKENS = [
   "MIAMI BEACH",
 ] as const;
 
-const STALE_DAYS = 45;
+const STALE_DAYS = 180;
 
 async function safeFetch(url: string): Promise<Response | null> {
   try {
@@ -317,6 +317,12 @@ export async function collectFromDbpr(options?: DbprCollectorOptions): Promise<R
   for (const feed of [feedNew, feedOwnerChange, feedLiquor]) {
     if (!feed) continue;
     const { dataRows, headerRow, usePositional, sourceLabel, url, licenseTokens } = feed;
+    const lines = dataRows;
+    console.log(`[dbpr] ${sourceLabel}: ${lines.length} rows downloaded`);
+    let kept = 0;
+    let wrongType = 0;
+    let outOfMarketFeed = 0;
+    let staleCount = 0;
 
     if (usePositional) {
       for (let i = 0; i < dataRows.length && docs.length < maxResults; i++) {
@@ -329,20 +335,24 @@ export async function collectFromDbpr(options?: DbprCollectorOptions): Promise<R
         const licenseCombined = `${divisionCode} ${licenseClass}`.trim();
         if (!passesLicenseClassFilter(licenseCombined, licenseTokens)) {
           wrongLicenseType++;
+          wrongType++;
           continue;
         }
         if (!passesCountyFilter(county)) {
           outOfMarket++;
+          outOfMarketFeed++;
           continue;
         }
         if (isStaleLicense(dateStr)) {
           staleLicense++;
+          staleCount++;
           continue;
         }
 
         const doc = normalizePositionalRow(row, url, sourceLabel);
         if (doc) {
           docs.push(doc);
+          kept++;
           if (sourceLabel === "DBPR New Establishment") newKept++;
           else if (sourceLabel === "DBPR Owner Change") ownerChangeKept++;
           else if (sourceLabel === "DBPR Daily Activity") liquorKept++;
@@ -377,16 +387,19 @@ export async function collectFromDbpr(options?: DbprCollectorOptions): Promise<R
 
         if (!passesLicenseClassFilter(division, licenseTokens)) {
           wrongLicenseType++;
+          wrongType++;
           continue;
         }
         const countyStr = getCountyFromHeaderRow(row);
         if (!passesCountyFilter(countyStr)) {
           outOfMarket++;
+          outOfMarketFeed++;
           continue;
         }
         const dateStr = getDateFromHeaderRow(row);
         if (isStaleLicense(dateStr)) {
           staleLicense++;
+          staleCount++;
           continue;
         }
 
@@ -419,11 +432,13 @@ export async function collectFromDbpr(options?: DbprCollectorOptions): Promise<R
           city: city || null,
           metadata,
         });
+        kept++;
         if (sourceLabel === "DBPR New Establishment") newKept++;
         else if (sourceLabel === "DBPR Owner Change") ownerChangeKept++;
         else if (sourceLabel === "DBPR Daily Activity") liquorKept++;
       }
     }
+    console.log(`[dbpr] ${sourceLabel}: ${kept} passed license filter, ${wrongType} wrong type, ${outOfMarketFeed} out of market, ${staleCount} stale`);
   }
 
   console.log(
