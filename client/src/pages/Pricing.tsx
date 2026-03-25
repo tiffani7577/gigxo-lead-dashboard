@@ -22,10 +22,9 @@ export default function Pricing() {
       description: "/month",
       badge: "Best value",
       features: [
-        "$35/month in lead credit included (5×$7)",
-        "Use your balance or pay per lead",
-        "Cancel anytime",
-        "South Florida focus",
+        "15 leads included — any tier, your choice",
+        "No commission. No booking fees. Ever.",
+        "New leads added daily.",
       ],
       cta: "Go Pro",
       href: "/signup",
@@ -63,7 +62,7 @@ export default function Pricing() {
           <div className="text-center mb-14">
             <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">Pricing</h1>
             <p className="text-lg text-slate-300 max-w-2xl mx-auto">
-              The performer lead marketplace powered by better intelligence. Discovery leads $3, Standard $7, Premium $15 — or go Pro and get $35/month in lead credit.
+              The performer lead marketplace powered by better intelligence. Discovery leads $3, Standard $7, Premium $15 — or go Pro: $49/month, 15 leads any tier, no commission or booking fees, new leads daily.
             </p>
           </div>
 

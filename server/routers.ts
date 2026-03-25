@@ -1336,7 +1336,7 @@ export const appRouter = router({
           throw new Error("Lead already unlocked");
         }
         
-        // Ensure Pro subscribers have their 5 monthly credits for current period
+        // Ensure Pro subscribers have their 15 monthly credits for current period
         const { getDb } = await import("./db");
         const db = await getDb();
         if (db) {
@@ -4567,7 +4567,7 @@ export const appRouter = router({
       const rows = await db.select().from(subscriptions).where(eq(subscriptions.userId, ctx.user.id)).limit(1);
       return rows[0] ?? null;
     }),
-    // Start premium subscription ($49/month, 5 unlocks)
+    // Start premium subscription ($49/month, 15 unlocks / billing period, any tier)
     startPremium: protectedProcedure
       .input(z.object({ origin: z.string().optional() }))
       .mutation(async ({ ctx, input }) => {
@@ -4590,7 +4590,7 @@ export const appRouter = router({
           }
           return { success: true, demo: true, checkoutUrl: null };
         }
-        // Real Stripe checkout — $49/month Pro (5 lead unlocks included)
+        // Real Stripe checkout — $49/month Pro (15 lead unlocks / period, any tier)
         const stripe = (await import("./stripe")).getStripe();
         if (!stripe) {
           console.error("[subscription.startPremium] STRIPE_SECRET_KEY set but getStripe() returned null");

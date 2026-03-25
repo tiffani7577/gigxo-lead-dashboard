@@ -112,7 +112,7 @@ export async function sendWelcomeEmail(
       <ol style="color: #374151; line-height: 1.8; margin: 0; padding-left: 20px;">
         <li>Browse gig leads (title, budget, location visible for free)</li>
         <li>Discovery leads start at <strong>$3</strong> (starter tier)</li>
-        <li>Standard leads are <strong>$7</strong> and premium leads <strong>$15</strong> — or go <strong>Pro for $49/mo</strong> and get 5 unlock credits included</li>
+        <li>Standard leads are <strong>$7</strong> and premium leads <strong>$15</strong> — or go <strong>Pro for $49/mo</strong>: 15 leads any tier, no commission or booking fees, new leads daily</li>
         <li>Reach out directly and book the gig (no commission)</li>
       </ol>
     </div>

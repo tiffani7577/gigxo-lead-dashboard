@@ -96,7 +96,7 @@ export default function Signup() {
           <CardHeader className="pb-4">
             <CardTitle className="text-white text-xl">Create your account</CardTitle>
             <CardDescription className="text-slate-400">
-              Join 50+ artists. Discovery leads $3, Standard $7, Premium $15. Go Pro for $49/mo and get $35/month in lead credit.
+              Join 50+ artists. Discovery leads $3, Standard $7, Premium $15. Pro: $49/month — 15 leads any tier. No commission. No booking fees. New leads daily.
             </CardDescription>
           </CardHeader>
           <CardContent>

@@ -191,7 +191,7 @@ export default function Home() {
                   Find Your Next <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">Gig</span>
                 </h1>
                 <p className="text-xl text-slate-300">
-                  The performer lead marketplace powered by better intelligence. Get curated gig leads matched to your style and location — Discovery leads $3, Standard $7, Premium $15. Go Pro for $49/mo and get $35/month in lead credit included.
+                  The performer lead marketplace powered by better intelligence. Get curated gig leads matched to your style and location — Discovery leads $3, Standard $7, Premium $15. Pro: $49/month — 15 leads included, any tier, your choice. No commission. No booking fees. Ever. New leads added daily.
                 </p>
               </div>
 
@@ -284,7 +284,7 @@ export default function Home() {
               {
                 step: "3",
                 title: "Unlock & Book",
-                description: "Your first unlock is just $1. After that, standard leads are $7 and premium leads $15 — or get 5 unlocks/month with Pro ($49/mo). No commission.",
+                description: "Your first unlock is just $1. After that, standard leads are $7 and premium leads $15 — or Pro at $49/mo: 15 leads any tier, no commission or booking fees, new leads daily.",
                 icon: CheckCircle2,
               },
             ].map((item, i) => {
@@ -337,7 +337,11 @@ export default function Home() {
                 price: "$49",
                 description: "/month",
                 badge: "Best value" as string | null,
-                features: ["5 unlock credits included", "Use credits or pay per lead", "Cancel anytime", "South Florida focus"],
+                features: [
+                  "15 leads included — any tier, your choice",
+                  "No commission. No booking fees. Ever.",
+                  "New leads added daily.",
+                ],
                 cta: "Go Pro",
                 href: "/signup",
                 highlighted: true,
@@ -389,7 +393,7 @@ export default function Home() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl font-bold text-white mb-4">Ready to Find Your Next Gig?</h2>
           <p className="text-lg text-slate-300 mb-8">
-            Join 50+ artists already booking through Gigxo. Discovery leads $3, Standard $7, Premium $15. Or go Pro for $49/mo and get $35/month in lead credit included.
+            Join 50+ artists already booking through Gigxo. Discovery leads $3, Standard $7, Premium $15. Pro: $49/month — 15 leads any tier, no commission or booking fees, new leads daily.
           </p>
           <Link href="/signup">
             <Button size="lg" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">

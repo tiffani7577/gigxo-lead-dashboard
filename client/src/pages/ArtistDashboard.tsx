@@ -831,7 +831,7 @@ export default function ArtistDashboard() {
       {stats && stats.totalAvailable > 0 && (
         <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-center py-2 px-4 text-sm font-medium">
           <Zap className="w-3.5 h-3.5 inline mr-1.5 mb-0.5" /> Pricing: Discovery $3 (post link), Standard $7 (partial contact), Premium $15 (direct contact).{" "}
-          <Link href="/pricing" className="underline font-medium">Go Pro</Link> for $49/mo and get 5 credits.
+          <Link href="/pricing" className="underline font-medium">Go Pro</Link> — $49/mo, 15 leads any tier, no commission or booking fees.
         </div>
       )}
 
@@ -1977,7 +1977,7 @@ export default function ArtistDashboard() {
           <div className="max-w-2xl">
             <h2 className="text-xl font-bold text-slate-900 mb-1">Pro & Unlock Packs</h2>
             <p className="text-slate-500 text-sm mb-6">
-              Go Pro for $49/month and get $35/month in lead credit (5×$7), or buy one-time packs. Discovery leads $3, Standard $7, Premium $15.
+              Pro: $49/month — 15 leads included, any tier, your choice. No commission. No booking fees. Ever. New leads added daily. Or buy one-time packs. Discovery leads $3, Standard $7, Premium $15.
               Credits are dollar-based and can be used toward any lead price.
             </p>
             {/* Pro subscription CTA */}
@@ -1986,7 +1986,7 @@ export default function ArtistDashboard() {
                 <CardContent className="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div>
                     <p className="font-bold text-slate-900 text-lg">Pro — $49/month</p>
-                    <p className="text-sm text-slate-600">5 unlock credits included every month. Use them or pay $7/$15 per lead as needed. Cancel anytime.</p>
+                    <p className="text-sm text-slate-600 whitespace-pre-line">{`15 leads included — any tier, your choice\nNo commission. No booking fees. Ever.\nNew leads added daily.`}</p>
                   </div>
                   <Button
                     className="bg-purple-600 hover:bg-purple-700 shrink-0"

@@ -1,12 +1,14 @@
 /**
  * Pro subscription monthly credits.
- * Pro = $49/mo, 5 unlock credits per month. Credits are used before charging Stripe.
+ * Pro = $49/mo, 15 unlock credits per billing period. Each credit covers any tier ($3/$7/$15) at unlock time. Credits apply before Stripe.
  */
 
 import { and, eq, gte } from "drizzle-orm";
+import { LEAD_TIER_PRICE_CENTS } from "../shared/leadPricing";
 
-const PRO_MONTHLY_CREDITS = 5;
-const CREDIT_AMOUNT_CENTS = 700; // one standard unlock
+const PRO_MONTHLY_CREDITS = 15;
+/** One Pro credit = premium-tier cap so a single credit fully covers discovery, standard, or premium unlocks. */
+const CREDIT_AMOUNT_CENTS = LEAD_TIER_PRICE_CENTS.premium;
 
 export async function ensureProMonthlyCredits(userId: number, db: Awaited<ReturnType<typeof import("./db").getDb>>): Promise<void> {
   if (!db) return;

@@ -72,7 +72,7 @@ export default function Login() {
           <CardHeader className="pb-4">
             <CardTitle className="text-white text-xl">Sign in to Gigxo</CardTitle>
             <CardDescription className="text-slate-400">
-              Access your gig leads, unlock contacts (Discovery $3, Standard $7, Premium $15), and manage your Pro subscription
+              Access your gig leads, unlock contacts (Discovery $3, Standard $7, Premium $15), and manage Pro ($49/mo, 15 leads any tier)
             </CardDescription>
           </CardHeader>
           <CardContent>

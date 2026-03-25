@@ -326,7 +326,7 @@ async function fulfillCreditPackFromCheckout(
 
 /**
  * Activate or create a premium subscription for a user.
- * Fetches period from Stripe so ensureProMonthlyCredits can grant 5 credits.
+ * Fetches period from Stripe so ensureProMonthlyCredits can grant 15 credits.
  */
 async function fulfillSubscription(userId: number, stripeSubscriptionId: string) {
   const { getDb } = await import("./db");
@@ -401,7 +401,7 @@ async function syncSubscriptionStatus(stripeSubscriptionId: string, status: stri
 }
 
 /**
- * Handle a subscription renewal cycle — update period from Stripe so next ensureProMonthlyCredits grants 5 new credits.
+ * Handle a subscription renewal cycle — update period from Stripe so next ensureProMonthlyCredits grants 15 new credits.
  */
 async function handleSubscriptionRenewal(stripeSubscriptionId: string) {
   const { getDb } = await import("./db");
