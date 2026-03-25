@@ -405,21 +405,36 @@ export async function collectFromDbpr(options?: DbprCollectorOptions): Promise<R
         headers.forEach((h, j) => {
           row[h ?? ""] = (cells[j] ?? "").trim();
         });
-        const dba = (row["DBA"] || "").trim();
-        const city = (row["Location City"] || "").trim();
-        const address = (row["Location Address 1"] || "").trim();
-        const licenseNumber = (row["License Number"] || "").trim();
-        const primaryStatus = (row["Primary Status"] || "").trim();
-        const secondaryStatus = (row["Secondary Status"] || "").trim();
+        const normalizedRow: Record<string, string> = Object.fromEntries(
+          Object.entries(row).map(([k, v]) => [k.trim(), v])
+        );
+
+        const dba = (normalizedRow["DBA"] || "").trim();
+        const city = (normalizedRow["Location City"] || "").trim();
+        const address = (normalizedRow["Location Address 1"] || "").trim();
+        const licenseNumber = (normalizedRow["License Number"] || "").trim();
+        const primaryStatus = (normalizedRow["Primary Status"] || "").trim();
+        const secondaryStatus = (normalizedRow["Secondary Status"] || "").trim();
         const manualReview = !isHighValueCity(city);
         const division =
-          (row["Division"] || row["Board"] || row["Board Number"] || row["Class Code"] || row["License Type"] || row["License Type Code"] || "").trim();
+          (normalizedRow["Division"] ||
+            normalizedRow["Board"] ||
+            normalizedRow["Board Number"] ||
+            normalizedRow["Class Code"] ||
+            normalizedRow["License Type"] ||
+            normalizedRow["License Type Code"] ||
+            "").trim();
 
         if (!dba || !licenseNumber) continue;
 
         // Daily feed only: keep Primary Status Code 10 or 20 (active/new); reject 45, 46, 47, 60, 61
         if (sourceLabel === "DBPR Daily Activity") {
-          const primaryStatusCode = (row["Primary Status Code"] || row["Primary Status Code "] || row["Primary Status"] || "").trim();
+          const primaryStatusCode = (
+            normalizedRow["Primary Status Code"] ||
+            normalizedRow["Primary Status Code "] ||
+            normalizedRow["Primary Status"] ||
+            ""
+          ).trim();
           if (["45", "46", "47", "60", "61"].includes(primaryStatusCode)) continue;
           if (primaryStatusCode !== "10" && primaryStatusCode !== "20") continue;
         }
@@ -429,15 +444,15 @@ export async function collectFromDbpr(options?: DbprCollectorOptions): Promise<R
           wrongType++;
           continue;
         }
-        const countyStr = getCountyFromHeaderRow(row);
+        const countyStr = getCountyFromHeaderRow(normalizedRow);
         if (!passesCountyFilter(countyStr)) {
           outOfMarket++;
           outOfMarketFeed++;
           continue;
         }
         const dateStr = applyRecentIssueDateFilter
-          ? (dateColumnName ? (row[dateColumnName] ?? "") : "")
-          : getDateFromHeaderRow(row);
+          ? (dateColumnName ? (normalizedRow[dateColumnName] ?? "") : "")
+          : getDateFromHeaderRow(normalizedRow);
         const rejectByDate = applyRecentIssueDateFilter
           ? (dateColumnName ? isStaleByRecentIssueWindow(dateStr, RECENT_ISSUE_DAYS) : false)
           : isStaleLicense(dateStr);
@@ -458,7 +473,7 @@ export async function collectFromDbpr(options?: DbprCollectorOptions): Promise<R
         const divisionKey = normalizeDivisionKey(division);
         const externalId = `dbpr-${divisionKey}-${licenseNumber}`;
         const metadata: Record<string, unknown> = {
-          dbpr: { ...row, highValueCity: !manualReview, enrichmentMode: manualReview ? "manual_review" : "auto_enrich" },
+          dbpr: { ...normalizedRow, highValueCity: !manualReview, enrichmentMode: manualReview ? "manual_review" : "auto_enrich" },
           status: manualReview ? "manual_review" : null,
           leadCategory: "venue_intelligence",
           leadType: "venue",
