@@ -102,6 +102,18 @@ const NEGATIVE_KEYWORDS = [
   "sneakers",
   "bills",
   "ucla",
+  // Restaurant menus / food content (not venue hiring leads)
+  "menu",
+  "appetizer",
+  "entree",
+  "reservation",
+  "happy hour",
+  "cuisine",
+  "restaurant week",
+  "chef",
+  "dining",
+  "brunch menu",
+  "wine list",
 ];
 
 // DJ gear/software/production discussion — not hiring leads
