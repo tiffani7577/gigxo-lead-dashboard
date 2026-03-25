@@ -629,7 +629,10 @@ export function rawLeadDocToLead(doc: RawLeadDoc, baseIntentScore: number): Scra
 
   // Penalty for missing all contact methods, except for pure venue intelligence
   const isVenueIntelSource =
-    doc.sourceType === "dbpr" || doc.sourceType === "sunbiz" || doc.metadata?.leadType === "venue_intelligence";
+    doc.sourceType === "dbpr" ||
+    doc.sourceType === "sunbiz" ||
+    doc.source === "google_maps" ||
+    doc.metadata?.leadType === "venue_intelligence";
   if (!hasAnyContact && !isVenueIntelSource) {
     intentScore -= 15;
   }
@@ -826,7 +829,7 @@ export async function runScraperPipeline(
   stats.collected = allDocs.length;
 
   // Step 3 — Trash/valid routing: negative filter + intent gate; three-tier contact gate
-  // Venue intelligence (DBPR, Sunbiz) bypass intent gate — they are records, not demand posts
+  // Venue intelligence (DBPR, Sunbiz, Google Maps) bypass intent gate — they are records/listings, not demand posts
   const leads: ScrapedLead[] = [];
   let tier1Count = 0;
   let tier2Count = 0;
@@ -838,6 +841,7 @@ export async function runScraperPipeline(
         doc.source === "dbpr" ||
         doc.sourceType === "sunbiz" ||
         doc.source === "sunbiz" ||
+        doc.source === "google_maps" ||
         doc.metadata?.leadType === "venue_intelligence";
       if (isVenueIntel) {
         const lead = rawLeadDocToLead(doc, 50);
