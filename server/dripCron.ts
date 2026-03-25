@@ -298,14 +298,38 @@ function scheduleDbprPipeline() {
       const baseIntentScore = 50;
       const leads = docs.map((doc) => rawLeadDocToLead(doc, baseIntentScore)).filter((l) => l.source === "dbpr");
       let inserted = 0;
-      let skipped = 0;
+      let updated = 0;
       for (const lead of leads) {
         const [existing] = await db.select({ id: gigLeads.id }).from(gigLeads).where(eq(gigLeads.externalId, lead.externalId)).limit(1);
-        if (existing) {
-          skipped++;
-          continue;
-        }
         try {
+          if (existing) {
+            const updateData: Record<string, unknown> = {
+              source: lead.source,
+              sourceLabel: lead.sourceLabel ?? null,
+              title: lead.title,
+              description: lead.description,
+              fullDescription: lead.description,
+              eventType: lead.eventType,
+              budget: lead.budget,
+              location: lead.location,
+              latitude: lead.latitude != null ? parseFloat(lead.latitude.toString()) : null,
+              longitude: lead.longitude != null ? parseFloat(lead.longitude.toString()) : null,
+              eventDate: lead.eventDate,
+              performerType: lead.performerType,
+              intentScore: lead.intentScore ?? null,
+              leadType: (lead as any).leadType ?? undefined,
+              leadCategory: (lead as any).leadCategory ?? undefined,
+              status: (lead as any).status ?? undefined,
+              rawText: lead.rawText ?? null,
+            };
+            if (String(lead.contactName ?? "").trim()) updateData.contactName = lead.contactName;
+            if (String(lead.contactEmail ?? "").trim()) updateData.contactEmail = lead.contactEmail;
+            if (String(lead.contactPhone ?? "").trim()) updateData.contactPhone = lead.contactPhone;
+            if (String(lead.venueUrl ?? "").trim()) updateData.venueUrl = lead.venueUrl;
+            await db.update(gigLeads).set(updateData as any).where(eq(gigLeads.id, existing.id));
+            updated++;
+            continue;
+          }
           const insertData: any = {
             externalId: lead.externalId,
             source: lead.source,
@@ -351,10 +375,10 @@ function scheduleDbprPipeline() {
             }
           }
         } catch (err) {
-          console.error("[cron DBPR] Insert error:", lead.externalId, err);
+          console.error("[cron DBPR] Upsert error:", lead.externalId, err);
         }
       }
-      console.log("[cron] DBPR pipeline complete:", inserted, "inserted,", skipped, "skipped");
+      console.log("[cron] DBPR pipeline complete:", inserted, "inserted,", updated, "updated,", leads.length, "from feed");
     } catch (err) {
       console.error("[cron] DBPR pipeline failed:", err);
     }

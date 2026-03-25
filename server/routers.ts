@@ -2981,14 +2981,46 @@ export const appRouter = router({
       const baseIntentScore = 50;
       const leads = docs.map((doc) => rawLeadDocToLead(doc, baseIntentScore)).filter((l) => l.source === "dbpr");
       let inserted = 0;
-      let skipped = 0;
+      let updated = 0;
       for (const lead of leads) {
         const [existing] = await db.select({ id: gigLeads.id }).from(gigLeads).where(eq(gigLeads.externalId, lead.externalId)).limit(1);
-        if (existing) {
-          skipped++;
-          continue;
-        }
+        const preview = buildPublicPreviewDescription({
+          fullDescription: lead.description ?? "",
+          eventType: lead.eventType,
+          location: lead.location,
+          eventDate: lead.eventDate,
+          performerType: lead.performerType,
+        });
         try {
+          if (existing) {
+            const updateData: Record<string, unknown> = {
+              source: lead.source as any,
+              sourceLabel: lead.sourceLabel ?? null,
+              title: lead.title,
+              description: lead.description,
+              rawText: lead.rawText ?? null,
+              fullDescription: lead.description,
+              publicPreviewDescription: preview,
+              eventType: lead.eventType,
+              budget: lead.budget,
+              location: lead.location,
+              latitude: lead.latitude ? parseFloat(lead.latitude.toString()) : null,
+              longitude: lead.longitude ? parseFloat(lead.longitude.toString()) : null,
+              eventDate: lead.eventDate,
+              performerType: lead.performerType as any,
+              intentScore: lead.intentScore ?? null,
+              leadType: (lead as any).leadType ?? undefined,
+              leadCategory: (lead as any).leadCategory ?? undefined,
+              status: (lead as any).status ?? undefined,
+            };
+            if (String(lead.contactName ?? "").trim()) updateData.contactName = lead.contactName;
+            if (String(lead.contactEmail ?? "").trim()) updateData.contactEmail = lead.contactEmail;
+            if (String(lead.contactPhone ?? "").trim()) updateData.contactPhone = lead.contactPhone;
+            if (String(lead.venueUrl ?? "").trim()) updateData.venueUrl = lead.venueUrl;
+            await db.update(gigLeads).set(updateData as any).where(eq(gigLeads.id, existing.id));
+            updated++;
+            continue;
+          }
           const insertData: any = {
             externalId:    lead.externalId,
             source:        lead.source as any,
@@ -2997,13 +3029,7 @@ export const appRouter = router({
             description:   lead.description,
             rawText:       lead.rawText ?? null,
             fullDescription: lead.description,
-            publicPreviewDescription: buildPublicPreviewDescription({
-              fullDescription: lead.description ?? "",
-              eventType: lead.eventType,
-              location: lead.location,
-              eventDate: lead.eventDate,
-              performerType: lead.performerType,
-            }),
+            publicPreviewDescription: preview,
             eventType:     lead.eventType,
             budget:        lead.budget,
             location:      lead.location,
@@ -3041,10 +3067,11 @@ export const appRouter = router({
             }
           }
         } catch (err) {
-          console.error("[runDbprPipeline] Insert error:", lead.externalId, err);
+          console.error("[runDbprPipeline] Upsert error:", lead.externalId, err);
         }
       }
-      return { inserted, skipped };
+      console.log(`[runDbprPipeline] collected ${leads.length} from feed, inserted ${inserted}, updated ${updated}`);
+      return { inserted, updated, collected: leads.length };
     }),
 
     // Get list of available city markets for the scraper UI

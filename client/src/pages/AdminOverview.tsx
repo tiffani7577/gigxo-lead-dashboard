@@ -113,7 +113,13 @@ export default function AdminOverview() {
 
   const runDbpr = trpc.admin.runDbprPipeline.useMutation({
     onSuccess: (d) => {
-      toast.success(`DBPR: ${(d as { inserted: number }).inserted} inserted`);
+      const r = d as { inserted: number; updated?: number; collected?: number };
+      const parts = [
+        `${r.inserted} new`,
+        r.updated != null ? `${r.updated} updated` : null,
+        r.collected != null ? `${r.collected} from feed` : null,
+      ].filter(Boolean);
+      toast.success(`DBPR: ${parts.join(" · ")}`);
       refetchPending();
     },
     onError: (e) => toast.error(e.message),
