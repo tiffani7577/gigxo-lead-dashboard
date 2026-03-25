@@ -714,6 +714,176 @@ async function fetchRunCostUsd(runId: string, token: string): Promise<number> {
   }
 }
 
+// ─── Venue Instagram discovery (search → profile scrape) ─────────────────────
+
+const IG_BIO_EMAIL_REGEX = /[a-zA-Z0-9._%+'-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,24}/g;
+const IG_BIO_BLOCKED_EMAIL_FRAGMENTS = ["example", "noreply", "no-reply", "sentry", "domain", "wix", "wordpress"];
+
+function bestEmailFromInstagramBio(bio: string | null | undefined): string | null {
+  if (!bio?.trim()) return null;
+  const matches = bio.match(IG_BIO_EMAIL_REGEX) ?? [];
+  for (const raw of matches) {
+    const lower = raw.toLowerCase();
+    if (IG_BIO_BLOCKED_EMAIL_FRAGMENTS.some((s) => lower.includes(s))) continue;
+    return raw.trim();
+  }
+  return null;
+}
+
+function pickWebsiteFromProfileRow(row: Record<string, unknown>): string | null {
+  const ext = row.externalUrl;
+  if (typeof ext === "string" && ext.trim()) {
+    const u = ext.trim();
+    if (!/instagram\.com|l\.instagram\.com/i.test(u)) return u;
+  }
+  const urls = row.externalUrls;
+  if (Array.isArray(urls)) {
+    for (const entry of urls) {
+      const o = entry as Record<string, unknown>;
+      const url = typeof o?.url === "string" ? o.url.trim() : "";
+      if (url && !/instagram\.com/i.test(url)) return url;
+    }
+  }
+  return null;
+}
+
+function extractUsernameFromInstagramSearchRow(item: Record<string, unknown>): string | null {
+  const u = item.username;
+  if (typeof u === "string") {
+    const s = u.trim().replace(/^@/, "");
+    if (s && /^[a-z0-9._]+$/i.test(s)) return s;
+  }
+  const url = String(item.url ?? "");
+  const m = url.match(/instagram\.com\/([A-Za-z0-9._]+)\/?(?:\?|#|$)/);
+  if (m?.[1]) {
+    const reserved = new Set(["p", "reel", "reels", "stories", "explore", "accounts"]);
+    if (!reserved.has(m[1].toLowerCase())) return m[1];
+  }
+  return null;
+}
+
+/** One profile after apify/instagram-profile-scraper (bio + external URL parsed). */
+export type VenueInstagramProfileRow = {
+  searchQuery: string;
+  username: string;
+  profileUrl: string;
+  fullName: string | null;
+  biography: string | null;
+  emailFromBio: string | null;
+  websiteFromBio: string | null;
+};
+
+export type CollectVenueInstagramEmailsResult = {
+  profiles: VenueInstagramProfileRow[];
+  apifyCostUsd: number;
+  error?: string;
+};
+
+/**
+ * For each venue name: run apify/instagram-search-scraper (user search), collect handles, then
+ * apify/instagram-profile-scraper for full bios and external URLs. Extracts email from bio text.
+ */
+export async function collectVenueInstagramEmails(
+  venueNames: string[],
+  options?: {
+    searchLimitPerVenue?: number;
+    maxVenues?: number;
+    maxProfilesToScrape?: number;
+  },
+): Promise<CollectVenueInstagramEmailsResult> {
+  const token = process.env.APIFY_API_TOKEN?.trim();
+  if (!token) {
+    return { profiles: [], apifyCostUsd: 0, error: "APIFY_API_TOKEN is not set" };
+  }
+
+  const searchLimitPerVenue = Math.min(Math.max(options?.searchLimitPerVenue ?? 3, 1), 10);
+  const maxVenues = Math.min(Math.max(options?.maxVenues ?? 8, 1), 15);
+  const maxProfilesToScrape = Math.min(Math.max(options?.maxProfilesToScrape ?? 12, 1), 25);
+
+  const names = [...new Set(venueNames.map((n) => n.trim()).filter(Boolean))].slice(0, maxVenues);
+  if (names.length === 0) {
+    return { profiles: [], apifyCostUsd: 0 };
+  }
+
+  const client = new ApifyClient({ token });
+  const runIds: string[] = [];
+  const usernameToQuery = new Map<string, string>();
+
+  for (const query of names) {
+    try {
+      const searchInput = {
+        search: query.slice(0, 200),
+        searchType: "user" as const,
+        searchLimit: searchLimitPerVenue,
+      };
+      const run = await client.actor("apify/instagram-search-scraper").call(searchInput as Record<string, unknown>);
+      if (run?.id) runIds.push(run.id);
+      const { items } = await client.dataset(run.defaultDatasetId).listItems();
+      const seenThisQuery = new Set<string>();
+      for (const it of items as Record<string, unknown>[]) {
+        const un = extractUsernameFromInstagramSearchRow(it);
+        if (!un || seenThisQuery.has(un)) continue;
+        seenThisQuery.add(un);
+        if (!usernameToQuery.has(un)) usernameToQuery.set(un, query);
+        if (seenThisQuery.size >= searchLimitPerVenue) break;
+      }
+    } catch (err) {
+      console.warn("[collectVenueInstagramEmails] instagram-search-scraper failed for", query, err);
+    }
+  }
+
+  const usernames = [...usernameToQuery.keys()].slice(0, maxProfilesToScrape);
+  if (usernames.length === 0) {
+    let apifyCostUsd = 0;
+    for (const id of runIds) apifyCostUsd += await fetchRunCostUsd(id, token);
+    return { profiles: [], apifyCostUsd };
+  }
+
+  try {
+    const run = await client.actor("apify/instagram-profile-scraper").call({ usernames } as Record<string, unknown>);
+    if (run?.id) runIds.push(run.id);
+    const { items } = await client.dataset(run.defaultDatasetId).listItems();
+    const profiles: VenueInstagramProfileRow[] = [];
+    for (const row of items as Record<string, unknown>[]) {
+      const username = typeof row.username === "string" ? row.username.trim() : "";
+      if (!username) continue;
+      const biography = typeof row.biography === "string" ? row.biography : null;
+      const fullName = typeof row.fullName === "string" ? row.fullName : null;
+      const profileUrl =
+        typeof row.url === "string" && row.url.trim() ? row.url.trim() : `https://www.instagram.com/${username}/`;
+      profiles.push({
+        searchQuery: usernameToQuery.get(username) ?? names[0]!,
+        username,
+        profileUrl,
+        fullName,
+        biography,
+        emailFromBio: bestEmailFromInstagramBio(biography),
+        websiteFromBio: pickWebsiteFromProfileRow(row),
+      });
+    }
+    let apifyCostUsd = 0;
+    for (const id of runIds) apifyCostUsd += await fetchRunCostUsd(id, token);
+    console.log(
+      "[collectVenueInstagramEmails]",
+      names.length,
+      "queries →",
+      profiles.length,
+      "profiles; Apify ~$",
+      apifyCostUsd.toFixed(4),
+    );
+    return { profiles, apifyCostUsd };
+  } catch (err) {
+    console.error("[collectVenueInstagramEmails] instagram-profile-scraper failed:", err);
+    let apifyCostUsd = 0;
+    for (const id of runIds) apifyCostUsd += await fetchRunCostUsd(id, token);
+    return {
+      profiles: [],
+      apifyCostUsd,
+      error: err instanceof Error ? err.message : "Instagram profile scrape failed",
+    };
+  }
+}
+
 export type CollectFromApifyResult = { docs: RawLeadDoc[]; apifyCostUsd: number };
 
 export async function collectFromApify(): Promise<CollectFromApifyResult> {

@@ -3303,6 +3303,49 @@ export const appRouter = router({
         return { items, total };
       }),
 
+    /** Apify: Instagram user search → profile scrape; returns handles, bio email, website for manual CRM entry. */
+    findVenueInstagram: protectedProcedure
+      .input(z.object({ leadId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+        const { gigLeads } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const [lead] = await db
+          .select({
+            id: gigLeads.id,
+            title: gigLeads.title,
+            location: gigLeads.location,
+            leadType: gigLeads.leadType,
+          })
+          .from(gigLeads)
+          .where(eq(gigLeads.id, input.leadId))
+          .limit(1);
+        if (!lead) throw new TRPCError({ code: "NOT_FOUND", message: "Lead not found" });
+        if (lead.leadType !== "venue_intelligence" && lead.leadType !== "manual_outreach") {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Instagram lookup is only for venue intelligence / manual outreach leads",
+          });
+        }
+        const q = [lead.title?.trim(), lead.location?.trim()].filter(Boolean).join(" ").trim();
+        if (!q) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Lead needs a title or location to search Instagram" });
+        }
+        const { collectVenueInstagramEmails } = await import("./scraper-collectors/apify-collector");
+        const result = await collectVenueInstagramEmails([q], {
+          searchLimitPerVenue: 4,
+          maxVenues: 1,
+          maxProfilesToScrape: 10,
+        });
+        if (result.error && result.profiles.length === 0) {
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: result.error });
+        }
+        return result;
+      }),
+
     updateVenueStatus: protectedProcedure
       .input(z.object({
         leadId: z.number(),
@@ -4367,7 +4410,7 @@ export const appRouter = router({
         let filtered = profiles.filter((p: typeof profiles[number]) => {
           if (!showInDir(p.showInDirectory)) return false;
           if ((p.userEmail ?? "").toLowerCase().endsWith("@gigxo.local")) return false;
-          if (p.userRole === "admin") return false;
+          if (p.userRole === "admin" && !p.showInDirectory) return false;
           // Require an identity name AND at least one content signal (photo or bio)
           const hasName = !!(p.djName || p.userName);
           const hasContent = !!(p.photoUrl || p.avatarUrl || p.bio);

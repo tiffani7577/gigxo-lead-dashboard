@@ -28,7 +28,21 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Search, RefreshCw, Phone, Mail, ExternalLink, MessageSquare, Send, Users, CreditCard, Building2, Download } from "lucide-react";
+import {
+  Search,
+  RefreshCw,
+  Phone,
+  Mail,
+  ExternalLink,
+  MessageSquare,
+  Send,
+  Users,
+  CreditCard,
+  Building2,
+  Download,
+  AtSign,
+  Loader2,
+} from "lucide-react";
 import { toast } from "sonner";
 
 const VENUE_STATUS_OPTIONS = [
@@ -92,6 +106,16 @@ type VenueLead = {
   regionTag?: string | null;
   artistUnlockEnabled?: boolean | null;
   premiumOnly?: boolean | null;
+};
+
+type IgProfileRow = {
+  searchQuery: string;
+  username: string;
+  profileUrl: string;
+  fullName: string | null;
+  biography: string | null;
+  emailFromBio: string | null;
+  websiteFromBio: string | null;
 };
 
 const MONETIZATION_OPTIONS = [
@@ -216,6 +240,10 @@ export default function AdminVenueIntelligence() {
   const [regionTag, setRegionTag] = useState("");
   const [outreachLead, setOutreachLead] = useState<VenueLead | null>(null);
   const [outreachTemplateId, setOutreachTemplateId] = useState<"venue_intro" | "follow_up" | "performer_supply">("venue_intro");
+  const [igDialogOpen, setIgDialogOpen] = useState(false);
+  const [igDialogLead, setIgDialogLead] = useState<VenueLead | null>(null);
+  const [igProfiles, setIgProfiles] = useState<IgProfileRow[]>([]);
+  const [igApifyCost, setIgApifyCost] = useState<number | null>(null);
 
   const filters = {
     limit,
@@ -272,6 +300,22 @@ export default function AdminVenueIntelligence() {
       toast.success(`${r.inserted} new · ${r.updated ?? 0} updated · ${r.collected ?? 0} from feed`);
     },
     onError: (e) => toast.error(e.message),
+  });
+
+  const findVenueInstagramMutation = trpc.admin.findVenueInstagram.useMutation({
+    onSuccess: (data) => {
+      const rows = (data as { profiles: IgProfileRow[]; apifyCostUsd?: number }).profiles ?? [];
+      const cost = (data as { apifyCostUsd?: number }).apifyCostUsd;
+      setIgProfiles(rows);
+      setIgApifyCost(typeof cost === "number" ? cost : null);
+      if (rows.length) toast.success(`${rows.length} Instagram profile(s) — copy email/website into the lead if it matches.`);
+      else toast.info("No Instagram profiles returned — try refining the venue name or add city.");
+    },
+    onError: (e) => {
+      setIgProfiles([]);
+      setIgApifyCost(null);
+      toast.error(e.message);
+    },
   });
 
   const openNotes = (lead: VenueLead) => {
@@ -505,6 +549,25 @@ export default function AdminVenueIntelligence() {
                               </Button>
                               <Button
                                 size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setIgDialogLead(lead);
+                                  setIgProfiles([]);
+                                  setIgApifyCost(null);
+                                  setIgDialogOpen(true);
+                                  findVenueInstagramMutation.mutate({ leadId: lead.id });
+                                }}
+                                disabled={findVenueInstagramMutation.isPending}
+                                title="Find Instagram (Apify search + profile scrape)"
+                              >
+                                {findVenueInstagramMutation.isPending && igDialogLead?.id === lead.id ? (
+                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                ) : (
+                                  <AtSign className="h-3.5 w-3.5" />
+                                )}
+                              </Button>
+                              <Button
+                                size="sm"
                                 variant={lead.subscriptionVisibility ? "secondary" : "outline"}
                                 onClick={() => setMonetizationMutation.mutate({
                                   leadId: lead.id,
@@ -609,6 +672,78 @@ export default function AdminVenueIntelligence() {
             </Button>
             <Button onClick={saveNotes} disabled={updateNotesMutation.isPending}>
               Save notes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={igDialogOpen}
+        onOpenChange={(open) => {
+          setIgDialogOpen(open);
+          if (!open) {
+            setIgDialogLead(null);
+            setIgProfiles([]);
+            setIgApifyCost(null);
+          }
+        }}
+      >
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Instagram lookup — {igDialogLead?.title ?? "Venue"}</DialogTitle>
+            <CardDescription>
+              Uses Apify (Instagram search, then profile scraper). Verify the account before adding contact info to the lead.
+            </CardDescription>
+          </DialogHeader>
+          {findVenueInstagramMutation.isPending && igProfiles.length === 0 ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground py-6">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              Running Instagram search and profile scrape…
+            </div>
+          ) : igProfiles.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4">No profiles in the result set. Check APIFY_API_TOKEN and Apify billing.</p>
+          ) : (
+            <div className="space-y-3">
+              <ul className="space-y-3 text-sm border rounded-md divide-y">
+                {igProfiles.map((p) => (
+                  <li key={p.username} className="p-3 space-y-1.5">
+                    <div className="font-medium">
+                      <a href={p.profileUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-1">
+                        @{p.username}
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                      {p.fullName ? <span className="text-muted-foreground font-normal"> — {p.fullName}</span> : null}
+                    </div>
+                    {p.emailFromBio ? (
+                      <div className="flex items-center gap-1 text-green-700">
+                        <Mail className="h-3 w-3 shrink-0" />
+                        <a href={`mailto:${p.emailFromBio}`} className="hover:underline break-all">{p.emailFromBio}</a>
+                      </div>
+                    ) : (
+                      <div className="text-muted-foreground text-xs">No email parsed from bio</div>
+                    )}
+                    {p.websiteFromBio ? (
+                      <div className="flex items-start gap-1">
+                        <ExternalLink className="h-3 w-3 shrink-0 mt-0.5" />
+                        <a href={p.websiteFromBio} target="_blank" rel="noopener noreferrer" className="hover:underline break-all text-primary">
+                          {p.websiteFromBio}
+                        </a>
+                      </div>
+                    ) : null}
+                    {p.biography ? (
+                      <p className="text-xs text-slate-600 whitespace-pre-wrap line-clamp-4 border-t pt-2 mt-1">{p.biography}</p>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+              {igApifyCost != null && igApifyCost > 0 ? (
+                <p className="text-xs text-muted-foreground">Estimated Apify run cost: ~${igApifyCost.toFixed(4)} USD</p>
+              ) : null}
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIgDialogOpen(false)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>
