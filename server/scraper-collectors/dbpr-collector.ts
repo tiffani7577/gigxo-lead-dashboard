@@ -138,10 +138,22 @@ function isStaleByRecentIssueWindow(dateStr: string | null | undefined, recentDa
 
 function resolveIssueDateColumnName(headers: string[]): string | null {
   // DBPR header names we care about for filtering new licenses
-  const candidates = ["Original Issue Date", "Original_Issue_Date", "Issue Date", "License Date"];
+  const candidates = [
+    "Original Issue Date",
+    "Original Issue Date ",
+    "Original_Issue_Date",
+    "Application Approval Date",
+    "Application Approval Date ",
+    "Approval Date",
+    "License Issue Date",
+    "Issue Date",
+    "Issue Date ",
+    "License Date",
+  ];
   const normalized = headers.map((h) => (h ?? "").trim());
   for (const c of candidates) {
-    if (normalized.includes(c)) return c;
+    const candidate = c.trim();
+    if (normalized.includes(candidate)) return candidate;
   }
   return null;
 }
@@ -427,7 +439,7 @@ export async function collectFromDbpr(options?: DbprCollectorOptions): Promise<R
           ? (dateColumnName ? (row[dateColumnName] ?? "") : "")
           : getDateFromHeaderRow(row);
         const rejectByDate = applyRecentIssueDateFilter
-          ? isStaleByRecentIssueWindow(dateStr, RECENT_ISSUE_DAYS)
+          ? (dateColumnName ? isStaleByRecentIssueWindow(dateStr, RECENT_ISSUE_DAYS) : false)
           : isStaleLicense(dateStr);
         if (rejectByDate) {
           staleLicense++;
