@@ -439,6 +439,11 @@ export async function collectFromDbpr(options?: DbprCollectorOptions): Promise<R
           if (primaryStatusCode !== "10" && primaryStatusCode !== "20") continue;
         }
 
+        if (sourceLabel === "DBPR New Establishment" && i < 5) {
+          const countyStr = getCountyFromHeaderRow(normalizedRow);
+          console.log("[dbpr-debug] division:", division, "dba:", dba, "county:", countyStr);
+        }
+
         if (!passesLicenseClassFilter(division, licenseTokens)) {
           wrongLicenseType++;
           wrongType++;
