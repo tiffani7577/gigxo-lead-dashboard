@@ -129,7 +129,7 @@ export default function AdminOutreachHub() {
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Venue Outreach Hub</h1>
             <p className="text-muted-foreground text-sm mt-1">
-              One-click outreach station for DBPR venues. Review details, send as Teryn, and we&apos;ll auto-load the next venue.
+              One-click outreach for venue-intel leads with email (DBPR, Sunbiz, Google Maps). Review details, send as Teryn, and we&apos;ll auto-load the next venue.
             </p>
           </div>
           {!isLoading && (
@@ -152,7 +152,7 @@ export default function AdminOutreachHub() {
               <div>
                 <h2 className="text-lg font-semibold mb-1">All caught up!</h2>
                 <p className="text-sm text-slate-600">
-                  No venues waiting for outreach. Run the DBPR pipeline to find new venues.
+                  No venues waiting for outreach. Run the DBPR pipeline or scraper enrich to add emails, then refresh.
                 </p>
               </div>
               <Button

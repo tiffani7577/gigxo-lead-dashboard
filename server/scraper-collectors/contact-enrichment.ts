@@ -316,4 +316,34 @@ export async function enrichVenueContact(
       console.warn("[contact-enrichment] Website email scrape error for leadId", leadId, err);
     }
   }
+
+  await promoteVenueIntelToManualOutreachIfNeeded(leadId);
+}
+
+const VENUE_INTEL_OUTREACH_SOURCES = new Set(["dbpr", "sunbiz", "google_maps"]);
+
+/** After enrichment adds email/phone, move venue-intel rows into Outreach Hub queue (manual_outreach). */
+async function promoteVenueIntelToManualOutreachIfNeeded(leadId: number): Promise<void> {
+  const { getDb } = await import("../db");
+  const db = await getDb();
+  if (!db) return;
+  const { gigLeads } = await import("../../drizzle/schema");
+  const { eq } = await import("drizzle-orm");
+  const [r] = await db
+    .select({
+      source: gigLeads.source,
+      leadType: gigLeads.leadType,
+      contactEmail: gigLeads.contactEmail,
+      contactPhone: gigLeads.contactPhone,
+    })
+    .from(gigLeads)
+    .where(eq(gigLeads.id, leadId))
+    .limit(1);
+  if (!r?.source || !VENUE_INTEL_OUTREACH_SOURCES.has(r.source)) return;
+  const hasContact =
+    !!(r.contactEmail && String(r.contactEmail).trim()) ||
+    !!(r.contactPhone && String(r.contactPhone).trim());
+  if (!hasContact || r.leadType !== "venue_intelligence") return;
+  await db.update(gigLeads).set({ leadType: "manual_outreach" }).where(eq(gigLeads.id, leadId));
+  console.log("[contact-enrichment] Promoted leadId", leadId, "to manual_outreach (contact acquired)");
 }

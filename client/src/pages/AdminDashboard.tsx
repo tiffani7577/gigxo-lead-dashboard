@@ -857,8 +857,8 @@ export default function AdminDashboard() {
                              lt === "referral";
                     }
                     if (leadPod === "venue") {
-                      return lt === "venue_intelligence" ||
-                             lt === "manual_outreach";
+                      // Research / contactless venue intel only; leads with contact route to manual_outreach (Outreach Hub)
+                      return lt === "venue_intelligence";
                     }
                     if (leadPod === "artist") {
                       // Artist acquisition placeholder: for now, surface client_submitted and referral leads
@@ -975,6 +975,11 @@ export default function AdminDashboard() {
                           {(lead as any).leadType === "venue_intelligence" && (
                             <Badge variant="outline" className="border-emerald-300 text-emerald-700 bg-emerald-50 font-semibold">
                               Venue Intelligence
+                            </Badge>
+                          )}
+                          {(lead as any).leadType === "manual_outreach" && (
+                            <Badge variant="outline" className="border-blue-300 text-blue-700 bg-blue-50 font-semibold">
+                              Outreach Hub
                             </Badge>
                           )}
                           {(lead as any).leadTier && (

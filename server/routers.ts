@@ -1969,19 +1969,21 @@ export const appRouter = router({
         return { success: true };
       }),
 
-    /** Next DBPR venue in outreach queue (not_sent, has contactEmail). For Outreach Hub. */
+    /** Next venue-intel lead in outreach queue (not_sent, has contactEmail). DBPR / Sunbiz / Google Maps — see scraper-pipeline venue routing. */
     getNextOutreachVenue: protectedProcedure.query(async ({ ctx }) => {
       if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN", message: "Unauthorized" });
       const { getDb } = await import("./db");
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
       const { gigLeads } = await import("../drizzle/schema");
+      const outreachIntelSources = ["dbpr", "sunbiz", "google_maps"] as const;
       const where = and(
-        eq(gigLeads.source, "dbpr"),
+        inArray(gigLeads.source, [...outreachIntelSources]),
         eq(gigLeads.isApproved, true),
         eq(gigLeads.outreachStatus, "not_sent"),
         isNotNull(gigLeads.contactEmail),
-        ne(gigLeads.contactEmail, "")
+        ne(gigLeads.contactEmail, ""),
+        or(eq(gigLeads.leadType, "manual_outreach"), eq(gigLeads.leadType, "venue_intelligence"))
       );
       const [countRow] = await db.select({ c: sql<number>`COUNT(*)` }).from(gigLeads).where(where);
       const remainingCount = Number(countRow?.c ?? 0);
@@ -2048,12 +2050,14 @@ export const appRouter = router({
 
         if (!result.success) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: result.error ?? "Send failed" });
 
+        const outreachIntelSources = ["dbpr", "sunbiz", "google_maps"] as const;
         const where = and(
-          eq(gigLeads.source, "dbpr"),
+          inArray(gigLeads.source, [...outreachIntelSources]),
           eq(gigLeads.isApproved, true),
           eq(gigLeads.outreachStatus, "not_sent"),
           isNotNull(gigLeads.contactEmail),
-          ne(gigLeads.contactEmail, "")
+          ne(gigLeads.contactEmail, ""),
+          or(eq(gigLeads.leadType, "manual_outreach"), eq(gigLeads.leadType, "venue_intelligence"))
         );
         const nextRows = await db.select({
           id: gigLeads.id,
@@ -2087,12 +2091,14 @@ export const appRouter = router({
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
         const { gigLeads } = await import("../drizzle/schema");
         await db.update(gigLeads).set({ outreachStatus: "not_interested" }).where(eq(gigLeads.id, input.leadId));
+        const outreachIntelSources = ["dbpr", "sunbiz", "google_maps"] as const;
         const where = and(
-          eq(gigLeads.source, "dbpr"),
+          inArray(gigLeads.source, [...outreachIntelSources]),
           eq(gigLeads.isApproved, true),
           eq(gigLeads.outreachStatus, "not_sent"),
           isNotNull(gigLeads.contactEmail),
-          ne(gigLeads.contactEmail, "")
+          ne(gigLeads.contactEmail, ""),
+          or(eq(gigLeads.leadType, "manual_outreach"), eq(gigLeads.leadType, "venue_intelligence"))
         );
         const nextRows = await db.select({
           id: gigLeads.id,
@@ -2123,12 +2129,14 @@ export const appRouter = router({
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
         const { gigLeads } = await import("../drizzle/schema");
         await db.update(gigLeads).set({ contactEmail: null }).where(eq(gigLeads.id, input.leadId));
+        const outreachIntelSources = ["dbpr", "sunbiz", "google_maps"] as const;
         const where = and(
-          eq(gigLeads.source, "dbpr"),
+          inArray(gigLeads.source, [...outreachIntelSources]),
           eq(gigLeads.isApproved, true),
           eq(gigLeads.outreachStatus, "not_sent"),
           isNotNull(gigLeads.contactEmail),
-          ne(gigLeads.contactEmail, "")
+          ne(gigLeads.contactEmail, ""),
+          or(eq(gigLeads.leadType, "manual_outreach"), eq(gigLeads.leadType, "venue_intelligence"))
         );
         const nextRows = await db.select({
           id: gigLeads.id,
