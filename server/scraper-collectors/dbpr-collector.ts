@@ -483,8 +483,7 @@ export async function collectFromDbpr(options?: DbprCollectorOptions): Promise<R
         }
         const countyStr = getCountyFromHeaderRow(normalizedRow);
         const inSouthFlorida = isNewfoodStyleFeed
-          ? passesSouthFloridaBoardCode(boardCode) ||
-            (boardCode === "" && passesCountyFilter(countyStr))
+          ? passesSouthFloridaBoardCode(boardCode)
           : passesCountyFilter(countyStr);
         if (!inSouthFlorida) {
           outOfMarket++;
