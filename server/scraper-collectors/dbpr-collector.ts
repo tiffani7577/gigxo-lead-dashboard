@@ -26,7 +26,8 @@ interface ParsedFeed {
 /** License class tokens for new food / owner change feeds (case-insensitive, partial match). */
 const VENUE_LICENSE_TOKENS = [
   "2COP", "4COP", "1COP", "SRX", "SFS", "COP", "BEER", "WINE", "LIQUOR",
-  "FOOD SERVICE", "RESTAURANT", "HOTEL", "LOUNGE", "BAR", "NIGHTCLUB",
+  "HOTEL", "LOUNGE", "BAR", "NIGHTCLUB",
+  "CLUB", "YACHT", "CATERER", "EVENT VENUE", "BANQUET", "ENTERTAINMENT",
 ];
 
 /** License type tokens for ABT liquor license feed. */
