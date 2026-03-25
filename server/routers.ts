@@ -4331,6 +4331,7 @@ export const appRouter = router({
         // Filter in JS (small dataset, avoids complex SQL JSON queries))
         let filtered = profiles.filter((p: typeof profiles[number]) => {
           if (!showInDir(p.showInDirectory)) return false;
+          if ((p.userEmail ?? "").toLowerCase().endsWith("@gigxo.local")) return false;
           // Exclude only truly empty profiles lacking all key identity/content fields
           if (!p.djName && !p.userName && !p.avatarUrl && !p.bio) return false;
 
