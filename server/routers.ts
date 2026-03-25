@@ -655,7 +655,7 @@ export const appRouter = router({
             bio: input.bio,
             soundcloudUrl: input.soundcloudUrl,
             mixcloudUrl: input.mixcloudUrl,
-            showInDirectory: true,
+            showInDirectory: false,
           });
         } else {
           const updateData: Record<string, unknown> = {};
@@ -2426,6 +2426,7 @@ export const appRouter = router({
             djName: artistProfiles.djName,
             location: artistProfiles.location,
             showInDirectory: artistProfiles.showInDirectory,
+            directoryFeaturedRank: artistProfiles.directoryFeaturedRank,
             userName: users.name,
             userEmail: users.email,
             userRole: users.role,
@@ -2455,6 +2456,29 @@ export const appRouter = router({
         await db
           .update(artistProfiles)
           .set({ showInDirectory: input.showInDirectory, updatedAt: new Date() })
+          .where(eq(artistProfiles.id, input.profileId));
+        return { success: true as const };
+      }),
+
+    setArtistDirectoryFeaturedRank: protectedProcedure
+      .input(
+        z.object({
+          profileId: z.number(),
+          directoryFeaturedRank: z.number().int().min(1).max(999).nullable(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+        const { artistProfiles } = await import("../drizzle/schema");
+        await db
+          .update(artistProfiles)
+          .set({
+            directoryFeaturedRank: input.directoryFeaturedRank ?? null,
+            updatedAt: new Date(),
+          })
           .where(eq(artistProfiles.id, input.profileId));
         return { success: true as const };
       }),
@@ -4295,6 +4319,7 @@ export const appRouter = router({
           soundcloudUrl: artistProfiles.soundcloudUrl,
           mixcloudUrl: artistProfiles.mixcloudUrl,
           showInDirectory: artistProfiles.showInDirectory,
+          directoryFeaturedRank: artistProfiles.directoryFeaturedRank,
           userName: users.name,
           userEmail: users.email,
           avatarUrl: users.avatarUrl,
@@ -4302,12 +4327,10 @@ export const appRouter = router({
         })
         .from(artistProfiles)
         .innerJoin(users, eq(artistProfiles.userId, users.id));
+        const showInDir = (v: unknown) => v === true || v === 1;
         // Filter in JS (small dataset, avoids complex SQL JSON queries))
         let filtered = profiles.filter((p: typeof profiles[number]) => {
-          // Admin directory visibility (default true for legacy rows)
-          if (p.showInDirectory === false) return false;
-          // Exclude admin accounts from public directory unless opted in via showInDirectory
-          if (p.userRole === 'admin' && !p.showInDirectory) return false;
+          if (!showInDir(p.showInDirectory)) return false;
           // Exclude only truly empty profiles lacking all key identity/content fields
           if (!p.djName && !p.userName && !p.avatarUrl && !p.bio) return false;
 
@@ -4335,6 +4358,19 @@ export const appRouter = router({
           return true;
         });
 
+        filtered.sort((a, b) => {
+          const aN = a.directoryFeaturedRank != null ? Number(a.directoryFeaturedRank) : NaN;
+          const bN = b.directoryFeaturedRank != null ? Number(b.directoryFeaturedRank) : NaN;
+          const aFeat = Number.isFinite(aN);
+          const bFeat = Number.isFinite(bN);
+          if (aFeat && !bFeat) return -1;
+          if (!aFeat && bFeat) return 1;
+          if (aFeat && bFeat && aN !== bN) return aN - bN;
+          const nameA = ((a as (typeof profiles)[number]).djName ?? a.userName ?? "").toLowerCase();
+          const nameB = ((b as (typeof profiles)[number]).djName ?? b.userName ?? "").toLowerCase();
+          return nameA.localeCompare(nameB);
+        });
+
         const total = filtered.length;
         const paginated = filtered.slice(input.offset, input.offset + input.limit);
 
@@ -4351,7 +4387,7 @@ export const appRouter = router({
 
         return {
           artists: paginated.map(p => {
-            const { userEmail: _e, userRole: _r, showInDirectory: _sid, ...rest } = p;
+            const { userEmail: _e, userRole: _r, showInDirectory: _sid, directoryFeaturedRank: _fr, ...rest } = p;
             return {
               ...rest,
               displayName: p.djName || p.userName || "Artist",

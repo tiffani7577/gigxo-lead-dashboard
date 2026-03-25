@@ -72,6 +72,11 @@ export const artistProfiles = mysqlTable("artistProfiles", {
   isClaimed: boolean("isClaimed").default(false).notNull(),
   /** Admin: when false, profile is hidden from /artists directory & SEO artist grids; /artist/:slug still works. */
   showInDirectory: boolean("showInDirectory").default(true).notNull(),
+  /**
+   * Admin: lower numbers sort first in directory (1 before 5). Null = not boosted.
+   * Only affects order among profiles that pass showInDirectory and other filters.
+   */
+  directoryFeaturedRank: int("directoryFeaturedRank"),
 
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

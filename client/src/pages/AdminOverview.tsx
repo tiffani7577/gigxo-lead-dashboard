@@ -37,6 +37,7 @@ import {
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 function formatDate(d: Date | string) {
   return new Date(d).toLocaleDateString("en-US", {
@@ -64,6 +65,7 @@ export default function AdminOverview() {
   const utils = trpc.useUtils();
   const [signupFilter, setSignupFilter] = useState<"7d" | "30d" | "all">("7d");
   const [selectedUser, setSelectedUser] = useState<SignupRow | null>(null);
+  const [directoryRankDraft, setDirectoryRankDraft] = useState<Record<number, string>>({});
 
   const { data: overview, isLoading: overviewLoading } =
     trpc.admin.getAdminOverview.useQuery(undefined, {
@@ -96,6 +98,14 @@ export default function AdminOverview() {
   const setDirectoryVisibility = trpc.admin.setArtistShowInDirectory.useMutation({
     onSuccess: () => {
       toast.success("Directory visibility updated");
+      void utils.admin.listDirectoryArtistProfiles.invalidate();
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const setDirectoryFeaturedRank = trpc.admin.setArtistDirectoryFeaturedRank.useMutation({
+    onSuccess: () => {
+      toast.success("Featured order updated");
       void utils.admin.listDirectoryArtistProfiles.invalidate();
     },
     onError: (e) => toast.error(e.message),
@@ -263,12 +273,13 @@ export default function AdminOverview() {
           <CardHeader>
             <CardTitle className="text-lg">Artist directory visibility</CardTitle>
             <p className="text-sm text-slate-600 mt-1 max-w-3xl">
-              Controls which registered artist profiles appear on the public{" "}
+              Only artists with <strong>Show in directory</strong> on appear on{" "}
               <Link href="/artists" className="text-purple-600 hover:underline">
                 /artists
               </Link>{" "}
-              page and artist strips on SEO landing pages. Turning off hides them from browse only — direct profile
-              links still work.
+              and SEO artist strips. New profiles default to off until you enable them here.{" "}
+              <strong>Featured order</strong> (lower number first) sorts them ahead of others; leave empty for normal
+              order. Direct <code className="text-xs bg-slate-100 px-1 rounded">/artist/:slug</code> links always work.
             </p>
           </CardHeader>
           <CardContent>
@@ -287,9 +298,8 @@ export default function AdminOverview() {
                       <TableHead>Artist</TableHead>
                       <TableHead>Slug</TableHead>
                       <TableHead>Location</TableHead>
-                      <TableHead className="text-right w-[200px]">
-                        <span className="sr-only md:not-sr-only">Show in directory</span>
-                      </TableHead>
+                      <TableHead className="text-right min-w-[140px]">Featured order</TableHead>
+                      <TableHead className="text-right w-[200px]">Show in directory</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -316,9 +326,71 @@ export default function AdminOverview() {
                           {row.location ?? "—"}
                         </TableCell>
                         <TableCell className="text-right">
+                          <div className="flex flex-wrap items-center justify-end gap-1">
+                            <Input
+                              type="number"
+                              min={1}
+                              max={999}
+                              placeholder="—"
+                              className="w-14 h-8 text-xs px-1"
+                              value={
+                                directoryRankDraft[row.id] !== undefined
+                                  ? directoryRankDraft[row.id]
+                                  : row.directoryFeaturedRank != null
+                                    ? String(row.directoryFeaturedRank)
+                                    : ""
+                              }
+                              onChange={(e) =>
+                                setDirectoryRankDraft((s) => ({ ...s, [row.id]: e.target.value }))
+                              }
+                            />
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              size="sm"
+                              className="h-8 text-xs px-2"
+                              disabled={setDirectoryFeaturedRank.isPending}
+                              onClick={() => {
+                                const raw = (directoryRankDraft[row.id] ?? "").trim();
+                                const n = raw ? parseInt(raw, 10) : NaN;
+                                if (!raw || !Number.isFinite(n) || n < 1 || n > 999) {
+                                  toast.error("Enter a featured order from 1–999");
+                                  return;
+                                }
+                                setDirectoryFeaturedRank.mutate({
+                                  profileId: row.id,
+                                  directoryFeaturedRank: n,
+                                });
+                              }}
+                            >
+                              Set
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 text-xs px-2"
+                              disabled={setDirectoryFeaturedRank.isPending}
+                              onClick={() => {
+                                setDirectoryRankDraft((s) => {
+                                  const next = { ...s };
+                                  delete next[row.id];
+                                  return next;
+                                });
+                                setDirectoryFeaturedRank.mutate({
+                                  profileId: row.id,
+                                  directoryFeaturedRank: null,
+                                });
+                              }}
+                            >
+                              Clear
+                            </Button>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-2">
                             <Label htmlFor={`dir-${row.id}`} className="text-xs text-slate-500 sr-only">
-                              Show in public artist directory
+                              Show in directory
                             </Label>
                             <Switch
                               id={`dir-${row.id}`}
