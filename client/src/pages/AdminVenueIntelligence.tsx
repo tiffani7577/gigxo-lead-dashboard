@@ -237,12 +237,7 @@ export default function AdminVenueIntelligence() {
     onSuccess: (result) => {
       refetch();
       const r = result as { inserted: number; updated?: number; collected?: number };
-      const parts = [
-        `${r.inserted} new`,
-        r.updated != null && r.updated > 0 ? `${r.updated} updated` : null,
-        r.collected != null ? `${r.collected} from CSV` : null,
-      ].filter(Boolean);
-      toast.success(parts.join(" · "));
+      toast.success(`${r.inserted} new · ${r.updated ?? 0} updated · ${r.collected ?? 0} from feed`);
     },
     onError: (e) => toast.error(e.message),
   });

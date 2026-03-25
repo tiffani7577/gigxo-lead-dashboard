@@ -4726,6 +4726,7 @@ export const appRouter = router({
           outreachStatus: gigLeads.outreachStatus,
           lastContactedAt: gigLeads.lastContactedAt,
           venueStatus: gigLeads.venueStatus,
+          contactPhone: gigLeads.contactPhone,
         })
           .from(gigLeads)
           .where(where)

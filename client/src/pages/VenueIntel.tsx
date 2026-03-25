@@ -151,18 +151,16 @@ export default function VenueIntel() {
         <p className="text-sm text-slate-500 mb-4">{venuesData?.total ?? 0} venues</p>
         <ul className="space-y-3">
           {items.map((item) => {
-            const phoneRaw = (item as { contactPhone?: string | null }).contactPhone;
-            const phone = phoneRaw?.trim() || null;
             return (
               <li key={item.id}>
                 <Card>
                   <CardContent className="py-4 px-4">
                     <div className="font-medium text-slate-900">{item.title}</div>
                     <div className="text-sm text-slate-600 mt-1">{cityFromLocation(item.location)}</div>
-                    {phone ? (
+                    {item.contactPhone ? (
                       <div className="text-sm text-slate-600 mt-1">
-                        <a href={`tel:${phone}`} className="text-purple-700 hover:underline">
-                          {phone}
+                        <a href={`tel:${item.contactPhone}`} className="text-purple-700 hover:underline">
+                          {item.contactPhone}
                         </a>
                       </div>
                     ) : null}
