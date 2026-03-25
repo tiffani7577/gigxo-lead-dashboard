@@ -1,18 +1,15 @@
 /**
  * DBPR collector — structured venue/business intelligence source.
  *
- * Fetches three feeds: new food (newfood.csv), owner changes (chgownr_food.csv),
- * and ABT daily activity (daily.csv). Normalizes rows into RawLeadDoc.
- * Supports header-based and positional CSV. Filtering: license class (per-feed),
- * South Florida counties only, last 45 days (missing date kept for manual review).
+ * Fetches the ABT daily activity extract (daily.csv): liquor license activity.
+ * Normalizes rows into RawLeadDoc. Supports header-based and positional CSV.
+ * Filtering: liquor license class, South Florida counties (name match), stale window.
  */
 
 import type { RawLeadDoc } from "./raw-lead-doc";
 import { parse } from "csv-parse";
 
-const DBPR_URL_NEW = "https://www2.myfloridalicense.com/sto/file_download/extracts/newfood.csv";
-const DBPR_URL_OWNER_CHANGE = "https://www2.myfloridalicense.com/sto/file_download/extracts/chgownr_food.csv";
-const DBPR_URL_LIQUOR = "https://www2.myfloridalicense.com/sto/file_download/extracts/daily.csv";
+const DBPR_URL_DAILY = "https://www2.myfloridalicense.com/sto/file_download/extracts/daily.csv";
 
 interface ParsedFeed {
   dataRows: string[][];
@@ -23,24 +20,14 @@ interface ParsedFeed {
   licenseTokens: readonly string[];
 }
 
-/** License class tokens for new food / owner change feeds (case-insensitive, partial match). */
-const VENUE_LICENSE_TOKENS = [
-  "2COP", "4COP", "1COP", "SRX", "SFS", "COP", "BEER", "WINE", "LIQUOR",
-  "HOTEL", "LOUNGE", "BAR", "NIGHTCLUB",
-  "CLUB", "YACHT", "CATERER", "EVENT VENUE", "BANQUET", "ENTERTAINMENT",
-];
-
-/** License type tokens for ABT liquor license feed. */
+/** License type tokens for ABT daily (liquor) extract. */
 const LIQUOR_LICENSE_TOKENS = [
   "4COP", "2COP", "1COP", "SRX", "SFS", "COP", "CLUB", "YACHT", "CATERER",
   "SPECIAL", "EVENT", "VENDOR", "BEER", "WINE", "LIQUOR", "PACKAGE",
 ];
 
-/** County tokens for South Florida (case-insensitive, partial match). Daily / legacy header feeds. */
+/** County tokens for South Florida (case-insensitive, partial match). */
 const SOUTH_FLORIDA_COUNTY_TOKENS = ["DADE", "MIAMI", "BROWARD", "PALM BEACH", "MONROE"];
-
-/** DBPR Board Code for South Florida counties (newfood / chgownr_food extracts). */
-const SOUTH_FLORIDA_BOARD_CODES = new Set(["4011", "4006", "4013", "4016"]);
 const HIGH_VALUE_CITY_TOKENS = [
   "MIAMI",
   "FORT LAUDERDALE",
@@ -51,7 +38,6 @@ const HIGH_VALUE_CITY_TOKENS = [
 ] as const;
 
 const STALE_DAYS = 180;
-const RECENT_ISSUE_DAYS = 7;
 
 async function safeFetch(url: string): Promise<Response | null> {
   try {
@@ -97,7 +83,7 @@ function getAt(arr: string[], i: number): string {
 }
 
 /** Returns true if the license class string matches any of the given tokens (case-insensitive, partial match). */
-function passesLicenseClassFilter(licenseClassCombined: string, tokens: readonly string[] = VENUE_LICENSE_TOKENS): boolean {
+function passesLicenseClassFilter(licenseClassCombined: string, tokens: readonly string[]): boolean {
   const lower = (licenseClassCombined || "").toLowerCase();
   return tokens.some((token) => lower.includes(token.toLowerCase()));
 }
@@ -106,11 +92,6 @@ function passesLicenseClassFilter(licenseClassCombined: string, tokens: readonly
 function passesCountyFilter(countyStr: string): boolean {
   const upper = (countyStr || "").toUpperCase();
   return SOUTH_FLORIDA_COUNTY_TOKENS.some((token) => upper.includes(token.toUpperCase()));
-}
-
-function passesSouthFloridaBoardCode(boardCodeRaw: string): boolean {
-  const code = (boardCodeRaw || "").trim().replace(/\s+/g, "");
-  return SOUTH_FLORIDA_BOARD_CODES.has(code);
 }
 
 /** Returns true when city matches one of the high-value enrichment markets. */
@@ -134,36 +115,6 @@ function isStaleLicense(dateStr: string | null | undefined): boolean {
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - STALE_DAYS);
   return d < cutoff;
-}
-
-function isStaleByRecentIssueWindow(dateStr: string | null | undefined, recentDays: number): boolean {
-  const d = parseDate(dateStr);
-  if (!d) return isStaleLicense(dateStr); // fallback to STALE_DAYS logic for "no date"
-  const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - recentDays);
-  return d < cutoff;
-}
-
-function resolveIssueDateColumnName(headers: string[]): string | null {
-  // DBPR header names we care about for filtering new licenses
-  const candidates = [
-    "Original Issue Date",
-    "Original Issue Date ",
-    "Original_Issue_Date",
-    "Application Approval Date",
-    "Application Approval Date ",
-    "Approval Date",
-    "License Issue Date",
-    "Issue Date",
-    "Issue Date ",
-    "License Date",
-  ];
-  const normalized = headers.map((h) => (h ?? "").trim());
-  for (const c of candidates) {
-    const candidate = c.trim();
-    if (normalized.includes(candidate)) return candidate;
-  }
-  return null;
 }
 
 /** Build one RawLeadDoc from a positional row (FL daily extract). */
@@ -255,7 +206,7 @@ function looksLikeHeaderRow(cells: string[]): boolean {
   );
 }
 
-/** Get date string from header row (includes Application Approval Date, Original Issue Date for ABT/daily feed). */
+/** Get date string from header row. */
 function getDateFromHeaderRow(row: Record<string, string>): string | null {
   const keys = [
     "Date", "Issue Date", "Approval Date", "Effective Date", "Application Approval Date",
@@ -285,7 +236,7 @@ function getCountyFromHeaderRow(row: Record<string, string>): string {
 async function fetchAndParseDbprCsv(
   url: string,
   sourceLabel: string,
-  licenseTokens: readonly string[] = VENUE_LICENSE_TOKENS
+  licenseTokens: readonly string[] = LIQUOR_LICENSE_TOKENS
 ): Promise<ParsedFeed | null> {
   const response = await safeFetch(url);
   if (!response) return null;
@@ -341,207 +292,170 @@ async function fetchAndParseDbprCsv(
 }
 
 export async function collectFromDbpr(options?: DbprCollectorOptions): Promise<RawLeadDoc[]> {
-  console.log("[dbpr-collector] Using DBPR new establishments + owner changes feeds");
+  console.log("[dbpr-collector] Using DBPR daily liquor license feed (daily.csv)");
 
   const maxResults = Math.min(options?.maxResults ?? 500, 1000);
-  const [feedNew, feedOwnerChange, feedLiquor] = await Promise.all([
-    fetchAndParseDbprCsv(DBPR_URL_NEW, "DBPR New Establishment"),
-    fetchAndParseDbprCsv(DBPR_URL_OWNER_CHANGE, "DBPR Owner Change"),
-    fetchAndParseDbprCsv(DBPR_URL_LIQUOR, "DBPR Daily Activity", LIQUOR_LICENSE_TOKENS),
-  ]);
+  const feed = await fetchAndParseDbprCsv(DBPR_URL_DAILY, "DBPR Daily Activity");
 
   const docs: RawLeadDoc[] = [];
-  let newKept = 0;
-  let ownerChangeKept = 0;
-  let liquorKept = 0;
+  let dailyKept = 0;
   let wrongLicenseType = 0;
   let outOfMarket = 0;
   let staleLicense = 0;
 
-  for (const feed of [feedNew, feedOwnerChange, feedLiquor]) {
-    if (!feed) continue;
-    const { dataRows, headerRow, usePositional, sourceLabel, url, licenseTokens } = feed;
-    const lines = dataRows;
-    console.log(`[dbpr] ${sourceLabel}: ${lines.length} rows downloaded`);
-    const applyRecentIssueDateFilter = sourceLabel === "DBPR New Establishment" || sourceLabel === "DBPR Owner Change";
-    let kept = 0;
-    let wrongType = 0;
-    let outOfMarketFeed = 0;
-    let staleCount = 0;
-
-    if (usePositional) {
-      const dateColumnName = applyRecentIssueDateFilter ? `POS.date (index ${POS.date})` : null;
-      if (applyRecentIssueDateFilter) console.log('[dbpr] Date column found:', dateColumnName);
-      for (let i = 0; i < dataRows.length && docs.length < maxResults; i++) {
-        const row = dataRows[i];
-        const divisionCode = getAt(row, POS.divisionCode);
-        const county = getAt(row, POS.county);
-        const licenseClass = getAt(row, POS.licenseClass);
-        const dateStr = getAt(row, POS.date);
-
-        const licenseCombined = `${divisionCode} ${licenseClass}`.trim();
-        if (!passesLicenseClassFilter(licenseCombined, licenseTokens)) {
-          wrongLicenseType++;
-          wrongType++;
-          continue;
-        }
-        if (!passesCountyFilter(county)) {
-          outOfMarket++;
-          outOfMarketFeed++;
-          continue;
-        }
-        const rejectByDate = applyRecentIssueDateFilter
-          ? isStaleByRecentIssueWindow(dateStr, RECENT_ISSUE_DAYS)
-          : isStaleLicense(dateStr);
-        if (rejectByDate) {
-          staleLicense++;
-          staleCount++;
-          continue;
-        }
-
-        const doc = normalizePositionalRow(row, url, sourceLabel);
-        if (doc) {
-          docs.push(doc);
-          kept++;
-          if (sourceLabel === "DBPR New Establishment") newKept++;
-          else if (sourceLabel === "DBPR Owner Change") ownerChangeKept++;
-          else if (sourceLabel === "DBPR Daily Activity") liquorKept++;
-        }
-      }
-    } else {
-      const headers = headerRow ?? [];
-      const dateColumnName = applyRecentIssueDateFilter ? resolveIssueDateColumnName(headers) : null;
-      if (applyRecentIssueDateFilter) console.log('[dbpr] Date column found:', dateColumnName);
-      for (let i = 0; i < dataRows.length && docs.length < maxResults; i++) {
-        const cells = dataRows[i];
-        const row: Record<string, string> = {};
-        headers.forEach((h, j) => {
-          row[h ?? ""] = (cells[j] ?? "").trim();
-        });
-        const normalizedRow: Record<string, string> = Object.fromEntries(
-          Object.entries(row).map(([k, v]) => [k.trim(), v])
-        );
-
-        const isNewfoodStyleFeed =
-          sourceLabel === "DBPR New Establishment" || sourceLabel === "DBPR Owner Change";
-
-        const dba = (normalizedRow["Licensee Name"] || normalizedRow["DBA"] || "").trim();
-        const city = (
-          normalizedRow["Location City"] ||
-          normalizedRow["Mailing City"] ||
-          normalizedRow["City"] ||
-          ""
-        ).trim();
-        const address = (
-          normalizedRow["Location Address 1"] ||
-          normalizedRow["Mailing Street Address"] ||
-          normalizedRow["Mailing Address"] ||
-          ""
-        ).trim();
-        const licenseNumber = (normalizedRow["Application Number"] || normalizedRow["License Number"] || "").trim();
-        const boardCode = (normalizedRow["Board Code"] || "").trim();
-        const primaryStatus = (normalizedRow["Primary Status"] || "").trim();
-        const secondaryStatus = (normalizedRow["Secondary Status"] || "").trim();
-        const manualReview = !isHighValueCity(city);
-        const licenseTypeCode = (normalizedRow["License Type Code"] || "").trim();
-        const rankCode = (normalizedRow["Rank Code"] || "").trim();
-        const divisionCombined = [licenseTypeCode, rankCode].filter(Boolean).join(" ").trim();
-        const division =
-          divisionCombined ||
-          (
-            normalizedRow["Division"] ||
-            normalizedRow["Board"] ||
-            normalizedRow["Board Number"] ||
-            normalizedRow["Class Code"] ||
-            normalizedRow["License Type"] ||
-            ""
-          ).trim();
-
-        if (!dba || !licenseNumber) continue;
-
-        // Daily feed only: keep Primary Status Code 10 or 20 (active/new); reject 45, 46, 47, 60, 61
-        if (sourceLabel === "DBPR Daily Activity") {
-          const primaryStatusCode = (
-            normalizedRow["Primary Status Code"] ||
-            normalizedRow["Primary Status Code "] ||
-            normalizedRow["Primary Status"] ||
-            ""
-          ).trim();
-          if (["45", "46", "47", "60", "61"].includes(primaryStatusCode)) continue;
-          if (primaryStatusCode !== "10" && primaryStatusCode !== "20") continue;
-        }
-
-        if (sourceLabel === "DBPR New Establishment" && i < 5) {
-          const countyStr = getCountyFromHeaderRow(normalizedRow);
-          console.log("[dbpr-debug] division:", division, "dba:", dba, "county:", countyStr, "board:", boardCode);
-        }
-
-        if (!passesLicenseClassFilter(division, licenseTokens)) {
-          wrongLicenseType++;
-          wrongType++;
-          continue;
-        }
-        const countyStr = getCountyFromHeaderRow(normalizedRow);
-        const inSouthFlorida = isNewfoodStyleFeed
-          ? passesSouthFloridaBoardCode(boardCode)
-          : passesCountyFilter(countyStr);
-        if (!inSouthFlorida) {
-          outOfMarket++;
-          outOfMarketFeed++;
-          continue;
-        }
-        const dateStr = applyRecentIssueDateFilter
-          ? (dateColumnName ? (normalizedRow[dateColumnName] ?? "") : "")
-          : getDateFromHeaderRow(normalizedRow);
-        const rejectByDate = applyRecentIssueDateFilter
-          ? (dateColumnName ? isStaleByRecentIssueWindow(dateStr, RECENT_ISSUE_DAYS) : false)
-          : isStaleLicense(dateStr);
-        if (rejectByDate) {
-          staleLicense++;
-          staleCount++;
-          continue;
-        }
-
-        const title = `${dba}${city ? " – " + city : ""}`;
-        const rawTextLines = [
-          `Name: ${dba}`,
-          `License: ${licenseNumber}`,
-          `Status: ${primaryStatus}/${secondaryStatus}`,
-          `Address: ${address}`,
-          `City: ${city}`,
-        ];
-        const divisionKey = normalizeDivisionKey(division);
-        const externalId = `dbpr-${divisionKey}-${licenseNumber}`;
-        const metadata: Record<string, unknown> = {
-          dbpr: { ...normalizedRow, highValueCity: !manualReview, enrichmentMode: manualReview ? "manual_review" : "auto_enrich" },
-          status: manualReview ? "manual_review" : null,
-          leadCategory: "venue_intelligence",
-          leadType: "venue",
-          source: "dbpr",
-        };
-        docs.push({
-          externalId,
-          source: "dbpr",
-          sourceType: "dbpr",
-          sourceLabel,
-          title,
-          rawText: rawTextLines.join("\n"),
-          url,
-          postedAt: null as any,
-          city: city || null,
-          metadata,
-        });
-        kept++;
-        if (sourceLabel === "DBPR New Establishment") newKept++;
-        else if (sourceLabel === "DBPR Owner Change") ownerChangeKept++;
-        else if (sourceLabel === "DBPR Daily Activity") liquorKept++;
-      }
-    }
-    console.log(`[dbpr] ${sourceLabel}: ${kept} passed license filter, ${wrongType} wrong type, ${outOfMarketFeed} out of market, ${staleCount} stale`);
+  if (!feed) {
+    console.log("[dbpr-collector] Daily activity: no feed");
+    return docs;
   }
 
+  const { dataRows, headerRow, usePositional, sourceLabel, url, licenseTokens } = feed;
+  console.log(`[dbpr] ${sourceLabel}: ${dataRows.length} rows downloaded`);
+  let kept = 0;
+  let wrongType = 0;
+  let outOfMarketFeed = 0;
+  let staleCount = 0;
+
+  if (usePositional) {
+    for (let i = 0; i < dataRows.length && docs.length < maxResults; i++) {
+      const row = dataRows[i];
+      const divisionCode = getAt(row, POS.divisionCode);
+      const county = getAt(row, POS.county);
+      const licenseClass = getAt(row, POS.licenseClass);
+      const dateStr = getAt(row, POS.date);
+
+      const licenseCombined = `${divisionCode} ${licenseClass}`.trim();
+      if (!passesLicenseClassFilter(licenseCombined, licenseTokens)) {
+        wrongLicenseType++;
+        wrongType++;
+        continue;
+      }
+      if (!passesCountyFilter(county)) {
+        outOfMarket++;
+        outOfMarketFeed++;
+        continue;
+      }
+      if (isStaleLicense(dateStr)) {
+        staleLicense++;
+        staleCount++;
+        continue;
+      }
+
+      const doc = normalizePositionalRow(row, url, sourceLabel);
+      if (doc) {
+        docs.push(doc);
+        kept++;
+        dailyKept++;
+      }
+    }
+  } else {
+    const headers = headerRow ?? [];
+    for (let i = 0; i < dataRows.length && docs.length < maxResults; i++) {
+      const cells = dataRows[i];
+      const row: Record<string, string> = {};
+      headers.forEach((h, j) => {
+        row[h ?? ""] = (cells[j] ?? "").trim();
+      });
+      const normalizedRow: Record<string, string> = Object.fromEntries(
+        Object.entries(row).map(([k, v]) => [k.trim(), v])
+      );
+
+      const dba = (normalizedRow["Licensee Name"] || normalizedRow["DBA"] || "").trim();
+      const city = (
+        normalizedRow["Location City"] ||
+        normalizedRow["Mailing City"] ||
+        normalizedRow["City"] ||
+        ""
+      ).trim();
+      const address = (
+        normalizedRow["Location Address 1"] ||
+        normalizedRow["Mailing Street Address"] ||
+        normalizedRow["Mailing Address"] ||
+        ""
+      ).trim();
+      const licenseNumber = (normalizedRow["Application Number"] || normalizedRow["License Number"] || "").trim();
+      const primaryStatus = (normalizedRow["Primary Status"] || "").trim();
+      const secondaryStatus = (normalizedRow["Secondary Status"] || "").trim();
+      const manualReview = !isHighValueCity(city);
+      const licenseTypeCode = (normalizedRow["License Type Code"] || "").trim();
+      const rankCode = (normalizedRow["Rank Code"] || "").trim();
+      const divisionCombined = [licenseTypeCode, rankCode].filter(Boolean).join(" ").trim();
+      const division =
+        divisionCombined ||
+        (
+          normalizedRow["Division"] ||
+          normalizedRow["Board"] ||
+          normalizedRow["Board Number"] ||
+          normalizedRow["Class Code"] ||
+          normalizedRow["License Type"] ||
+          ""
+        ).trim();
+
+      if (!dba || !licenseNumber) continue;
+
+      const primaryStatusCode = (
+        normalizedRow["Primary Status Code"] ||
+        normalizedRow["Primary Status Code "] ||
+        normalizedRow["Primary Status"] ||
+        ""
+      ).trim();
+      if (["45", "46", "47", "60", "61"].includes(primaryStatusCode)) continue;
+      if (primaryStatusCode !== "10" && primaryStatusCode !== "20") continue;
+
+      if (!passesLicenseClassFilter(division, licenseTokens)) {
+        wrongLicenseType++;
+        wrongType++;
+        continue;
+      }
+      const countyStr = getCountyFromHeaderRow(normalizedRow);
+      if (!passesCountyFilter(countyStr)) {
+        outOfMarket++;
+        outOfMarketFeed++;
+        continue;
+      }
+      const dateStr = getDateFromHeaderRow(normalizedRow) ?? "";
+      if (isStaleLicense(dateStr)) {
+        staleLicense++;
+        staleCount++;
+        continue;
+      }
+
+      const title = `${dba}${city ? " – " + city : ""}`;
+      const rawTextLines = [
+        `Name: ${dba}`,
+        `License: ${licenseNumber}`,
+        `Status: ${primaryStatus}/${secondaryStatus}`,
+        `Address: ${address}`,
+        `City: ${city}`,
+      ];
+      const divisionKey = normalizeDivisionKey(division);
+      const externalId = `dbpr-${divisionKey}-${licenseNumber}`;
+      const metadata: Record<string, unknown> = {
+        dbpr: { ...normalizedRow, highValueCity: !manualReview, enrichmentMode: manualReview ? "manual_review" : "auto_enrich" },
+        status: manualReview ? "manual_review" : null,
+        leadCategory: "venue_intelligence",
+        leadType: "venue",
+        source: "dbpr",
+      };
+      docs.push({
+        externalId,
+        source: "dbpr",
+        sourceType: "dbpr",
+        sourceLabel,
+        title,
+        rawText: rawTextLines.join("\n"),
+        url,
+        postedAt: null as any,
+        city: city || null,
+        metadata,
+      });
+      kept++;
+      dailyKept++;
+    }
+  }
+
+  console.log(`[dbpr] ${sourceLabel}: ${kept} passed license filter, ${wrongType} wrong type, ${outOfMarketFeed} out of market, ${staleCount} stale`);
   console.log(
-    `[dbpr-collector] New food: ${newKept} | Owner changes: ${ownerChangeKept} | Daily activity: ${liquorKept} | Filtered: ${staleLicense} stale, ${wrongLicenseType} wrong type, ${outOfMarket} out of market`
+    `[dbpr-collector] Daily activity: ${dailyKept} kept | Filtered: ${staleLicense} stale, ${wrongLicenseType} wrong type, ${outOfMarket} out of market`
   );
 
   if (docs.length > 0) {
