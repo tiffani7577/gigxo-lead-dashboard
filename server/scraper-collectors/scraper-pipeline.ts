@@ -114,6 +114,18 @@ const NEGATIVE_KEYWORDS = [
   "dining",
   "brunch menu",
   "wine list",
+  "our specials",
+  "daily specials",
+  "tasting menu",
+  "prix fixe",
+  "food truck",
+  // Business listing / directory boilerplate (not a booking request)
+  "opening hours",
+  "hours of operation",
+  "visit our",
+  "gift cards",
+  "dress code",
+  "loyalty program",
 ];
 
 // DJ gear/software/production discussion — not hiring leads
@@ -160,6 +172,21 @@ function isJunkDoc(doc: RawLeadDoc): boolean {
   const sportsNewsHiring = /\b(coach|gm\b|general manager|assistant coach|head coach|nfl|nba|mlb|quarterback|linebacker|bills\b|dolphins\b|news\b|reporter|editor\b|writer\b|journalist|sport(s)?\b|team\s+hiring|front\s+office)/i.test(combined);
   if (hasHire && sportsNewsHiring) return true;
 
+  // Non-US geography signals — outside South Florida market
+  if (/\b(scotland|edinburgh|glasgow|united kingdom|carfraemill)\b/i.test(combined)) return true;
+
+  // Short (1–3 word) proper-noun title with no hiring signal — catches venue-name posts like
+  // "STORY", "Key Bar", "Carfraemill" where the title is just a brand/place, not an event request.
+  const titleWords = title.split(/\s+/).filter(Boolean);
+  if (titleWords.length >= 1 && titleWords.length <= 3) {
+    const titleHasHiringSignal = /\b(dj|hire|hiring|need|want|looking|book|booking|wedding|party|entertain|performer|singer|band|mc|host|musician)\b/i.test(title);
+    if (!titleHasHiringSignal) {
+      // Require explicit first-person booking language somewhere in the post
+      const hasBookingRequest = /\b(i need|we need|i'm looking|we're looking|looking for a|looking to hire|can anyone recommend|recommend a|iso\b|need a dj|need dj|hire a|book a)\b/i.test(combined);
+      if (!hasBookingRequest) return true;
+    }
+  }
+
   return false;
 }
 
@@ -203,7 +230,12 @@ const DJ_HIRING_PHRASES = [
   "go go dancer",
   "aerial performer",
   "need musicians",
-  "live music",
+  "need live music",
+  "looking for live music",
+  "hire live music",
+  "live music for my",
+  "live music for our",
+  "live band for",
   "need a band",
 ];
 
@@ -241,7 +273,9 @@ export const TRANSACTIONAL_BOOKING_KEYWORDS = [
   "go go dancer",
   "aerial performer",
   "need musicians",
-  "live music",
+  "need live music",
+  "looking for live music",
+  "live music for",
   "need a band",
 ];
 

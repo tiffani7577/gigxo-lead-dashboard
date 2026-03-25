@@ -4367,8 +4367,11 @@ export const appRouter = router({
         let filtered = profiles.filter((p: typeof profiles[number]) => {
           if (!showInDir(p.showInDirectory)) return false;
           if ((p.userEmail ?? "").toLowerCase().endsWith("@gigxo.local")) return false;
-          // Exclude only truly empty profiles lacking all key identity/content fields
-          if (!p.djName && !p.userName && !p.avatarUrl && !p.bio) return false;
+          if (p.userRole === "admin") return false;
+          // Require an identity name AND at least one content signal (photo or bio)
+          const hasName = !!(p.djName || p.userName);
+          const hasContent = !!(p.photoUrl || p.avatarUrl || p.bio);
+          if (!hasName || !hasContent) return false;
 
           if (input.query) {
             const q = input.query.toLowerCase();
