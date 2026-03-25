@@ -257,6 +257,29 @@ function hasTransactionalBookingPhrase(normalized: string): boolean {
   return TRANSACTIONAL_BOOKING_KEYWORDS.some((phrase) => normalized.includes(phrase));
 }
 
+/** Urgency signals in raw post text: +15 intent when any phrase matches (case-insensitive substring). */
+const URGENCY_INTENT_BONUS_PHRASES = [
+  "tonight",
+  "last minute",
+  "emergency",
+  "short notice",
+  "asap",
+  "urgent",
+  "this weekend",
+  "this friday",
+  "this saturday",
+  "cancellation",
+  "need someone now",
+  "budget $",
+  "paying $",
+] as const;
+
+function hasUrgencyInRawText(rawText: string): boolean {
+  const lower = (rawText || "").toLowerCase();
+  if (URGENCY_INTENT_BONUS_PHRASES.some((p) => lower.includes(p))) return true;
+  return /\biso\b/.test(lower);
+}
+
 /** In-memory classification for scoring only (no schema). If "conversation", apply -10 to intent. */
 type LeadTypeClassification = "client_request" | "venue_opportunity" | "artist_referral" | "conversation";
 
@@ -577,6 +600,9 @@ export function rawLeadDocToLead(doc: RawLeadDoc, baseIntentScore: number): Scra
   // Transactional booking keyword boost (+25)
   const normalizedForBoost = normalizeText(doc.rawText);
   if (hasTransactionalBookingPhrase(normalizedForBoost)) intentScore += 25;
+
+  // Urgency / time-pressure phrases in original rawText (+15; uses raw text so "$" etc. are preserved)
+  if (hasUrgencyInRawText(doc.rawText)) intentScore += 15;
 
   // Lead type classification (in-memory): conversation gets -10
   const classification = classifyLeadTypeForScoring(normalizedForBoost);
