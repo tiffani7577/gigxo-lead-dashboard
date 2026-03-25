@@ -61,10 +61,14 @@ async function startServer() {
       .split(",")[0]
       .trim()
       .replace(/:\d+$/, "")
-      .toLowerCase();
+      .toLowerCase()
+      .replace(/\.$/, "");
 
     if (host === "gigxo.com") {
-      return res.redirect(301, `https://www.gigxo.com${req.originalUrl}`);
+      const raw = req.originalUrl || "/";
+      const pathAndQuery = raw.startsWith("/") ? raw : `/${raw}`;
+      const location = `https://www.gigxo.com${pathAndQuery}`;
+      return res.redirect(301, location);
     }
     next();
   });
