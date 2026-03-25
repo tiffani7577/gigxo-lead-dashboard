@@ -36,8 +36,11 @@ const LIQUOR_LICENSE_TOKENS = [
   "SPECIAL", "EVENT", "VENDOR", "BEER", "WINE", "LIQUOR", "PACKAGE",
 ];
 
-/** County tokens for South Florida (case-insensitive, partial match). */
+/** County tokens for South Florida (case-insensitive, partial match). Daily / legacy header feeds. */
 const SOUTH_FLORIDA_COUNTY_TOKENS = ["DADE", "MIAMI", "BROWARD", "PALM BEACH", "MONROE"];
+
+/** DBPR Board Code for South Florida counties (newfood / chgownr_food extracts). */
+const SOUTH_FLORIDA_BOARD_CODES = new Set(["4011", "4006", "4013", "4016"]);
 const HIGH_VALUE_CITY_TOKENS = [
   "MIAMI",
   "FORT LAUDERDALE",
@@ -103,6 +106,11 @@ function passesLicenseClassFilter(licenseClassCombined: string, tokens: readonly
 function passesCountyFilter(countyStr: string): boolean {
   const upper = (countyStr || "").toUpperCase();
   return SOUTH_FLORIDA_COUNTY_TOKENS.some((token) => upper.includes(token.toUpperCase()));
+}
+
+function passesSouthFloridaBoardCode(boardCodeRaw: string): boolean {
+  const code = (boardCodeRaw || "").trim().replace(/\s+/g, "");
+  return SOUTH_FLORIDA_BOARD_CODES.has(code);
 }
 
 /** Returns true when city matches one of the high-value enrichment markets. */
@@ -239,6 +247,8 @@ function looksLikeHeaderRow(cells: string[]): boolean {
   return (
     first.includes("dba") ||
     first.includes("license number") ||
+    first.includes("application number") ||
+    first.includes("licensee name") ||
     first.includes("location city") ||
     first.includes("division") ||
     first.includes("board")
@@ -258,12 +268,15 @@ function getDateFromHeaderRow(row: Record<string, string>): string | null {
   return null;
 }
 
-/** Get county string from header row (tries common column names). */
+/** Get county string from header row (tries common column names; any header containing "County"). */
 function getCountyFromHeaderRow(row: Record<string, string>): string {
   const keys = ["County", "Location County", "License County", "Counties"];
   for (const k of keys) {
     const v = (row[k] || "").trim();
     if (v) return v;
+  }
+  for (const [k, v] of Object.entries(row)) {
+    if ((k || "").toLowerCase().includes("county") && (v || "").trim()) return v.trim();
   }
   return "";
 }
@@ -409,21 +422,40 @@ export async function collectFromDbpr(options?: DbprCollectorOptions): Promise<R
           Object.entries(row).map(([k, v]) => [k.trim(), v])
         );
 
-        const dba = (normalizedRow["DBA"] || "").trim();
-        const city = (normalizedRow["Location City"] || "").trim();
-        const address = (normalizedRow["Location Address 1"] || "").trim();
-        const licenseNumber = (normalizedRow["License Number"] || "").trim();
+        const isNewfoodStyleFeed =
+          sourceLabel === "DBPR New Establishment" || sourceLabel === "DBPR Owner Change";
+
+        const dba = (normalizedRow["Licensee Name"] || normalizedRow["DBA"] || "").trim();
+        const city = (
+          normalizedRow["Location City"] ||
+          normalizedRow["Mailing City"] ||
+          normalizedRow["City"] ||
+          ""
+        ).trim();
+        const address = (
+          normalizedRow["Location Address 1"] ||
+          normalizedRow["Mailing Street Address"] ||
+          normalizedRow["Mailing Address"] ||
+          ""
+        ).trim();
+        const licenseNumber = (normalizedRow["Application Number"] || normalizedRow["License Number"] || "").trim();
+        const boardCode = (normalizedRow["Board Code"] || "").trim();
         const primaryStatus = (normalizedRow["Primary Status"] || "").trim();
         const secondaryStatus = (normalizedRow["Secondary Status"] || "").trim();
         const manualReview = !isHighValueCity(city);
+        const licenseTypeCode = (normalizedRow["License Type Code"] || "").trim();
+        const rankCode = (normalizedRow["Rank Code"] || "").trim();
+        const divisionCombined = [licenseTypeCode, rankCode].filter(Boolean).join(" ").trim();
         const division =
-          (normalizedRow["Division"] ||
+          divisionCombined ||
+          (
+            normalizedRow["Division"] ||
             normalizedRow["Board"] ||
             normalizedRow["Board Number"] ||
             normalizedRow["Class Code"] ||
             normalizedRow["License Type"] ||
-            normalizedRow["License Type Code"] ||
-            "").trim();
+            ""
+          ).trim();
 
         if (!dba || !licenseNumber) continue;
 
@@ -441,7 +473,7 @@ export async function collectFromDbpr(options?: DbprCollectorOptions): Promise<R
 
         if (sourceLabel === "DBPR New Establishment" && i < 5) {
           const countyStr = getCountyFromHeaderRow(normalizedRow);
-          console.log("[dbpr-debug] division:", division, "dba:", dba, "county:", countyStr);
+          console.log("[dbpr-debug] division:", division, "dba:", dba, "county:", countyStr, "board:", boardCode);
         }
 
         if (!passesLicenseClassFilter(division, licenseTokens)) {
@@ -450,7 +482,11 @@ export async function collectFromDbpr(options?: DbprCollectorOptions): Promise<R
           continue;
         }
         const countyStr = getCountyFromHeaderRow(normalizedRow);
-        if (!passesCountyFilter(countyStr)) {
+        const inSouthFlorida = isNewfoodStyleFeed
+          ? passesSouthFloridaBoardCode(boardCode) ||
+            (boardCode === "" && passesCountyFilter(countyStr))
+          : passesCountyFilter(countyStr);
+        if (!inSouthFlorida) {
           outOfMarket++;
           outOfMarketFeed++;
           continue;
