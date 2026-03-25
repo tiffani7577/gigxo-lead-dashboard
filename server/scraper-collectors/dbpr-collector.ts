@@ -48,6 +48,7 @@ const HIGH_VALUE_CITY_TOKENS = [
 ] as const;
 
 const STALE_DAYS = 180;
+const RECENT_ISSUE_DAYS = 7;
 
 async function safeFetch(url: string): Promise<Response | null> {
   try {
@@ -125,6 +126,24 @@ function isStaleLicense(dateStr: string | null | undefined): boolean {
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - STALE_DAYS);
   return d < cutoff;
+}
+
+function isStaleByRecentIssueWindow(dateStr: string | null | undefined, recentDays: number): boolean {
+  const d = parseDate(dateStr);
+  if (!d) return isStaleLicense(dateStr); // fallback to STALE_DAYS logic for "no date"
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - recentDays);
+  return d < cutoff;
+}
+
+function resolveIssueDateColumnName(headers: string[]): string | null {
+  // DBPR header names we care about for filtering new licenses
+  const candidates = ["Original Issue Date", "Original_Issue_Date", "Issue Date", "License Date"];
+  const normalized = headers.map((h) => (h ?? "").trim());
+  for (const c of candidates) {
+    if (normalized.includes(c)) return c;
+  }
+  return null;
 }
 
 /** Build one RawLeadDoc from a positional row (FL daily extract). */
@@ -319,12 +338,15 @@ export async function collectFromDbpr(options?: DbprCollectorOptions): Promise<R
     const { dataRows, headerRow, usePositional, sourceLabel, url, licenseTokens } = feed;
     const lines = dataRows;
     console.log(`[dbpr] ${sourceLabel}: ${lines.length} rows downloaded`);
+    const applyRecentIssueDateFilter = sourceLabel === "DBPR New Establishment" || sourceLabel === "DBPR Owner Change";
     let kept = 0;
     let wrongType = 0;
     let outOfMarketFeed = 0;
     let staleCount = 0;
 
     if (usePositional) {
+      const dateColumnName = applyRecentIssueDateFilter ? `POS.date (index ${POS.date})` : null;
+      if (applyRecentIssueDateFilter) console.log('[dbpr] Date column found:', dateColumnName);
       for (let i = 0; i < dataRows.length && docs.length < maxResults; i++) {
         const row = dataRows[i];
         const divisionCode = getAt(row, POS.divisionCode);
@@ -343,7 +365,10 @@ export async function collectFromDbpr(options?: DbprCollectorOptions): Promise<R
           outOfMarketFeed++;
           continue;
         }
-        if (isStaleLicense(dateStr)) {
+        const rejectByDate = applyRecentIssueDateFilter
+          ? isStaleByRecentIssueWindow(dateStr, RECENT_ISSUE_DAYS)
+          : isStaleLicense(dateStr);
+        if (rejectByDate) {
           staleLicense++;
           staleCount++;
           continue;
@@ -360,6 +385,8 @@ export async function collectFromDbpr(options?: DbprCollectorOptions): Promise<R
       }
     } else {
       const headers = headerRow ?? [];
+      const dateColumnName = applyRecentIssueDateFilter ? resolveIssueDateColumnName(headers) : null;
+      if (applyRecentIssueDateFilter) console.log('[dbpr] Date column found:', dateColumnName);
       for (let i = 0; i < dataRows.length && docs.length < maxResults; i++) {
         const cells = dataRows[i];
         const row: Record<string, string> = {};
@@ -396,8 +423,13 @@ export async function collectFromDbpr(options?: DbprCollectorOptions): Promise<R
           outOfMarketFeed++;
           continue;
         }
-        const dateStr = getDateFromHeaderRow(row);
-        if (isStaleLicense(dateStr)) {
+        const dateStr = applyRecentIssueDateFilter
+          ? (dateColumnName ? (row[dateColumnName] ?? "") : "")
+          : getDateFromHeaderRow(row);
+        const rejectByDate = applyRecentIssueDateFilter
+          ? isStaleByRecentIssueWindow(dateStr, RECENT_ISSUE_DAYS)
+          : isStaleLicense(dateStr);
+        if (rejectByDate) {
           staleLicense++;
           staleCount++;
           continue;
