@@ -11,6 +11,27 @@ import { toast } from "sonner";
 
 const DEFAULT_SENDER = "Gigxo <teryn@gigxo.com>";
 
+function outreachVenueGoogleHref(venue: Record<string, unknown> | null | undefined): string | null {
+  if (!venue) return null;
+  const email = String(venue.contactEmail ?? "").trim() || String(venue.venueEmail ?? "").trim();
+  if (email) return null;
+  const name = String(venue.title ?? "").trim();
+  const loc = String(venue.location ?? "").trim();
+  const url = String(venue.venueUrl ?? "").trim();
+  if (!name && !loc && !url) return null;
+  const city = loc.includes(",") ? (loc.split(",")[0]?.trim() ?? loc) : loc;
+  let fromUrl = "";
+  if (url && !name && !loc) {
+    try {
+      fromUrl = new URL(url).hostname.replace(/^www\./, "");
+    } catch {
+      fromUrl = url.slice(0, 80);
+    }
+  }
+  const q = [name || undefined, city || undefined, fromUrl || undefined, "contact"].filter(Boolean).join(" ");
+  return `https://www.google.com/search?q=${encodeURIComponent(q)}`;
+}
+
 export default function AdminOutreachHub() {
   const { data, isLoading, refetch } = trpc.admin.getNextOutreachVenue.useQuery();
   const [remaining, setRemaining] = useState<number>(0);
@@ -112,6 +133,8 @@ export default function AdminOutreachHub() {
   };
 
   const isBusy = isLoading || sendMutation.isPending || skipMutation.isPending || clearEmailMutation.isPending;
+
+  const googleFindHref = currentVenue ? outreachVenueGoogleHref(currentVenue) : null;
 
   const cityFromLocation = (loc: string | null | undefined) => {
     if (!loc) return "";
@@ -229,6 +252,18 @@ export default function AdminOutreachHub() {
                       >
                         <ExternalLink className="w-3 h-3" />
                         {currentVenue.venueUrl}
+                      </a>
+                    </div>
+                  )}
+                  {googleFindHref && (
+                    <div className="pt-1">
+                      <a
+                        href={googleFindHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs font-medium text-purple-700 hover:underline"
+                      >
+                        🔍 Find contact on Google
                       </a>
                     </div>
                   )}

@@ -112,6 +112,30 @@ function monetizationLabel(type: string | null | undefined): string {
   };
   return m[type] ?? type;
 }
+
+function hasAnyContactEmail(lead: VenueLead): boolean {
+  return !!(lead.venueEmail?.trim() || lead.contactEmail?.trim());
+}
+
+/** Google search to manually find contact; only when no email but we have something to search on. */
+function venueGoogleSearchHref(lead: VenueLead): string | null {
+  if (hasAnyContactEmail(lead)) return null;
+  const name = lead.title?.trim() ?? "";
+  const loc = lead.location?.trim() ?? "";
+  const url = lead.venueUrl?.trim() ?? "";
+  if (!name && !loc && !url) return null;
+  const city = loc.includes(",") ? (loc.split(",")[0]?.trim() ?? loc) : loc;
+  let fromUrl = "";
+  if (url && !name && !loc) {
+    try {
+      fromUrl = new URL(url).hostname.replace(/^www\./, "");
+    } catch {
+      fromUrl = url.slice(0, 80);
+    }
+  }
+  const q = [name || undefined, city || undefined, fromUrl || undefined, "contact"].filter(Boolean).join(" ");
+  return `https://www.google.com/search?q=${encodeURIComponent(q)}`;
+}
 const OUTREACH_STATUS_OPTIONS = [
   { value: "", label: "Any" },
   { value: "not_sent", label: "Not sent" },
@@ -142,13 +166,10 @@ const REGION_OPTIONS = [
 function ContactInfo({ lead }: { lead: VenueLead }) {
   const email = lead.venueEmail || lead.contactEmail;
   const phone = lead.venuePhone || lead.contactPhone;
-  const parts: string[] = [];
-  if (email) parts.push(email);
-  if (phone) parts.push(phone);
-  if (lead.venueUrl) parts.push(lead.venueUrl);
-  if (parts.length === 0) return <span className="text-muted-foreground">—</span>;
+  const googleHref = venueGoogleSearchHref(lead);
+  const hasLine = !!(email || phone || lead.venueUrl?.trim());
   return (
-    <div className="flex flex-col gap-0.5 text-sm">
+    <div className="flex flex-col gap-1 text-sm">
       {email && (
         <a href={`mailto:${email}`} className="flex items-center gap-1 text-primary hover:underline">
           <Mail className="h-3 w-3 shrink-0" /> {email}
@@ -159,9 +180,20 @@ function ContactInfo({ lead }: { lead: VenueLead }) {
           <Phone className="h-3 w-3 shrink-0" /> {phone}
         </a>
       )}
-      {lead.venueUrl && (
-        <a href={lead.venueUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-primary hover:underline">
+      {lead.venueUrl?.trim() && (
+        <a href={lead.venueUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-primary hover:underline break-all">
           <ExternalLink className="h-3 w-3 shrink-0" /> Website
+        </a>
+      )}
+      {!hasLine && !googleHref && <span className="text-muted-foreground">—</span>}
+      {googleHref && (
+        <a
+          href={googleHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 text-xs text-purple-700 hover:underline mt-0.5"
+        >
+          🔍 Find contact on Google
         </a>
       )}
     </div>
@@ -169,7 +201,7 @@ function ContactInfo({ lead }: { lead: VenueLead }) {
 }
 
 export default function AdminVenueIntelligence() {
-  const [limit] = useState(50);
+  const [limit] = useState(200);
   const [offset, setOffset] = useState(0);
   const [venueStatus, setVenueStatus] = useState("");
   const [city, setCity] = useState("");
@@ -252,10 +284,9 @@ export default function AdminVenueIntelligence() {
     updateNotesMutation.mutate({ leadId: notesLead.id, notes: notesDraft });
   };
 
-  const hasOutreachableEmail = (lead: VenueLead) => !!(lead.venueEmail?.trim() || lead.contactEmail?.trim());
   const sendOutreach = () => {
     if (!outreachLead) return;
-    if (!hasOutreachableEmail(outreachLead)) {
+    if (!hasAnyContactEmail(outreachLead)) {
       toast.error("No outreachable email");
       return;
     }
@@ -266,6 +297,8 @@ export default function AdminVenueIntelligence() {
   const total = data?.total ?? 0;
   const totalPages = Math.ceil(total / limit);
   const currentPage = Math.floor(offset / limit) + 1;
+  const outreachGoogleHref =
+    outreachLead && !hasAnyContactEmail(outreachLead) ? venueGoogleSearchHref(outreachLead) : null;
 
   return (
     <DashboardLayout>
@@ -586,13 +619,25 @@ export default function AdminVenueIntelligence() {
           <DialogHeader>
             <DialogTitle>Send outreach — {outreachLead?.title ?? "Lead"}</DialogTitle>
             <CardDescription>
-              {outreachLead && (hasOutreachableEmail(outreachLead)
+              {outreachLead && (hasAnyContactEmail(outreachLead)
                 ? `To: ${outreachLead.venueEmail?.trim() || outreachLead.contactEmail?.trim()}`
                 : "No outreachable email (add venue or contact email).")}
             </CardDescription>
           </DialogHeader>
-          {outreachLead && !hasOutreachableEmail(outreachLead) ? (
-            <p className="text-destructive text-sm">No outreachable email. Add venue email or contact email to this lead to send outreach.</p>
+          {outreachLead && !hasAnyContactEmail(outreachLead) ? (
+            <div className="space-y-2">
+              <p className="text-destructive text-sm">No outreachable email. Add venue email or contact email to this lead to send outreach.</p>
+              {outreachGoogleHref ? (
+                <a
+                  href={outreachGoogleHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-sm text-purple-700 hover:underline"
+                >
+                  🔍 Find contact on Google
+                </a>
+              ) : null}
+            </div>
           ) : (
             <>
               <div className="space-y-2">
@@ -616,7 +661,7 @@ export default function AdminVenueIntelligence() {
             </Button>
             <Button
               onClick={sendOutreach}
-              disabled={sendOutreachMutation.isPending || !outreachLead || !hasOutreachableEmail(outreachLead!)}
+              disabled={sendOutreachMutation.isPending || !outreachLead || !hasAnyContactEmail(outreachLead!)}
             >
               {sendOutreachMutation.isPending ? "Sending…" : "Send outreach"}
             </Button>
