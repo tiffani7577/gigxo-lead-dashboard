@@ -18,6 +18,19 @@ const SENDER_EMAIL = "teryn@gigxo.com";
 
 const GRAPH_SEND_MAIL = "https://graph.microsoft.com/v1.0/me/sendMail";
 
+/** CAN-SPAM: valid postal address + clear opt-out on every Graph outreach message. */
+const CAN_SPAM_FOOTER_HTML = `
+<br/><br/>
+<hr style="border:none;border-top:1px solid #ddd;margin:1.25em 0;max-width:36em;"/>
+<p style="font-size:11px;color:#555;line-height:1.6;margin:0;">
+Gigxo | Fort Lauderdale, FL 33316<br/>
+To unsubscribe from Gigxo outreach, reply with UNSUBSCRIBE
+</p>`;
+
+function bodyWithCanSpamFooter(htmlContent: string): string {
+  return `${htmlContent}${CAN_SPAM_FOOTER_HTML}`;
+}
+
 /** POST /me/sendMail; logs HTTP status, recipient, response body, and success/failure. */
 export async function sendMailViaGraph(options: {
   recipientEmail: string;
@@ -32,7 +45,7 @@ export async function sendMailViaGraph(options: {
       subject: options.subject,
       body: {
         contentType: "HTML",
-        content: options.htmlContent,
+        content: bodyWithCanSpamFooter(options.htmlContent),
       },
       toRecipients: [
         {
