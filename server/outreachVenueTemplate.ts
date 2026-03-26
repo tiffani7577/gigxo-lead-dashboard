@@ -34,8 +34,7 @@ Post your first gig free → https://gigxo.com/book
 
 Best,
 Teryn
-Gigxo | Fort Lauderdale, FL 33316
-To unsubscribe reply UNSUBSCRIBE`;
+Gigxo`;
 
 export function renderVenueTemplate(venue: VenueTemplateInput): { subject: string; body: string } {
   const rawTitle = venue.title?.trim() || "";
