@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users, Search, Zap, BarChart2, Music, Radio, Building2, UserPlus, Mail, ClipboardList, Send, Briefcase } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Users, Search, Zap, BarChart2, Music, Radio, Building2, UserPlus, Mail, ClipboardList, Send, Briefcase, Headphones } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -37,6 +37,7 @@ const menuItems = [
   { icon: Briefcase, label: "AV Staffing", path: "/admin/av-requests" },
   { icon: Mail, label: "Outreach", path: "/admin/outreach" },
   { icon: Send, label: "Outreach Hub", path: "/admin/outreach-hub" },
+  { icon: Headphones, label: "DJ Outreach", path: "/admin/dj-outreach" },
   { icon: Radio, label: "Live Lead Search", path: "/admin/live-lead-search" },
   { icon: Music, label: "Artist Directory", path: "/artists" },
   { icon: BarChart2, label: "Pipeline Board", path: "/pipeline" },

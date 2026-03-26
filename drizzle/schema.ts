@@ -298,6 +298,29 @@ export const artistOutreach = mysqlTable(
 export type ArtistOutreach = typeof artistOutreach.$inferSelect;
 export type InsertArtistOutreach = typeof artistOutreach.$inferInsert;
 
+/** Manual DJ outreach queue (admin one-by-one hub, separate from artistOutreach CRM). */
+export const djOutreachProfiles = mysqlTable(
+  "djOutreachProfiles",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    name: varchar("name", { length: 255 }).notNull(),
+    instagramHandle: varchar("instagramHandle", { length: 255 }),
+    email: varchar("email", { length: 320 }),
+    status: mysqlEnum("status", ["not_contacted", "messaged", "responded", "skipped"]).default("not_contacted").notNull(),
+    notes: text("notes"),
+    lastMessagedAt: timestamp("lastMessagedAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    statusIdx: index("djOutreachProfiles_status_idx").on(table.status),
+    createdIdx: index("djOutreachProfiles_created_idx").on(table.createdAt),
+  })
+);
+
+export type DjOutreachProfile = typeof djOutreachProfiles.$inferSelect;
+export type InsertDjOutreachProfile = typeof djOutreachProfiles.$inferInsert;
+
 // Lead scores table (AI-generated scores for matching)
 export const leadScores = mysqlTable("leadScores", {
   id: int("id").autoincrement().primaryKey(),

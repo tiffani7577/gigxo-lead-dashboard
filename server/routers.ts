@@ -3,7 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
-import { eq, and, desc, asc, not, ne, sql, gte, lte, lt, or, isNull, isNotNull, like, inArray } from "drizzle-orm";
+import { eq, and, desc, asc, not, ne, sql, gte, lte, lt, or, isNull, isNotNull, like, inArray, count } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import {
   getActiveEventWindows,
@@ -2172,6 +2172,198 @@ export const appRouter = router({
         const { renderVenueTemplate } = await import("./outreachVenueTemplate");
         const { subject, body } = renderVenueTemplate(nextRow);
         return { nextVenue: { ...nextRow, subject, body } };
+      }),
+
+    // ── DJ outreach hub (manual queue, Microsoft Graph sends) ─────────────────
+    listDjOutreachProfiles: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN", message: "Unauthorized" });
+      const { getDb } = await import("./db");
+      const db = await getDb();
+      if (!db) return [];
+      const { djOutreachProfiles } = await import("../drizzle/schema");
+      return db.select().from(djOutreachProfiles).orderBy(desc(djOutreachProfiles.createdAt));
+    }),
+
+    getNextDjOutreachProfile: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN", message: "Unauthorized" });
+      const { getDb } = await import("./db");
+      const db = await getDb();
+      if (!db) return { dj: null, remainingCount: 0 };
+      const { djOutreachProfiles } = await import("../drizzle/schema");
+      const [{ total }] = await db
+        .select({ total: count() })
+        .from(djOutreachProfiles)
+        .where(eq(djOutreachProfiles.status, "not_contacted"));
+      const [row] = await db
+        .select()
+        .from(djOutreachProfiles)
+        .where(eq(djOutreachProfiles.status, "not_contacted"))
+        .orderBy(asc(djOutreachProfiles.createdAt))
+        .limit(1);
+      if (!row) return { dj: null, remainingCount: Number(total ?? 0) };
+      const { renderDjOutreachTemplate } = await import("./djOutreachTemplate");
+      const t = renderDjOutreachTemplate({ name: row.name, instagramHandle: row.instagramHandle });
+      return {
+        dj: { ...row, subject: t.subject, body: t.body },
+        remainingCount: Number(total ?? 0),
+      };
+    }),
+
+    addDjOutreachProfile: protectedProcedure
+      .input(
+        z.object({
+          name: z.string().min(1).max(255),
+          instagramHandle: z.string().max(255).optional(),
+          email: z.string().max(320).optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN", message: "Unauthorized" });
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+        const { djOutreachProfiles } = await import("../drizzle/schema");
+        const emailTrim = input.email?.trim() || null;
+        if (emailTrim && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrim)) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid email" });
+        }
+        const ig = input.instagramHandle?.trim().replace(/^@/, "") || null;
+        await db.insert(djOutreachProfiles).values({
+          name: input.name.trim(),
+          instagramHandle: ig,
+          email: emailTrim,
+          status: "not_contacted",
+        });
+        return { success: true };
+      }),
+
+    updateDjOutreachProfileNotes: protectedProcedure
+      .input(z.object({ id: z.number(), notes: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN", message: "Unauthorized" });
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+        const { djOutreachProfiles } = await import("../drizzle/schema");
+        await db
+          .update(djOutreachProfiles)
+          .set({ notes: input.notes, updatedAt: new Date() })
+          .where(eq(djOutreachProfiles.id, input.id));
+        return { success: true };
+      }),
+
+    setDjOutreachProfileStatus: protectedProcedure
+      .input(
+        z.object({
+          id: z.number(),
+          status: z.enum(["not_contacted", "messaged", "responded", "skipped"]),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN", message: "Unauthorized" });
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+        const { djOutreachProfiles } = await import("../drizzle/schema");
+        await db
+          .update(djOutreachProfiles)
+          .set({ status: input.status, updatedAt: new Date() })
+          .where(eq(djOutreachProfiles.id, input.id));
+        return { success: true };
+      }),
+
+    sendDjOutreachAndAdvance: protectedProcedure
+      .input(
+        z.object({
+          id: z.number(),
+          subject: z.string(),
+          body: z.string(),
+          recipientEmail: z.string().min(1).max(320),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN", message: "Unauthorized" });
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+        const { djOutreachProfiles } = await import("../drizzle/schema");
+        const { sendMailViaGraph } = await import("./services/outreach");
+        const [row] = await db.select().from(djOutreachProfiles).where(eq(djOutreachProfiles.id, input.id)).limit(1);
+        if (!row) throw new TRPCError({ code: "NOT_FOUND", message: "DJ profile not found" });
+        const to = input.recipientEmail.trim();
+        if (!to) throw new TRPCError({ code: "BAD_REQUEST", message: "Recipient email required" });
+
+        try {
+          await sendMailViaGraph({
+            recipientEmail: to,
+            recipientName: row.name,
+            subject: input.subject,
+            htmlContent: input.body.replace(/\n/g, "<br>\n"),
+          });
+        } catch (e: any) {
+          const msg = e?.message ?? String(e);
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: msg });
+        }
+
+        await db
+          .update(djOutreachProfiles)
+          .set({
+            status: "messaged",
+            lastMessagedAt: new Date(),
+            email: to,
+            updatedAt: new Date(),
+          })
+          .where(eq(djOutreachProfiles.id, input.id));
+
+        const [{ total }] = await db
+          .select({ total: count() })
+          .from(djOutreachProfiles)
+          .where(eq(djOutreachProfiles.status, "not_contacted"));
+        const [nextRow] = await db
+          .select()
+          .from(djOutreachProfiles)
+          .where(eq(djOutreachProfiles.status, "not_contacted"))
+          .orderBy(asc(djOutreachProfiles.createdAt))
+          .limit(1);
+        let nextDj: any = null;
+        if (nextRow) {
+          const { renderDjOutreachTemplate } = await import("./djOutreachTemplate");
+          const t = renderDjOutreachTemplate({ name: nextRow.name, instagramHandle: nextRow.instagramHandle });
+          nextDj = { ...nextRow, subject: t.subject, body: t.body };
+        }
+        return { success: true as const, nextDj, remainingCount: Number(total ?? 0) };
+      }),
+
+    skipDjOutreachProfile: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN", message: "Unauthorized" });
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+        const { djOutreachProfiles } = await import("../drizzle/schema");
+        await db
+          .update(djOutreachProfiles)
+          .set({ status: "skipped", updatedAt: new Date() })
+          .where(eq(djOutreachProfiles.id, input.id));
+
+        const [{ total }] = await db
+          .select({ total: count() })
+          .from(djOutreachProfiles)
+          .where(eq(djOutreachProfiles.status, "not_contacted"));
+        const [nextRow] = await db
+          .select()
+          .from(djOutreachProfiles)
+          .where(eq(djOutreachProfiles.status, "not_contacted"))
+          .orderBy(asc(djOutreachProfiles.createdAt))
+          .limit(1);
+        let nextDj: any = null;
+        if (nextRow) {
+          const { renderDjOutreachTemplate } = await import("./djOutreachTemplate");
+          const t = renderDjOutreachTemplate({ name: nextRow.name, instagramHandle: nextRow.instagramHandle });
+          nextDj = { ...nextRow, subject: t.subject, body: t.body };
+        }
+        return { nextDj, remainingCount: Number(total ?? 0) };
       }),
     
     toggleHideLead: protectedProcedure
