@@ -3971,6 +3971,13 @@ export const appRouter = router({
       return { connected: !!conn, connectedEmail: conn?.connectedEmail ?? null };
     }),
 
+    testMicrosoftEmail: protectedProcedure.mutation(async ({ ctx }) => {
+      if (ctx.user?.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+      const { sendMicrosoftTestEmail } = await import("./services/outreach");
+      const result = await sendMicrosoftTestEmail();
+      return { success: true as const, messageId: result.messageId ?? null };
+    }),
+
     previewOutreachEmail: protectedProcedure
       .input(z.object({ leadId: z.number(), templateId: z.number() }))
       .query(async ({ ctx, input }) => {

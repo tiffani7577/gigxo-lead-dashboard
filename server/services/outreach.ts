@@ -18,6 +18,67 @@ const SENDER_EMAIL = "teryn@gigxo.com";
 
 const GRAPH_SEND_MAIL = "https://graph.microsoft.com/v1.0/me/sendMail";
 
+/** POST /me/sendMail; logs HTTP status, recipient, response body, and success/failure. */
+async function sendMailViaGraph(options: {
+  recipientEmail: string;
+  recipientName?: string | null;
+  subject: string;
+  htmlContent: string;
+}): Promise<{ messageId?: string; senderEmail: string }> {
+  const { accessToken, senderEmail } = await getValidAccessToken();
+  const recipient = options.recipientEmail.trim();
+  const message = {
+    message: {
+      subject: options.subject,
+      body: {
+        contentType: "HTML",
+        content: options.htmlContent,
+      },
+      toRecipients: [
+        {
+          emailAddress: {
+            address: recipient,
+            name: options.recipientName ?? undefined,
+          },
+        },
+      ],
+    },
+    saveToSentItems: true,
+  };
+
+  const res = await fetch(GRAPH_SEND_MAIL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(message),
+  });
+
+  const httpStatus = res.status;
+  const responseText = await res.text();
+  const success = res.ok;
+  const messageId = res.headers.get("request-id") ?? undefined;
+  const responsePreview = responseText.length > 4000 ? `${responseText.slice(0, 4000)}…` : responseText;
+
+  const logLine = {
+    success,
+    httpStatus,
+    recipient,
+    senderEmail,
+    messageId,
+    responseBody: success && !responsePreview ? "(empty)" : responsePreview || "(empty)",
+  };
+
+  if (!success) {
+    console.error("[Microsoft Graph sendMail] FAILED", logLine);
+    throw new Error(`Microsoft Graph sendMail failed: ${httpStatus} ${responseText}`);
+  }
+
+  console.log("[Microsoft Graph sendMail] OK", logLine);
+  return { messageId, senderEmail };
+}
+
 async function getValidAccessToken(): Promise<{ accessToken: string; senderEmail: string }> {
   const conn = await getStoredConnection();
   if (!conn) {
@@ -55,42 +116,13 @@ export async function sendOutreachEmail(params: SendOutreachParams): Promise<{ m
   const [lead] = await db.select().from(leads).where(eq(leads.id, leadId)).limit(1);
   if (!lead) throw new Error("Lead not found");
 
-  const { accessToken, senderEmail } = await getValidAccessToken();
-
-  const message = {
-    message: {
-      subject,
-      body: {
-        contentType: "HTML",
-        content: body.replace(/\n/g, "<br>\n"),
-      },
-      toRecipients: [
-        {
-          emailAddress: {
-            address: lead.email ?? "",
-            name: lead.name ?? undefined,
-          },
-        },
-      ],
-    },
-    saveToSentItems: true,
-  };
-
-  const res = await fetch(GRAPH_SEND_MAIL, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(message),
+  const recipientEmail = (lead.email ?? "").trim();
+  const { messageId, senderEmail } = await sendMailViaGraph({
+    recipientEmail,
+    recipientName: lead.name,
+    subject,
+    htmlContent: body.replace(/\n/g, "<br>\n"),
   });
-
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Microsoft Graph sendMail failed: ${res.status} ${err}`);
-  }
-
-  const messageId = res.headers.get("request-id") ?? undefined;
 
   await db.insert(outreachMessages).values({
     leadId,
@@ -109,5 +141,16 @@ export async function sendOutreachEmail(params: SendOutreachParams): Promise<{ m
     lastContacted: new Date(),
   }).where(eq(leads.id, leadId));
 
+  return { messageId };
+}
+
+/** Self-addressed test message to verify Microsoft Graph sendMail (admin diagnostic). */
+export async function sendMicrosoftTestEmail(): Promise<{ messageId?: string }> {
+  const { messageId } = await sendMailViaGraph({
+    recipientEmail: SENDER_EMAIL,
+    subject: "Gigxo: Microsoft Graph send test",
+    htmlContent:
+      "<p>This is a self-test from the Gigxo admin <code>testMicrosoftEmail</code> endpoint.</p>",
+  });
   return { messageId };
 }
