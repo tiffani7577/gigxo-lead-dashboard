@@ -2026,12 +2026,31 @@ export const appRouter = router({
         const db = await getDb();
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
         const { gigLeads, outreachLog } = await import("../drizzle/schema");
-        const { sendOutreachEmail } = await import("./email");
+        const { sendMailViaGraph } = await import("./services/outreach");
 
         const [lead] = await db.select().from(gigLeads).where(eq(gigLeads.id, input.leadId)).limit(1);
         if (!lead?.contactEmail?.trim()) throw new TRPCError({ code: "BAD_REQUEST", message: "Lead has no contact email" });
 
-        const result = await sendOutreachEmail(lead.contactEmail.trim(), input.subject, input.body, input.senderEmail);
+        const to = lead.contactEmail.trim();
+        try {
+          await sendMailViaGraph({
+            recipientEmail: to,
+            recipientName: lead.contactName,
+            subject: input.subject,
+            htmlContent: input.body.replace(/\n/g, "<br>\n"),
+          });
+        } catch (e: any) {
+          const msg = e?.message ?? String(e);
+          await db.insert(outreachLog).values({
+            leadId: input.leadId,
+            recipientEmail: to,
+            subject: input.subject,
+            bodyPreview: input.body.slice(0, 500),
+            status: "failed",
+            errorMessage: msg,
+          });
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: msg });
+        }
 
         await db.update(gigLeads).set({
           outreachStatus: "sent",
@@ -2041,14 +2060,12 @@ export const appRouter = router({
 
         await db.insert(outreachLog).values({
           leadId: input.leadId,
-          recipientEmail: lead.contactEmail.trim(),
+          recipientEmail: to,
           subject: input.subject,
           bodyPreview: input.body.slice(0, 500),
-          status: result.success ? "sent" : "failed",
-          errorMessage: result.error ?? null,
+          status: "sent",
+          errorMessage: null,
         });
-
-        if (!result.success) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: result.error ?? "Send failed" });
 
         const outreachIntelSources = ["dbpr", "sunbiz", "google_maps"] as const;
         const where = and(

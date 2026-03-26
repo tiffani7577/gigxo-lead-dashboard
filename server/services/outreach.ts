@@ -19,7 +19,7 @@ const SENDER_EMAIL = "teryn@gigxo.com";
 const GRAPH_SEND_MAIL = "https://graph.microsoft.com/v1.0/me/sendMail";
 
 /** POST /me/sendMail; logs HTTP status, recipient, response body, and success/failure. */
-async function sendMailViaGraph(options: {
+export async function sendMailViaGraph(options: {
   recipientEmail: string;
   recipientName?: string | null;
   subject: string;
