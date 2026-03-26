@@ -69,20 +69,24 @@ The Gigxo Team`,
   {
     id: "venue_outreach",
     label: "Venue outreach (DBPR)",
-    subject: "Post your first gig free — [VENUE_NAME] in [CITY]",
-    body: `Congratulations on opening [VENUE_NAME] in [CITY].
+    subject: "Free performer booking for {{venueName}}",
+    body: `Hi {{venueName}} team,
 
-I'm Teryn with Gigxo. Here's the short version:
+I run Gigxo — a platform connecting South Florida venues with vetted local performers.
 
-• Free to post your gig
-• We send it to vetted local performers
-• You pick who fits
-• Zero commission, zero fees
+Whether you book entertainment regularly or are looking to add live music, DJs, or performers to your lineup, we make it simple:
+
+- Post your gig for free
+- We match you with vetted local talent
+- You choose who fits your vibe
+- Zero commission, zero fees — ever
 
 Post your first gig free → https://gigxo.com/book
 
-—Teryn
-Gigxo`,
+Best,
+Teryn
+Gigxo | Fort Lauderdale, FL 33316
+To unsubscribe reply UNSUBSCRIBE`,
   },
   {
     id: "performer_outreach",

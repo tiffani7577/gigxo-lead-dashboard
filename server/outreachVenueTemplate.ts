@@ -1,6 +1,6 @@
 /**
- * Template engine for DBPR venue outreach emails.
- * Replaces {{venueName}}, {{city}}, {{ownerName}} in subject and body.
+ * Template engine for venue outreach emails (Outreach Hub).
+ * Replaces {{venueName}} in subject; greeting uses venue title when present.
  */
 
 export interface VenueTemplateInput {
@@ -17,47 +17,35 @@ function toTitleCase(name: string): string {
     .join(" ");
 }
 
-const DEFAULT_SUBJECT = "Post your first gig free — {{venueName}}";
+const DEFAULT_SUBJECT = "Free performer booking for {{venueName}}";
 
-const DEFAULT_BODY = `Hey {{ownerName}},
+const BODY_AFTER_GREETING = `
 
-Congrats on the new spot in {{city}} — exciting time.
+I run Gigxo — a platform connecting South Florida venues with vetted local performers.
 
-I'm Teryn with South Florida–based Gigxo. When you need entertainment, here's how it works:
+Whether you book entertainment regularly or are looking to add live music, DJs, or performers to your lineup, we make it simple:
 
-• Free to post your gig
-• We send it to vetted local performers
-• You pick who fits
-• Zero commission, zero fees
+- Post your gig for free
+- We match you with vetted local talent
+- You choose who fits your vibe
+- Zero commission, zero fees — ever
 
 Post your first gig free → https://gigxo.com/book
 
-—Teryn
-Gigxo`;
-
-function extractCity(location: string | null | undefined): string {
-  if (!location || !String(location).trim()) return "South Florida";
-  const s = String(location).trim();
-  // "Miami, FL" -> "Miami"; "Fort Lauderdale, FL" -> "Fort Lauderdale"
-  const comma = s.indexOf(",");
-  if (comma > 0) return s.slice(0, comma).trim();
-  return s;
-}
+Best,
+Teryn
+Gigxo | Fort Lauderdale, FL 33316
+To unsubscribe reply UNSUBSCRIBE`;
 
 export function renderVenueTemplate(venue: VenueTemplateInput): { subject: string; body: string } {
   const rawTitle = venue.title?.trim() || "";
   const venueName = rawTitle ? toTitleCase(rawTitle) : "your venue";
-  const city = extractCity(venue.location);
-  const ownerName = venue.contactName?.trim() || "there";
+  const greeting = rawTitle ? `Hi ${venueName} team,` : "Hi there,";
 
-  const replace = (text: string) =>
-    text
-      .replace(/\{\{venueName\}\}/g, venueName)
-      .replace(/\{\{city\}\}/g, city)
-      .replace(/\{\{ownerName\}\}/g, ownerName);
+  const subject = DEFAULT_SUBJECT.replace(/\{\{venueName\}\}/g, venueName);
 
   return {
-    subject: replace(DEFAULT_SUBJECT),
-    body: replace(DEFAULT_BODY),
+    subject,
+    body: greeting + BODY_AFTER_GREETING,
   };
 }
