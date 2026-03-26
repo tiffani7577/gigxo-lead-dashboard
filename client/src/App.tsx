@@ -27,7 +27,7 @@ import { ScraperConfig } from "./pages/ScraperConfig";
 import AdminLeadsExplorer from "./pages/AdminLeadsExplorer";
 import AdminVenueIntelligence from "./pages/AdminVenueIntelligence";
 import AdminArtistLeads from "./pages/AdminArtistLeads";
-import AdminOutreachDashboard from "./pages/AdminOutreachDashboard";
+import AdminOutreach from "./pages/AdminOutreach";
 import AdminOutreachHub from "./pages/AdminOutreachHub";
 import AdminOutreachLeads from "./pages/AdminOutreachLeads";
 import AdminOutreachTemplates from "./pages/AdminOutreachTemplates";
@@ -69,7 +69,7 @@ function Router() {
       <Route path="/admin/venue-intelligence" component={AdminVenueIntelligence} />
       <Route path="/admin/artist-growth" component={AdminArtistLeads} />
       <Route path="/admin/av-requests" component={AdminAVRequests} />
-      <Route path="/admin/outreach" component={AdminOutreachDashboard} />
+      <Route path="/admin/outreach" component={AdminOutreach} />
       <Route path="/admin/outreach-hub" component={AdminOutreachHub} />
       <Route path="/admin/outreach/leads" component={AdminOutreachLeads} />
       <Route path="/admin/outreach/templates" component={AdminOutreachTemplates} />

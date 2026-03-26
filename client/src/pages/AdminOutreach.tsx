@@ -5,13 +5,25 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail, Link2, List, FileText } from "lucide-react";
 import { useLocation } from "wouter";
+import { toast } from "sonner";
 
 const MICROSOFT_LOGIN_PATH = "/api/auth/microsoft/login";
 
-export default function AdminOutreachDashboard() {
+export default function AdminOutreach() {
   const [, setLocation] = useLocation();
   const { data: inbox, isLoading } = trpc.admin.getMicrosoftInboxStatus.useQuery();
   const [connecting, setConnecting] = useState(false);
+
+  const testEmailMutation = trpc.admin.testMicrosoftEmail.useMutation({
+    onSuccess: (data) => {
+      toast.success(
+        data.messageId
+          ? `Test email sent to teryn@gigxo.com (request id: ${data.messageId})`
+          : "Test email sent to teryn@gigxo.com"
+      );
+    },
+    onError: (e) => toast.error(e.message),
+  });
 
   const handleConnect = () => {
     setConnecting(true);
@@ -41,11 +53,23 @@ export default function AdminOutreachDashboard() {
             {isLoading ? (
               <p className="text-sm text-muted-foreground">Checking connection…</p>
             ) : inbox?.connected ? (
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-muted-foreground">Connected inbox:</span>
-                <a href={`mailto:${inbox.connectedEmail}`} className="text-primary hover:underline font-medium">
-                  {inbox.connectedEmail}
-                </a>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-2 text-sm min-w-0">
+                  <span className="text-muted-foreground shrink-0">Connected inbox:</span>
+                  <a href={`mailto:${inbox.connectedEmail}`} className="text-primary hover:underline font-medium truncate">
+                    {inbox.connectedEmail}
+                  </a>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0"
+                  disabled={testEmailMutation.isPending}
+                  onClick={() => testEmailMutation.mutate()}
+                >
+                  {testEmailMutation.isPending ? "Sending…" : "Send test email"}
+                </Button>
               </div>
             ) : (
               <Button onClick={handleConnect} disabled={connecting}>
