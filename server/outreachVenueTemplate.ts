@@ -17,31 +17,23 @@ function toTitleCase(name: string): string {
     .join(" ");
 }
 
-const DEFAULT_SUBJECT = "Quick question about entertainment for {{venueName}}";
+const DEFAULT_SUBJECT = "Post your first gig free — {{venueName}}";
 
 const DEFAULT_BODY = `Hey {{ownerName}},
 
-Congrats on the new spot in {{city}},
-exciting time.
+Congrats on the new spot in {{city}} — exciting time.
 
-I run Gigxo, we connect South Florida venues
-with local DJs, live acts, and performers.
-Thought I'd reach out while you're still in
-the setup phase, since that's usually when
-it's easiest to lock in your entertainment
-situation before opening night chaos hits.
+I'm Teryn with South Florida–based Gigxo. When you need entertainment, here's how it works:
 
-We work with vetted performers across Miami,
-Fort Lauderdale, and Boca; everything from
-background lounge sets to full club nights.
+• Free to post your gig
+• We send it to vetted local performers
+• You pick who fits
+• Zero commission, zero fees
 
-No fees to you. We send you a few options,
-you pick who fits.
+Post your first gig free → https://gigxo.com/book
 
-Worth a quick conversation?
-
--Teryn
-gigxo.com`;
+—Teryn
+Gigxo`;
 
 function extractCity(location: string | null | undefined): string {
   if (!location || !String(location).trim()) return "South Florida";

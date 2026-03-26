@@ -69,13 +69,20 @@ The Gigxo Team`,
   {
     id: "venue_outreach",
     label: "Venue outreach (DBPR)",
-    subject: "Congratulations on opening [VENUE_NAME] in [CITY] — Gigxo",
+    subject: "Post your first gig free — [VENUE_NAME] in [CITY]",
     body: `Congratulations on opening [VENUE_NAME] in [CITY].
 
-Gigxo connects venues with local DJs and live performers. We have artists actively looking for bookings in your area.
+I'm Teryn with Gigxo. Here's the short version:
 
-If you're interested, you can connect with talent here:
-[PLATFORM_LINK]`,
+• Free to post your gig
+• We send it to vetted local performers
+• You pick who fits
+• Zero commission, zero fees
+
+Post your first gig free → https://gigxo.com/book
+
+—Teryn
+Gigxo`,
   },
   {
     id: "performer_outreach",
