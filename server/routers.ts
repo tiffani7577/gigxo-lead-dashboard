@@ -3,7 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
-import { eq, and, desc, asc, not, ne, sql, gte, lte, lt, or, isNull, isNotNull, like, inArray, count } from "drizzle-orm";
+import { eq, and, desc, asc, not, ne, sql, gte, lte, lt, or, isNull, isNotNull, like, inArray } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import {
   getActiveEventWindows,
@@ -2191,7 +2191,7 @@ export const appRouter = router({
       if (!db) return { dj: null, remainingCount: 0 };
       const { djOutreachProfiles } = await import("../drizzle/schema");
       const [{ total }] = await db
-        .select({ total: count() })
+        .select({ total: sql<number>`cast(count(*) as signed)` })
         .from(djOutreachProfiles)
         .where(eq(djOutreachProfiles.status, "not_contacted"));
       const [row] = await db
@@ -2316,7 +2316,7 @@ export const appRouter = router({
           .where(eq(djOutreachProfiles.id, input.id));
 
         const [{ total }] = await db
-          .select({ total: count() })
+          .select({ total: sql<number>`cast(count(*) as signed)` })
           .from(djOutreachProfiles)
           .where(eq(djOutreachProfiles.status, "not_contacted"));
         const [nextRow] = await db
@@ -2348,7 +2348,7 @@ export const appRouter = router({
           .where(eq(djOutreachProfiles.id, input.id));
 
         const [{ total }] = await db
-          .select({ total: count() })
+          .select({ total: sql<number>`cast(count(*) as signed)` })
           .from(djOutreachProfiles)
           .where(eq(djOutreachProfiles.status, "not_contacted"));
         const [nextRow] = await db
