@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { trpc } from "@/lib/trpc";
 import { Link, useLocation } from "wouter";
 import { generateAllPageConfigs, generatePageConfig, parseSlug } from "@/lib/seoConfig";
-import { setMetaTags } from "@/lib/meta-tags";
+import { canonicalUrlForPathname, setMetaTags } from "@/lib/meta-tags";
 import { MapPin, Music, ChevronRight } from "lucide-react";
 import { SiteFooter } from "@/components/SiteFooter";
 
@@ -31,7 +31,7 @@ interface FormData {
 }
 
 interface SEOLandingPageProps {
-  params: { slug: string };
+  params?: { slug?: string; city?: string };
 }
 
 /** Turn "/dj-fort-lauderdale" into readable link text e.g. "DJ Fort Lauderdale". */
@@ -50,8 +50,17 @@ function formatInternalLinkLabel(path: string): string {
 }
 
 export default function SEOLandingPage({ params }: SEOLandingPageProps) {
-  const [location] = useLocation();
-  const slug = params?.slug || location.split("/").filter(Boolean).pop() || "dj-miami";
+  const [locationPath] = useLocation();
+  const pathOnly = (locationPath.split("?")[0] || "/").replace(/\/+$/, "") || "/";
+  const slug =
+    params?.slug?.trim() ||
+    (() => {
+      const segs = pathOnly.split("/").filter(Boolean);
+      if (segs[0] === "av-work" && segs[1]) return `av-work-${segs[1]}`;
+      return segs[segs.length - 1] || "";
+    })() ||
+    "dj-miami";
+  const pageCanonicalUrl = canonicalUrlForPathname(pathOnly === "" ? "/" : pathOnly);
 
   // Parse slug to get service and city
   const parsed = parseSlug(slug);
@@ -97,21 +106,20 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
     if (pageConfig) {
       const title = pageConfig.seoTitle ?? pageConfig.heading ?? "";
       const desc = pageConfig.seoDescription ?? "";
-      const url = `https://www.gigxo.com/${slug}`;
       setMetaTags({
         title,
         description: desc,
-        url,
+        url: pageCanonicalUrl,
         image: pageConfig.ogImage,
       });
     } else {
       setMetaTags({
         title: "Gigxo Booking",
         description: "Request a quote for your event.",
-        url: `https://www.gigxo.com/${slug}`,
+        url: pageCanonicalUrl,
       });
     }
-  }, [pageConfig, slug]);
+  }, [pageConfig, pageCanonicalUrl]);
 
   const submitEventRequest = trpc.inbound.submitEventRequest.useMutation();
   const { data: artistsData } = trpc.directory.searchArtists.useQuery(
@@ -363,7 +371,7 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
           "@type": "Offer",
           priceCurrency: "USD",
           availability: "https://schema.org/InStock",
-          url: typeof window !== "undefined" ? window.location?.href ?? "" : "",
+          url: pageCanonicalUrl,
           name: isYachtHirePage ? "Yacht DJ hire in Miami" : heading,
         },
       }),
@@ -377,13 +385,13 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
             "@type": "ListItem",
             position: 1,
             name: "Home",
-            item: "https://www.gigxo.com",
+            item: canonicalUrlForPathname("/"),
           },
           {
             "@type": "ListItem",
             position: 2,
             name: heading,
-            item: `https://www.gigxo.com/${slug}`,
+            item: pageCanonicalUrl,
           },
         ],
       }),

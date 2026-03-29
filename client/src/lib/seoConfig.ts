@@ -570,8 +570,8 @@ export function generatePageConfig(serviceId: string, cityId: string): PageConfi
   // Generate default config (all required fields always set)
   const defaultConfig: PageConfig = {
     title: `Hire ${service.plural} in ${city.name} | Gigxo`,
-    seoTitle: `${service.name} ${city.name} | Professional ${service.plural} for Events`,
-    seoDescription: `Hire ${service.plural.toLowerCase()} in ${city.name}, ${city.state}. Browse profiles, read reviews, and book instantly.`,
+    seoTitle: `${service.name} in ${city.name}, ${city.state} | Hire ${service.plural} on Gigxo`,
+    seoDescription: `Book ${service.plural.toLowerCase()} in ${city.name}, ${city.state} for weddings, parties, and corporate events. Browse vetted talent and request a free quote on Gigxo.`,
     heading: `Hire ${service.plural} in ${city.name}`,
     subheading: `Professional ${service.plural.toLowerCase()} for every occasion`,
     defaultEventType: service.eventTypes[0] || "party",

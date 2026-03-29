@@ -1,4 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
+import { canonicalUrlForPathname, setMetaTags } from "@/lib/meta-tags";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -133,6 +134,16 @@ function FeaturedLeads() {
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
+
+  useEffect(() => {
+    if (isAuthenticated && user) return;
+    setMetaTags({
+      title: "Gigxo — Gig Leads for DJs & Live Artists",
+      description:
+        "Browse verified gig leads for DJs and performers across the US. Unlock contact info from $7. No commission, no middleman.",
+      url: canonicalUrlForPathname("/"),
+    });
+  }, [isAuthenticated, user]);
 
   // If authenticated, redirect to dashboard (no onboarding)
   useEffect(() => {
