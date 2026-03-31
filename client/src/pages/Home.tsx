@@ -135,34 +135,7 @@ function FeaturedLeads() {
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
-  const [loc, navigate] = useLocation();
-
-  const scrollPricingIntoView = () => {
-    document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" });
-    window.history.replaceState(null, "", "/#pricing");
-  };
-
-  useEffect(() => {
-    if (isAuthenticated && user) return;
-    if (loc !== "/") return;
-    if (typeof window === "undefined") return;
-    const fromSession = sessionStorage.getItem("gigxoScrollPricing") === "1";
-    if (window.location.hash === "#pricing" || fromSession) {
-      if (fromSession) sessionStorage.removeItem("gigxoScrollPricing");
-      const t = window.setTimeout(scrollPricingIntoView, 120);
-      return () => window.clearTimeout(t);
-    }
-  }, [loc, isAuthenticated, user]);
-
-  useEffect(() => {
-    if (isAuthenticated && user) return;
-    if (loc !== "/") return;
-    const onHash = () => {
-      if (window.location.hash === "#pricing") scrollPricingIntoView();
-    };
-    window.addEventListener("hashchange", onHash);
-    return () => window.removeEventListener("hashchange", onHash);
-  }, [loc, isAuthenticated, user]);
+  const [, navigate] = useLocation();
 
   // If authenticated, redirect to dashboard (no onboarding)
   useEffect(() => {
@@ -207,21 +180,11 @@ export default function Home() {
                 Browse Artists
               </Button>
             </Link>
-            <Button
-              type="button"
-              variant="ghost"
-              className="text-slate-300 hover:text-white hidden sm:inline-flex"
-              onClick={() => {
-                if (loc === "/") {
-                  scrollPricingIntoView();
-                } else {
-                  sessionStorage.setItem("gigxoScrollPricing", "1");
-                  navigate("/");
-                }
-              }}
-            >
-              Pricing
-            </Button>
+            <Link href="/pricing">
+              <Button type="button" variant="ghost" className="text-slate-300 hover:text-white hidden sm:inline-flex">
+                Pricing
+              </Button>
+            </Link>
             <Link href="/login">
               <Button variant="outline" className="border-purple-500 text-purple-400 hover:bg-purple-500/10">
                 Sign In
@@ -371,7 +334,7 @@ export default function Home() {
               {
                 step: "3",
                 title: "Unlock & Book",
-                description: "Your first unlock is just $1. After that, standard leads are $7 and premium leads $15 — or Pro at $49/mo: 15 leads any tier, no commission or booking fees, new leads daily.",
+                description: "Choose Discovery $3 (post link), Standard $7 (partial contact), Premium $15 (direct email and phone), or Pro $49/month with 15 leads in any tier.",
                 icon: CheckCircle2,
               },
             ].map((item, i) => {

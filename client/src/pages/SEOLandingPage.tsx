@@ -50,6 +50,52 @@ function formatInternalLinkLabel(path: string): string {
     .join(" ");
 }
 
+function toTitleCaseFromSlug(value: string): string {
+  return value
+    .split("-")
+    .filter(Boolean)
+    .map((word) => {
+      if (word.toLowerCase() === "dj") return "DJ";
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(" ");
+}
+
+function buildExpandedSeoContent(args: { baseContent: string; serviceName: string; cityName: string }) {
+  const { baseContent, serviceName, cityName } = args;
+  return [
+    `${baseContent} If you are searching for ${serviceName.toLowerCase()} in ${cityName}, focus on performers with proven experience in the exact type of event you are planning. A wedding reception, private birthday, corporate activation, and nightclub booking each require different pacing, music selection, and technical setup. The best results come from sharing your date range, guest profile, desired energy level, and must-play genres early. When you provide this information up front, the match process is faster and you avoid back-and-forth with providers who are not aligned with your goals.`,
+    `${cityName} events also have local factors that influence who you should hire and how you should budget. Venue rules, load-in windows, neighborhood noise policies, parking access, and weather backup plans can all affect execution quality. Experienced local talent plans around these details before event day, including setup timing, sound checks, and contingency options for outdoor spaces. This is especially important for waterfront venues, rooftop locations, and multi-room properties where audio coverage and transitions need careful coordination.`,
+    `When comparing options, ask practical questions beyond price: what is included in the package, how many hours are covered, what equipment is provided, and what overtime policy applies. Review recent performance clips, event photos, and references from similar events in ${cityName}. Clear communication on arrival time, announcements, song preferences, and timeline checkpoints can make the difference between a smooth event and a stressful one. Strong ${serviceName.toLowerCase()} providers also confirm backup plans for equipment and staffing so your event remains protected if conditions change.`,
+    `A smart booking process balances value and confidence. Set a realistic budget, define non-negotiables, and prioritize responsiveness during outreach. In most cases, the right fit is the provider who understands your audience, communicates clearly, and can execute consistently under real event conditions. If you are planning an event in ${cityName}, use this page to compare options, ask better questions, and shortlist ${serviceName.toLowerCase()} professionals who can deliver the experience you want.`,
+  ].join("\n\n");
+}
+
+function buildDefaultSeoFaq(serviceName: string, cityName: string) {
+  return [
+    {
+      question: `How much does ${serviceName.toLowerCase()} cost in ${cityName}?`,
+      answer: `Pricing in ${cityName} depends on event type, duration, date, setup complexity, and demand. Ask for a detailed quote that breaks out performance time, equipment, travel, and any add-ons so you can compare options accurately.`,
+    },
+    {
+      question: `Where can I find reliable ${serviceName.toLowerCase()} in ${cityName}?`,
+      answer: `Start with providers who have local event history, recent media, and clear communication. Prioritize professionals who can share references for events similar to yours in ${cityName}.`,
+    },
+    {
+      question: `How far in advance should I book ${serviceName.toLowerCase()} in ${cityName}?`,
+      answer: `For peak dates, book as early as possible. Weddings and major weekends can fill quickly, while weekday or off-season events may have more flexibility.`,
+    },
+    {
+      question: `What should be included in a ${serviceName.toLowerCase()} quote in ${cityName}?`,
+      answer: `A complete quote should list coverage hours, equipment, setup and teardown, travel, overtime rates, and any special production needs for your venue.`,
+    },
+    {
+      question: `What details help me get better ${serviceName.toLowerCase()} matches in ${cityName}?`,
+      answer: `Share your event date, venue, guest count, timeline, style preferences, and budget range. The more specific your brief, the easier it is to match you with the right options.`,
+    },
+  ];
+}
+
 export default function SEOLandingPage({ params }: SEOLandingPageProps) {
   const [locationPath] = useLocation();
   const pathOnly = (locationPath.split("?")[0] || "/").replace(/\/+$/, "") || "/";
@@ -337,6 +383,17 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
   const ogImageUrl = pageConfig.ogImage?.trim() || DEFAULT_OG_IMAGE;
   const serviceLabel = parsed?.serviceId?.replace(/-/g, " ") ?? "entertainment";
   const cityLabel = parsed?.cityId?.replace(/-/g, " ") ?? "Florida";
+  const cityName = parsed?.cityId ? toTitleCaseFromSlug(parsed.cityId) : defaultCity;
+  const serviceName = parsed?.serviceId ? toTitleCaseFromSlug(parsed.serviceId) : "Entertainment Services";
+  const expandedContent = buildExpandedSeoContent({
+    baseContent: content,
+    serviceName,
+    cityName,
+  });
+  const faqItems = (Array.isArray(pageConfig.faq) ? pageConfig.faq : [])
+    .slice(0, 5)
+    .concat(buildDefaultSeoFaq(serviceName, cityName))
+    .slice(0, 5);
 
   // Internal linking helpers (match by serviceId + "-" + cityId so multi-part slugs work)
   const relatedLinks = (() => {
@@ -476,7 +533,7 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
                   {leadsSummary.count} gig{leadsSummary.count !== 1 ? "s" : ""} in this area right now
                 </p>
               )}
-              <p className="text-gray-700 mb-4">{content}</p>
+              <div className="text-gray-700 mb-4 whitespace-pre-line leading-7">{expandedContent}</div>
               {isBoatContextPage && (
                 <p className="text-sm text-gray-600">
                   This page highlights yacht-focused DJs in Miami and nearby marinas. We prioritize performers familiar
@@ -525,13 +582,13 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
               </div>
             </Card>
 
-            {/* FAQ section — rendered when pageConfig.faq exists */}
-            {pageConfig?.faq && pageConfig.faq.length > 0 && (() => {
+            {/* FAQ section — always render 5 search-style questions */}
+            {faqItems.length > 0 && (() => {
               try {
                 const faqSchema = JSON.stringify({
                   "@context": "https://schema.org",
                   "@type": "FAQPage",
-                  mainEntity: pageConfig.faq.map((item) => ({
+                  mainEntity: faqItems.map((item) => ({
                     "@type": "Question",
                     name: item.question,
                     acceptedAnswer: {
@@ -551,7 +608,7 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
                       Frequently Asked Questions
                     </h2>
                     <div className="space-y-4">
-                      {pageConfig.faq.map((item, i) => (
+                      {faqItems.map((item, i) => (
                         <div key={i} className="border border-slate-200 rounded-lg p-5">
                           <h3 className="font-semibold text-slate-900 mb-2">
                             {item.question}

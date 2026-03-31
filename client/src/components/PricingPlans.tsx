@@ -4,18 +4,44 @@ import { CheckCircle2, ArrowRight } from "lucide-react";
 
 export const PRICING_PLANS = [
   {
-    name: "Pay as you go",
-    price: "$3 / $7 / $15",
+    name: "Discovery",
+    price: "$3",
     description: "per lead",
     badge: null as string | null,
     features: [
-      "$3 discovery leads",
-      "$7 standard leads",
-      "$15 premium leads",
-      "Unlock only what you need",
-      "No subscription",
+      "Get the post link",
+      "See the original listing source",
+      "Best for quick lead checks",
     ],
-    cta: "Browse Gigs",
+    cta: "Start with Discovery",
+    href: "/signup",
+    highlighted: false,
+  },
+  {
+    name: "Standard",
+    price: "$7",
+    description: "per lead",
+    badge: null as string | null,
+    features: [
+      "Get partial contact info",
+      "Faster outreach than Discovery",
+      "Great for consistent booking flow",
+    ],
+    cta: "Unlock Standard Leads",
+    href: "/signup",
+    highlighted: false,
+  },
+  {
+    name: "Premium",
+    price: "$15",
+    description: "per lead",
+    badge: null as string | null,
+    features: [
+      "Get direct email and phone",
+      "Contact decision-makers directly",
+      "Highest-intent lead access",
+    ],
+    cta: "Unlock Premium Leads",
     href: "/signup",
     highlighted: false,
   },
@@ -25,9 +51,9 @@ export const PRICING_PLANS = [
     description: "/month",
     badge: "Best value",
     features: [
-      "15 leads included — any tier, your choice",
-      "No commission. No booking fees. Ever.",
-      "New leads added daily.",
+      "15 leads included each month (any tier)",
+      "Pays for itself with one booking",
+      "vs paying $3-$15 per lead every time",
     ],
     cta: "Go Pro",
     href: "/signup",
@@ -47,12 +73,12 @@ export function PricingPlans({ variant = "dark", showFooterNote = true }: Pricin
   const textBody = isDark ? "text-slate-300" : "text-slate-700";
 
   return (
-    <div className="w-full max-w-3xl mx-auto">
-      <div className="flex flex-col md:flex-row justify-center items-stretch gap-8 md:gap-10">
+    <div className="w-full max-w-6xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 items-stretch gap-6">
         {PRICING_PLANS.map((plan, i) => (
           <div
             key={i}
-            className={`relative flex-1 min-w-0 max-w-md mx-auto rounded-2xl px-8 py-8 shadow-lg transition-shadow ${
+            className={`relative h-full rounded-2xl px-6 py-7 shadow-lg transition-shadow flex flex-col ${
               plan.highlighted
                 ? isDark
                   ? "bg-gradient-to-br from-purple-600/25 to-pink-600/20 shadow-purple-900/30 ring-1 ring-purple-400/30"
@@ -72,7 +98,12 @@ export function PricingPlans({ variant = "dark", showFooterNote = true }: Pricin
               <span className={`text-4xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}>{plan.price}</span>
               <span className={`ml-2 ${isDark ? "text-slate-400" : "text-slate-500"}`}>{plan.description}</span>
             </div>
-            <ul className="space-y-3 mb-8">
+            {plan.name === "Pro" && (
+              <p className={`text-sm font-medium mb-4 ${isDark ? "text-purple-200" : "text-purple-700"}`}>
+                Pays for itself with one booking
+              </p>
+            )}
+            <ul className="space-y-3 mb-8 flex-1">
               {plan.features.map((feature, j) => (
                 <li key={j} className={`flex items-start gap-2 ${textBody} text-sm`}>
                   <CheckCircle2 className={`w-4 h-4 mt-0.5 flex-shrink-0 ${plan.highlighted ? "text-purple-400" : "text-purple-500"}`} />
@@ -98,8 +129,7 @@ export function PricingPlans({ variant = "dark", showFooterNote = true }: Pricin
       </div>
       {showFooterNote && (
         <p className={`text-center text-sm mt-10 max-w-xl mx-auto ${textMuted}`}>
-          All plans include access to curated gig leads for Miami and Fort Lauderdale. No commission on bookings. Lead
-          tiers are set by budget and intent — you always see the unlock price before paying.
+          Clear unlock options: Discovery $3, Standard $7, Premium $15, or Pro at $49/month for 15 leads in any tier.
         </p>
       )}
     </div>
