@@ -200,7 +200,7 @@ export default function Home() {
       {/* ── HERO ── */}
       <section style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
         <img
-          src="/images/hero_v2_golden.jpg"
+          src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663413300520/wNHKljbmWlEOWjMe.jpg"
           alt="Luxury yacht party Fort Lauderdale DJ"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 60%' }}
         />
@@ -278,7 +278,7 @@ export default function Home() {
           </Link>
         </div>
         <div style={{ position: 'relative' }}>
-          <img src="/images/hero_v2_night.jpg" alt="Luxury yacht event Fort Lauderdale"
+          <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663413300520/FfzDPmosjlPHpdHO.jpg" alt="Luxury yacht event Fort Lauderdale"
             style={{ width: '100%', height: '520px', objectFit: 'cover', borderRadius: '2px', display: 'block' }} />
           <div style={{ position: 'absolute', bottom: '2rem', left: '-2rem', background: '#111', border: '1px solid rgba(201,168,76,0.3)', padding: '1.25rem 1.5rem', borderRadius: '2px', boxShadow: '0 20px 60px rgba(0,0,0,0.6)' }}>
             <div style={{ fontSize: '0.6rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#c9a84c', marginBottom: '0.4rem' }}>Latest Lead</div>
@@ -291,11 +291,11 @@ export default function Home() {
       {/* ── PHOTO STRIP ── */}
       <section style={{ padding: '0 2rem 6rem', maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1rem' }}>
-          <img src="/images/hero_v2_sportboat.jpg" alt="Intracoastal boat party Fort Lauderdale"
+          <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663413300520/SBBXIrGvxQBmkJQD.jpg" alt="Intracoastal boat party Fort Lauderdale"
             style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '2px' }} />
-          <img src="https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&w=600&q=80" alt="Festival DJ gig South Florida"
+          <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663413300520/tRkmkWCAeEumIllR.jpg" alt="Festival DJ gig South Florida"
             style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '2px' }} />
-          <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&w=600&q=80" alt="Nightclub DJ Miami"
+          <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663413300520/cfKhGCAitiAmvTKa.jpg" alt="Nightclub DJ Miami"
             style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '2px' }} />
         </div>
       </section>
@@ -342,7 +342,7 @@ export default function Home() {
 
       {/* ── FINAL CTA ── */}
       <section style={{ position: 'relative', padding: '8rem 2rem', overflow: 'hidden', textAlign: 'center' }}>
-        <img src="https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=2000&auto=format&fit=crop" alt="Fort Lauderdale marina"
+        <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663413300520/DGyYNygOEkAmMcmQ.jpg" alt="Miami skyline from yacht"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.15 }} />
         <div style={{ position: 'relative', zIndex: 2, maxWidth: '600px', margin: '0 auto' }}>
           <p style={{ fontSize: '0.65rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#c9a84c', fontWeight: 500, marginBottom: '1.5rem' }}>Ready to Book?</p>

@@ -483,10 +483,14 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
             ))}
         </div>
       {/* Hero Section */}
-        <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-16 px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">{seoH1}</h1>
-            <p className="text-xl md:text-2xl opacity-90">{subheading}</p>
+        <div style={{ position: 'relative', minHeight: '60vh', display: 'flex', alignItems: 'flex-end', overflow: 'hidden' }}>
+          <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663413300520/VgMvuWUjUfNnmMme.jpg"
+            alt={seoH1} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 40%' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom,rgba(8,8,8,0.2) 0%,rgba(8,8,8,0.85) 100%)' }} />
+          <div style={{ position: 'relative', zIndex: 2, padding: '0 3rem 4rem', maxWidth: 860 }}>
+            <p style={{ fontSize: '0.65rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#c9a84c', fontWeight: 500, marginBottom: '1rem' }}>South Florida · Fort Lauderdale · Miami</p>
+            <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 'clamp(2.5rem,6vw,5rem)', fontWeight: 700, color: '#f0ede8', lineHeight: 1.1, marginBottom: '1rem' }}>{seoH1}</h1>
+            <p style={{ fontSize: '1rem', color: 'rgba(240,237,232,0.7)', maxWidth: 520, lineHeight: 1.7 }}>{subheading}</p>
           </div>
         </div>
 
@@ -494,7 +498,7 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
         <div className="max-w-6xl mx-auto px-4 -mt-6 pb-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 rounded-xl overflow-hidden shadow-md ring-1 ring-purple-100">
             <img
-              src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&w=640&q=80"
+              src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663413300520/gBCQOfgDRZNMeqCT.jpg"
               alt={`${seoH1} — DJ and live music for events in ${defaultCity}`}
               className="w-full h-44 sm:h-40 object-cover"
               loading="lazy"
@@ -502,7 +506,7 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
               height={280}
             />
             <img
-              src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&w=640&q=80"
+              src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663413300520/cfKhGCAitiAmvTKa.jpg"
               alt={`${serviceLabel} event entertainment and party booking in ${defaultCity} via Gigxo`}
               className="w-full h-44 sm:h-40 object-cover"
               loading="lazy"
@@ -510,7 +514,7 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
               height={280}
             />
             <img
-              src="https://images.unsplash.com/photo-1540039153053-40b44ef285d2?auto=format&w=640&q=80"
+              src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663413300520/tRkmkWCAeEumIllR.jpg"
               alt={`Wedding and corporate ${serviceLabel} services ${cityLabel} Florida — Gigxo`}
               className="w-full h-44 sm:h-40 object-cover sm:col-span-1"
               loading="lazy"
