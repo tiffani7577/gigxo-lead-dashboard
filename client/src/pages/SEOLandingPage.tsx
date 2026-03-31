@@ -7,8 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { trpc } from "@/lib/trpc";
 import { Link, useLocation } from "wouter";
 import { generateAllPageConfigs, generatePageConfig, parseSlug } from "@/lib/seoConfig";
-import { canonicalUrlForPathname, setMetaTags } from "@/lib/meta-tags";
+import { canonicalUrlForPathname, DEFAULT_OG_IMAGE } from "@/lib/meta-tags";
 import { MapPin, Music, ChevronRight } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 import { SiteFooter } from "@/components/SiteFooter";
 
 interface FormData {
@@ -101,25 +102,6 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
     batteryPowered: false,
     compactSetup: true,
   });
-
-  useEffect(() => {
-    if (pageConfig) {
-      const title = pageConfig.seoTitle ?? pageConfig.heading ?? "";
-      const desc = pageConfig.seoDescription ?? "";
-      setMetaTags({
-        title,
-        description: desc,
-        url: pageCanonicalUrl,
-        image: pageConfig.ogImage,
-      });
-    } else {
-      setMetaTags({
-        title: "Gigxo Booking",
-        description: "Request a quote for your event.",
-        url: pageCanonicalUrl,
-      });
-    }
-  }, [pageConfig, pageCanonicalUrl]);
 
   const submitEventRequest = trpc.inbound.submitEventRequest.useMutation();
   const { data: artistsData } = trpc.directory.searchArtists.useQuery(
@@ -225,12 +207,27 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
 
   // Unknown slug: render a simple page with title and minimal quote form (no crash)
   if (!pageConfig) {
+    const unknownTitle = "Gigxo Booking | Request a Quote";
+    const unknownDesc = "Request a quote for your wedding, party, or corporate event. Gigxo connects you with DJs and performers in South Florida.";
     return (
       <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white">
+        <Helmet>
+          <title>{unknownTitle}</title>
+          <meta name="description" content={unknownDesc} />
+          <link rel="canonical" href={pageCanonicalUrl} />
+          <meta property="og:title" content={unknownTitle} />
+          <meta property="og:description" content={unknownDesc} />
+          <meta property="og:url" content={pageCanonicalUrl} />
+          <meta property="og:image" content={DEFAULT_OG_IMAGE} />
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:title" content={unknownTitle} />
+          <meta name="twitter:description" content={unknownDesc} />
+          <meta name="twitter:image" content={DEFAULT_OG_IMAGE} />
+        </Helmet>
         <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-12 px-4">
           <div className="max-w-2xl mx-auto text-center">
-            <h1 className="text-3xl md:text-4xl font-bold mb-2">Gigxo Booking</h1>
-            <p className="text-lg opacity-90">Request a quote for your event</p>
+            <h1 className="text-3xl md:text-4xl font-bold mb-2">Request a Gigxo event quote</h1>
+            <p className="text-lg opacity-90">Tell us about your event — we&apos;ll follow up shortly.</p>
           </div>
         </div>
         <div className="max-w-md mx-auto px-4 py-8">
@@ -335,7 +332,11 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
   const defaultCity = pageConfig.defaultCity ?? "Miami, FL";
   const seoTitle = pageConfig.seoTitle ?? heading;
   const seoDescription = pageConfig.seoDescription ?? "";
+  const seoH1 = pageConfig.seoH1 ?? heading;
   const calculatorVariant = pageConfig.calculatorVariant ?? null;
+  const ogImageUrl = pageConfig.ogImage?.trim() || DEFAULT_OG_IMAGE;
+  const serviceLabel = parsed?.serviceId?.replace(/-/g, " ") ?? "entertainment";
+  const cityLabel = parsed?.cityId?.replace(/-/g, " ") ?? "Florida";
 
   // Internal linking helpers (match by serviceId + "-" + cityId so multi-part slugs work)
   const relatedLinks = (() => {
@@ -390,7 +391,7 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
           {
             "@type": "ListItem",
             position: 2,
-            name: heading,
+            name: seoH1,
             item: pageCanonicalUrl,
           },
         ],
@@ -403,6 +404,19 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
   try {
     return (
       <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white">
+        <Helmet>
+          <title>{seoTitle}</title>
+          <meta name="description" content={seoDescription} />
+          <link rel="canonical" href={pageCanonicalUrl} />
+          <meta property="og:title" content={seoTitle} />
+          <meta property="og:description" content={seoDescription} />
+          <meta property="og:url" content={pageCanonicalUrl} />
+          <meta property="og:image" content={ogImageUrl} />
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:title" content={seoTitle} />
+          <meta name="twitter:description" content={seoDescription} />
+          <meta name="twitter:image" content={ogImageUrl} />
+        </Helmet>
         {/* JSON-LD scripts */}
         <div className="hidden">
           {jsonLdScripts
@@ -414,8 +428,38 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
       {/* Hero Section */}
         <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-16 px-4">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">{heading}</h1>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">{seoH1}</h1>
             <p className="text-xl md:text-2xl opacity-90">{subheading}</p>
+          </div>
+        </div>
+
+        {/* Keyword-rich imagery for SEO (decorative / context) */}
+        <div className="max-w-6xl mx-auto px-4 -mt-6 pb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 rounded-xl overflow-hidden shadow-md ring-1 ring-purple-100">
+            <img
+              src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&w=640&q=80"
+              alt={`${seoH1} — DJ and live music for events in ${defaultCity}`}
+              className="w-full h-44 sm:h-40 object-cover"
+              loading="lazy"
+              width={640}
+              height={280}
+            />
+            <img
+              src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&w=640&q=80"
+              alt={`${serviceLabel} event entertainment and party booking in ${defaultCity} via Gigxo`}
+              className="w-full h-44 sm:h-40 object-cover"
+              loading="lazy"
+              width={640}
+              height={280}
+            />
+            <img
+              src="https://images.unsplash.com/photo-1540039153053-40b44ef285d2?auto=format&w=640&q=80"
+              alt={`Wedding and corporate ${serviceLabel} services ${cityLabel} Florida — Gigxo`}
+              className="w-full h-44 sm:h-40 object-cover sm:col-span-1"
+              loading="lazy"
+              width={640}
+              height={280}
+            />
           </div>
         </div>
 
@@ -888,10 +932,14 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
     console.error("Error rendering SEOLandingPage:", err);
     return (
       <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white">
+        <Helmet>
+          <title>Gigxo | Page unavailable</title>
+          <meta name="description" content="Something went wrong loading this Gigxo page. Try again or contact support." />
+        </Helmet>
         <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-12 px-4">
           <div className="max-w-2xl mx-auto text-center">
-            <h1 className="text-3xl md:text-4xl font-bold mb-2">Gigxo Booking</h1>
-            <p className="text-lg opacity-90">Request a quote for your event</p>
+            <h1 className="text-3xl md:text-4xl font-bold mb-2">Something went wrong</h1>
+            <p className="text-lg opacity-90">We couldn&apos;t load this page. Please refresh or try again later.</p>
           </div>
         </div>
         <div className="max-w-md mx-auto px-4 py-8">

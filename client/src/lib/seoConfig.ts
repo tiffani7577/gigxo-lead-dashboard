@@ -30,6 +30,8 @@ export interface PageConfig {
   title: string;
   seoTitle: string;
   seoDescription: string;
+  /** Single H1 for the page (keyword-focused). Defaults to "{service} Services in {city}". */
+  seoH1: string;
   heading: string;
   subheading: string;
   defaultEventType: string;
@@ -572,6 +574,7 @@ export function generatePageConfig(serviceId: string, cityId: string): PageConfi
     title: `Hire ${service.plural} in ${city.name} | Gigxo`,
     seoTitle: `${service.name} in ${city.name}, ${city.state} | Hire ${service.plural} on Gigxo`,
     seoDescription: `Book ${service.plural.toLowerCase()} in ${city.name}, ${city.state} for weddings, parties, and corporate events. Browse vetted talent and request a free quote on Gigxo.`,
+    seoH1: `${service.name} Services in ${city.name}`,
     heading: `Hire ${service.plural} in ${city.name}`,
     subheading: `Professional ${service.plural.toLowerCase()} for every occasion`,
     defaultEventType: service.eventTypes[0] || "party",
@@ -607,6 +610,7 @@ export function generatePageConfig(serviceId: string, cityId: string): PageConfi
     title: merged.title ?? defaultConfig.title,
     seoTitle: merged.seoTitle ?? merged.heading ?? defaultConfig.seoTitle,
     seoDescription: merged.seoDescription ?? defaultConfig.seoDescription,
+    seoH1: merged.seoH1 ?? defaultConfig.seoH1,
     heading: merged.heading ?? defaultConfig.heading,
     subheading: merged.subheading ?? defaultConfig.subheading,
     defaultEventType: merged.defaultEventType ?? defaultConfig.defaultEventType,

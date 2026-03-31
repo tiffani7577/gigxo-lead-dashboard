@@ -1,39 +1,32 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { CheckCircle2, Music, ArrowRight } from "lucide-react";
+import { Music } from "lucide-react";
 import { SiteFooter } from "@/components/SiteFooter";
+import { PricingPlans } from "@/components/PricingPlans";
+import { Helmet } from "react-helmet-async";
+import { canonicalUrlForPathname, DEFAULT_OG_IMAGE } from "@/lib/meta-tags";
 
 export default function Pricing() {
-  const plans = [
-    {
-      name: "Pay as you go",
-      price: "$3 / $7 / $15",
-      description: "per lead",
-      badge: null as string | null,
-      features: ["$3 discovery leads", "$7 standard leads", "$15 premium leads", "Unlock only what you need", "No subscription"],
-      cta: "Browse Gigs",
-      href: "/signup",
-      highlighted: false,
-    },
-    {
-      name: "Pro",
-      price: "$49",
-      description: "/month",
-      badge: "Best value",
-      features: [
-        "15 leads included — any tier, your choice",
-        "No commission. No booking fees. Ever.",
-        "New leads added daily.",
-      ],
-      cta: "Go Pro",
-      href: "/signup",
-      highlighted: true,
-    },
-  ];
+  const title = "Gigxo Pricing | DJ & Performer Gig Leads — Pay As You Go or Pro";
+  const description =
+    "Simple Gigxo pricing: discovery leads $3, standard $7, premium $15 — or Pro $49/month for 15 leads any tier. No commission, no booking fees. Curated Miami & Fort Lauderdale gigs.";
+  const url = canonicalUrlForPathname("/pricing");
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <Helmet>
+        <title>{title}</title>
+        <meta name="description" content={description} />
+        <link rel="canonical" href={url} />
+        <meta property="og:title" content={title} />
+        <meta property="og:description" content={description} />
+        <meta property="og:url" content={url} />
+        <meta property="og:image" content={DEFAULT_OG_IMAGE} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={title} />
+        <meta name="twitter:description" content={description} />
+        <meta name="twitter:image" content={DEFAULT_OG_IMAGE} />
+      </Helmet>
       <nav className="border-b border-slate-700 bg-slate-900/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <Link href="/">
@@ -60,60 +53,14 @@ export default function Pricing() {
       <section className="py-16 sm:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
-            <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">Pricing</h1>
+            <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">Gigxo pricing for gig leads</h1>
             <p className="text-lg text-slate-300 max-w-2xl mx-auto">
-              The performer lead marketplace powered by better intelligence. Discovery leads $3, Standard $7, Premium $15 — or go Pro: $49/month, 15 leads any tier, no commission or booking fees, new leads daily.
+              The performer lead marketplace powered by better intelligence. Discovery leads $3, Standard $7, Premium
+              $15 — or go Pro: $49/month, 15 leads any tier, no commission or booking fees, new leads daily.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-12">
-            {plans.map((plan, i) => (
-              <Card
-                key={i}
-                className={`p-8 relative ${
-                  plan.highlighted
-                    ? "bg-gradient-to-br from-purple-600/20 to-pink-600/20 border-purple-500/50"
-                    : "bg-slate-800/50 border-slate-700"
-                }`}
-              >
-                {plan.badge && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
-                    {plan.badge}
-                  </span>
-                )}
-                <h2 className="text-2xl font-bold text-white mb-2">{plan.name}</h2>
-                <div className="mb-6">
-                  <span className="text-4xl font-bold text-white">{plan.price}</span>
-                  <span className="text-slate-400 ml-2">{plan.description}</span>
-                </div>
-                <ul className="space-y-3 mb-8">
-                  {plan.features.map((feature, j) => (
-                    <li key={j} className="flex items-center gap-2 text-slate-300">
-                      <CheckCircle2 className="w-4 h-4 text-purple-400 flex-shrink-0" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                <Link href={plan.href}>
-                  <Button
-                    className={`w-full ${
-                      plan.highlighted
-                        ? "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                        : "bg-slate-700 hover:bg-slate-600"
-                    }`}
-                  >
-                    {plan.cta} <ArrowRight className="ml-2 w-4 h-4" />
-                  </Button>
-                </Link>
-              </Card>
-            ))}
-          </div>
-
-          <div className="max-w-2xl mx-auto text-center">
-            <p className="text-slate-400 text-sm">
-              All plans include access to curated gig leads for Miami and Fort Lauderdale. No commission on bookings. Lead tiers (standard vs premium) are set by budget and intent — you always see the unlock price before paying.
-            </p>
-          </div>
+          <PricingPlans variant="dark" />
         </div>
       </section>
 

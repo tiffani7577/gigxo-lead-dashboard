@@ -1,5 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
-import { canonicalUrlForPathname, setMetaTags } from "@/lib/meta-tags";
+import { PricingPlans } from "@/components/PricingPlans";
+import { canonicalUrlForPathname } from "@/lib/meta-tags";
+import { Helmet } from "react-helmet-async";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -133,17 +135,34 @@ function FeaturedLeads() {
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
-  const [, navigate] = useLocation();
+  const [loc, navigate] = useLocation();
+
+  const scrollPricingIntoView = () => {
+    document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" });
+    window.history.replaceState(null, "", "/#pricing");
+  };
 
   useEffect(() => {
     if (isAuthenticated && user) return;
-    setMetaTags({
-      title: "Gigxo — Gig Leads for DJs & Live Artists",
-      description:
-        "Browse verified gig leads for DJs and performers across the US. Unlock contact info from $7. No commission, no middleman.",
-      url: canonicalUrlForPathname("/"),
-    });
-  }, [isAuthenticated, user]);
+    if (loc !== "/") return;
+    if (typeof window === "undefined") return;
+    const fromSession = sessionStorage.getItem("gigxoScrollPricing") === "1";
+    if (window.location.hash === "#pricing" || fromSession) {
+      if (fromSession) sessionStorage.removeItem("gigxoScrollPricing");
+      const t = window.setTimeout(scrollPricingIntoView, 120);
+      return () => window.clearTimeout(t);
+    }
+  }, [loc, isAuthenticated, user]);
+
+  useEffect(() => {
+    if (isAuthenticated && user) return;
+    if (loc !== "/") return;
+    const onHash = () => {
+      if (window.location.hash === "#pricing") scrollPricingIntoView();
+    };
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, [loc, isAuthenticated, user]);
 
   // If authenticated, redirect to dashboard (no onboarding)
   useEffect(() => {
@@ -154,8 +173,27 @@ export default function Home() {
 
   if (isAuthenticated && user) return null;
 
+  const homeTitle = "Gigxo — Gig Leads for DJs & Live Artists";
+  const homeDescription =
+    "Browse verified gig leads for DJs and performers across the US. Unlock contact info from $7. No commission, no middleman.";
+  const homeCanonical = canonicalUrlForPathname("/");
+  const homeOg = `${homeCanonical.replace(/\/$/, "")}/og-default.png`;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <Helmet>
+        <title>{homeTitle}</title>
+        <meta name="description" content={homeDescription} />
+        <link rel="canonical" href={homeCanonical} />
+        <meta property="og:title" content={homeTitle} />
+        <meta property="og:description" content={homeDescription} />
+        <meta property="og:url" content={homeCanonical} />
+        <meta property="og:image" content={homeOg} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={homeTitle} />
+        <meta name="twitter:description" content={homeDescription} />
+        <meta name="twitter:image" content={homeOg} />
+      </Helmet>
       {/* Navigation */}
       <nav className="border-b border-slate-700 bg-slate-900/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
@@ -169,11 +207,21 @@ export default function Home() {
                 Browse Artists
               </Button>
             </Link>
-            <Link href="/pricing">
-              <Button variant="ghost" className="text-slate-300 hover:text-white hidden sm:inline-flex">
-                Pricing
-              </Button>
-            </Link>
+            <Button
+              type="button"
+              variant="ghost"
+              className="text-slate-300 hover:text-white hidden sm:inline-flex"
+              onClick={() => {
+                if (loc === "/") {
+                  scrollPricingIntoView();
+                } else {
+                  sessionStorage.setItem("gigxoScrollPricing", "1");
+                  navigate("/");
+                }
+              }}
+            >
+              Pricing
+            </Button>
             <Link href="/login">
               <Button variant="outline" className="border-purple-500 text-purple-400 hover:bg-purple-500/10">
                 Sign In
@@ -234,8 +282,36 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Right: Feature Cards */}
+            {/* Right: imagery + Feature Cards */}
             <div className="space-y-4">
+              <div className="rounded-2xl overflow-hidden ring-1 ring-white/10 shadow-2xl">
+                <img
+                  src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&w=900&q=80"
+                  alt="Professional DJ performing at a club event in South Florida — Gigxo gig marketplace for DJs"
+                  className="w-full h-56 sm:h-64 object-cover"
+                  width={900}
+                  height={480}
+                  loading="eager"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <img
+                  src="https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&w=500&q=80"
+                  alt="Wedding reception live entertainment Miami Florida DJs and bands on Gigxo"
+                  className="w-full h-32 sm:h-36 rounded-lg object-cover ring-1 ring-white/10"
+                  width={500}
+                  height={280}
+                  loading="lazy"
+                />
+                <img
+                  src="https://images.unsplash.com/photo-1540575467063-027a383147d88?auto=format&w=500&q=80"
+                  alt="Corporate event stage lighting and DJ setup — book entertainers on Gigxo"
+                  className="w-full h-32 sm:h-36 rounded-lg object-cover ring-1 ring-white/10"
+                  width={500}
+                  height={280}
+                  loading="lazy"
+                />
+              </div>
               <Card className="bg-slate-800/50 border-slate-700 p-6 hover:border-purple-500/50 transition-colors">
                 <div className="flex gap-4">
                   <Zap className="w-6 h-6 text-purple-400 flex-shrink-0 mt-1" />
@@ -323,6 +399,46 @@ export default function Home() {
       {/* Featured Leads */}
       <FeaturedLeads />
 
+      {/* Proof strip — real event / artist imagery */}
+      <section className="py-12 border-y border-slate-700/80 bg-slate-900/40" aria-label="Event and DJ photography">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <img
+              src="https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&w=400&q=80"
+              alt="Outdoor festival crowd and DJ gig Florida entertainment marketplace Gigxo"
+              className="w-full h-28 md:h-32 rounded-lg object-cover"
+              width={400}
+              height={200}
+              loading="lazy"
+            />
+            <img
+              src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&w=400&q=80"
+              alt="Party and nightlife DJ lighting — find paid gigs for DJs on Gigxo"
+              className="w-full h-28 md:h-32 rounded-lg object-cover"
+              width={400}
+              height={200}
+              loading="lazy"
+            />
+            <img
+              src="https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?auto=format&w=400&q=80"
+              alt="Live band and wedding music performers South Florida bookings"
+              className="w-full h-28 md:h-32 rounded-lg object-cover col-span-2 md:col-span-1"
+              width={400}
+              height={200}
+              loading="lazy"
+            />
+            <img
+              src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&w=400&q=80"
+              alt="Event planner and venue celebration — Gigxo connects entertainers with clients"
+              className="hidden md:block w-full h-32 rounded-lg object-cover"
+              width={400}
+              height={200}
+              loading="lazy"
+            />
+          </div>
+        </div>
+      </section>
+
       {/* Pricing */}
       <section className="py-20" id="pricing">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -330,72 +446,7 @@ export default function Home() {
             <h2 className="text-4xl font-bold text-white mb-4">Simple, Transparent Pricing</h2>
             <p className="text-lg text-slate-300">No hidden fees. No commission. Pay per unlock or go Pro.</p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {[
-              {
-                name: "Pay as you go",
-                price: "$3 / $7 / $15",
-                description: "per lead",
-                badge: null as string | null,
-                features: ["$3 discovery leads", "$7 standard leads", "$15 premium leads", "Unlock only what you need", "No subscription"],
-                cta: "Browse Gigs",
-                href: "/signup",
-                highlighted: false,
-              },
-              {
-                name: "Pro",
-                price: "$49",
-                description: "/month",
-                badge: "Best value" as string | null,
-                features: [
-                  "15 leads included — any tier, your choice",
-                  "No commission. No booking fees. Ever.",
-                  "New leads added daily.",
-                ],
-                cta: "Go Pro",
-                href: "/signup",
-                highlighted: true,
-              },
-            ].map((plan, i) => (
-              <Card
-                key={i}
-                className={`p-8 relative ${
-                  plan.highlighted
-                    ? "bg-gradient-to-br from-purple-600/20 to-pink-600/20 border-purple-500/50"
-                    : "bg-slate-800/50 border-slate-700"
-                }`}
-              >
-                {plan.badge && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">{plan.badge}</span>
-                )}
-                <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
-                <div className="mb-6">
-                  <span className="text-4xl font-bold text-white">{plan.price}</span>
-                  <span className="text-slate-400 ml-2">{plan.description}</span>
-                </div>
-                <ul className="space-y-3 mb-8">
-                  {plan.features.map((feature, j) => (
-                    <li key={j} className="flex items-center gap-2 text-slate-300">
-                      <CheckCircle2 className="w-4 h-4 text-purple-400" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                <Link href={plan.href}>
-                  <Button
-                    className={`w-full ${
-                      plan.highlighted
-                        ? "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                        : "bg-slate-700 hover:bg-slate-600"
-                    }`}
-                  >
-                    {plan.cta}
-                  </Button>
-                </Link>
-              </Card>
-            ))}
-          </div>
+          <PricingPlans variant="dark" />
         </div>
       </section>
 

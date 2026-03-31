@@ -3,7 +3,7 @@
  * Updates OG tags, Twitter Card, and canonical URL per page
  */
 
-const DEFAULT_OG_IMAGE = "https://www.gigxo.com/og-default.png";
+export const DEFAULT_OG_IMAGE = "https://www.gigxo.com/og-default.png";
 
 /** Production default when window / env are unavailable (e.g. tests). */
 const FALLBACK_ORIGIN = "https://www.gigxo.com";
