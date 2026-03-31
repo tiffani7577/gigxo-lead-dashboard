@@ -3,7 +3,7 @@
 
 [build]
 builder = "nixpacks"
-buildCommand = "npm install --legacy-peer-deps && npm run build"
+buildCommand = "npm install --legacy-peer-deps && PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium npm run build"
 
 [deploy]
 startCommand = "npm start"
