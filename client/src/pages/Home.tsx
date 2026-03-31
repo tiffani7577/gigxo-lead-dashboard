@@ -4,8 +4,7 @@ import { canonicalUrlForPathname } from "@/lib/meta-tags";
 import { Helmet } from "react-helmet-async";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { ArrowRight, CheckCircle2, Zap, Users, TrendingUp, Music, MapPin, Calendar, Lock, Sparkles } from "lucide-react";
+import { ArrowRight, Lock, MapPin, Calendar, Sparkles } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -31,19 +30,17 @@ function FeaturedLeads() {
 
   if (isLoading) {
     return (
-      <section className="py-20 bg-slate-800/30 border-t border-slate-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-white mb-3">Featured Gigs</h2>
-            <p className="text-slate-400">Top paying opportunities available right now</p>
+      <section style={{ padding: '6rem 2rem', background: '#0a0a0a', borderTop: '1px solid rgba(201,168,76,0.08)' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+            <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '3rem', fontWeight: 300, color: '#f0ede8' }}>Featured Gigs This Week</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 animate-pulse">
-                <div className="h-4 bg-slate-700 rounded mb-3 w-3/4" />
-                <div className="h-3 bg-slate-700 rounded mb-2 w-1/2" />
-                <div className="h-3 bg-slate-700 rounded mb-6 w-2/3" />
-                <div className="h-8 bg-slate-700 rounded" />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1.5rem' }}>
+            {[1,2,3].map(i => (
+              <div key={i} style={{ background: '#111', border: '1px solid rgba(201,168,76,0.1)', borderRadius: '4px', padding: '1.5rem', animation: 'pulse 2s infinite' }}>
+                <div style={{ height: '2rem', background: '#1a1a1a', borderRadius: '2px', marginBottom: '1rem', width: '60%' }} />
+                <div style={{ height: '1rem', background: '#1a1a1a', borderRadius: '2px', marginBottom: '0.5rem', width: '80%' }} />
+                <div style={{ height: '1rem', background: '#1a1a1a', borderRadius: '2px', width: '50%' }} />
               </div>
             ))}
           </div>
@@ -55,77 +52,78 @@ function FeaturedLeads() {
   if (!leads || !Array.isArray(leads) || leads.length === 0) return null;
 
   return (
-    <section className="py-20 bg-slate-800/30 border-t border-slate-700">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-yellow-500/10 border border-yellow-500/20 rounded-full mb-4">
-            <Sparkles className="w-4 h-4 text-yellow-400" />
-            <span className="text-sm font-semibold text-yellow-400">Live Opportunities</span>
+    <section style={{ padding: '6rem 2rem', background: '#0a0a0a', borderTop: '1px solid rgba(201,168,76,0.08)' }}>
+      <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 1rem', background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.2)', borderRadius: '2px', marginBottom: '1.25rem' }}>
+            <Sparkles style={{ width: '14px', height: '14px', color: '#c9a84c' }} />
+            <span style={{ fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#c9a84c', fontWeight: 600 }}>Live Opportunities</span>
           </div>
-          <h2 className="text-4xl font-bold text-white mb-3">Featured Gigs This Week</h2>
-          <p className="text-slate-400 max-w-xl mx-auto">The highest-paying leads currently available on the platform. Sign up to unlock contact info and book directly.</p>
+          <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 'clamp(2rem,4vw,3.5rem)', fontWeight: 300, color: '#f0ede8', marginBottom: '0.75rem' }}>
+            Featured Gigs This Week
+          </h2>
+          <div style={{ width: '40px', height: '1px', background: '#c9a84c', margin: '1rem auto' }} />
+          <p style={{ color: 'rgba(240,237,232,0.5)', fontSize: '0.875rem', maxWidth: '480px', margin: '0 auto' }}>
+            The highest-paying leads currently on the platform. Sign up to unlock direct contact info.
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          {leads.map((lead) => (
-            <Card key={lead.id} className="bg-slate-900 border-slate-700 hover:border-purple-500/50 transition-all duration-200 overflow-hidden group">
-              {/* Budget badge */}
-              <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 border-b border-slate-700 px-5 py-3 flex items-center justify-between">
-                <span className="text-2xl font-bold text-white">{formatBudget(lead.budget)}</span>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
+          {leads.map((lead, idx) => (
+            <div key={lead.id} style={{ background: '#111111', border: '1px solid rgba(201,168,76,0.15)', borderRadius: '4px', overflow: 'hidden', transition: 'all 0.3s' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(201,168,76,0.4)'; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(201,168,76,0.15)'; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)'; }}>
+              {/* Card header */}
+              <div style={{ background: 'linear-gradient(135deg,rgba(201,168,76,0.08),rgba(201,168,76,0.03))', borderBottom: '1px solid rgba(201,168,76,0.15)', padding: '1.25rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '2rem', fontWeight: 700, color: '#c9a84c' }}>{formatBudget(lead.budget)}</span>
                 {lead.performerType && (
-                  <span className="text-xs font-medium bg-purple-500/20 text-purple-300 px-2 py-1 rounded-full">
+                  <span style={{ fontSize: '0.6rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(240,237,232,0.5)', background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.2)', padding: '0.3rem 0.7rem', borderRadius: '2px' }}>
                     {PERFORMER_LABELS[lead.performerType] ?? lead.performerType}
                   </span>
                 )}
               </div>
-
-              <div className="p-5 space-y-3">
-                <h3 className="font-semibold text-white text-lg leading-tight">{lead.title}</h3>
-
-                <div className="flex items-center gap-1.5 text-sm text-slate-400">
-                  <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
-                  <span>{lead.location}</span>
+              {/* Card body */}
+              <div style={{ padding: '1.25rem 1.5rem' }}>
+                <h3 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '1.2rem', fontWeight: 600, color: '#f0ede8', marginBottom: '0.5rem' }}>{lead.title}</h3>
+                <div style={{ fontSize: '0.75rem', color: 'rgba(240,237,232,0.45)', marginBottom: '0.3rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <MapPin style={{ width: '12px', height: '12px' }} />{lead.location}
                 </div>
-
                 {lead.eventDate && (
-                  <div className="flex items-center gap-1.5 text-sm text-slate-400">
-                    <Calendar className="w-3.5 h-3.5 flex-shrink-0" />
-                    <span>{new Date(lead.eventDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                  <div style={{ fontSize: '0.75rem', color: 'rgba(240,237,232,0.45)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <Calendar style={{ width: '12px', height: '12px' }} />
+                    {new Date(lead.eventDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                   </div>
                 )}
-
                 {lead.description && (
-                  <p className="text-sm text-slate-400 line-clamp-2 leading-relaxed">{lead.description}</p>
+                  <p style={{ fontSize: '0.8rem', color: 'rgba(240,237,232,0.5)', lineHeight: 1.6, marginBottom: '1.25rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{lead.description}</p>
                 )}
-
-                {/* Blurred contact teaser */}
-                <div className="pt-2 border-t border-slate-700">
-                  <p className="text-xs text-slate-500 mb-2 flex items-center gap-1">
-                    <Lock className="w-3 h-3" /> Contact info locked
-                  </p>
-                  <div className="space-y-1.5">
-                    <div className="h-3 bg-slate-700 rounded blur-[2px] opacity-60 w-3/4" />
-                    <div className="h-3 bg-slate-700 rounded blur-[2px] opacity-60 w-1/2" />
+                {/* Locked state */}
+                <div style={{ borderTop: '1px solid rgba(201,168,76,0.1)', paddingTop: '1rem' }}>
+                  <div style={{ fontSize: '0.65rem', color: 'rgba(240,237,232,0.3)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Lock style={{ width: '10px', height: '10px' }} /> Contact info locked</span>
+                    <span>👁 {12 + idx * 5} viewed</span>
                   </div>
+                  <div style={{ height: '8px', background: 'rgba(255,255,255,0.04)', borderRadius: '1px', marginBottom: '0.4rem', width: '75%' }} />
+                  <div style={{ height: '8px', background: 'rgba(255,255,255,0.04)', borderRadius: '1px', width: '50%' }} />
                 </div>
               </div>
-
-              <div className="px-5 pb-5">
+              {/* CTA */}
+              <div style={{ padding: '0 1.5rem 1.5rem' }}>
                 <Link href="/signup">
-                  <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-sm">
-                    <Lock className="w-3.5 h-3.5 mr-2" /> Unlock lead (Discovery $3 · Standard $7 · Premium $15)
-                  </Button>
+                  <button style={{ width: '100%', background: 'linear-gradient(135deg,#c9a84c,#e8c97a)', color: '#080808', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '0.7rem', padding: '0.85rem', borderRadius: '2px', border: 'none', cursor: 'pointer', transition: 'all 0.3s' }}>
+                    Unlock Lead · Discovery $3 · Standard $7 · Premium $15
+                  </button>
                 </Link>
               </div>
-            </Card>
+            </div>
           ))}
         </div>
 
-        <div className="text-center">
+        <div style={{ textAlign: 'center' }}>
           <Link href="/signup">
-            <Button variant="outline" size="lg" className="border-slate-600 text-slate-300 hover:bg-slate-700">
-              See All Available Gigs <ArrowRight className="ml-2 w-4 h-4" />
-            </Button>
+            <button style={{ background: 'transparent', color: '#f0ede8', fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', fontSize: '0.7rem', padding: '0.85rem 2rem', borderRadius: '2px', border: '1px solid rgba(240,237,232,0.25)', cursor: 'pointer', transition: 'all 0.3s' }}>
+              See All Available Gigs <ArrowRight style={{ display: 'inline', width: '14px', height: '14px', marginLeft: '0.5rem' }} />
+            </button>
           </Link>
         </div>
       </div>
@@ -137,7 +135,6 @@ export default function Home() {
   const { user, isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
 
-  // If authenticated, redirect to dashboard (no onboarding)
   useEffect(() => {
     if (isAuthenticated && user) {
       navigate("/dashboard");
@@ -147,13 +144,12 @@ export default function Home() {
   if (isAuthenticated && user) return null;
 
   const homeTitle = "Gigxo — Gig Leads for DJs & Live Artists";
-  const homeDescription =
-    "Browse verified gig leads for DJs and performers across the US. Unlock contact info from $7. No commission, no middleman.";
+  const homeDescription = "Browse verified gig leads for DJs and performers across the US. Unlock contact info from $7. No commission, no middleman.";
   const homeCanonical = canonicalUrlForPathname("/");
   const homeOg = `${homeCanonical.replace(/\/$/, "")}/og-default.png`;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div style={{ background: '#080808', minHeight: '100vh' }}>
       <Helmet>
         <title>{homeTitle}</title>
         <meta name="description" content={homeDescription} />
@@ -166,264 +162,200 @@ export default function Home() {
         <meta name="twitter:title" content={homeTitle} />
         <meta name="twitter:description" content={homeDescription} />
         <meta name="twitter:image" content={homeOg} />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
       </Helmet>
-      {/* Navigation */}
-      <nav className="border-b border-slate-700 bg-slate-900/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Music className="w-8 h-8 text-purple-500" />
-            <span className="text-2xl font-bold text-white">Gigxo</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link href="/artists">
-              <Button variant="ghost" className="text-slate-300 hover:text-white hidden sm:inline-flex">
-                Browse Artists
-              </Button>
-            </Link>
-            <Link href="/pricing">
-              <Button type="button" variant="ghost" className="text-slate-300 hover:text-white hidden sm:inline-flex">
-                Pricing
-              </Button>
-            </Link>
-            <Link href="/login">
-              <Button variant="outline" className="border-purple-500 text-purple-400 hover:bg-purple-500/10">
-                Sign In
-              </Button>
-            </Link>
-            <Link href="/signup">
-              <Button className="bg-purple-600 hover:bg-purple-700 text-white">
-                Sign Up Free
-              </Button>
-            </Link>
-          </div>
+
+      {/* ── NAV ── */}
+      <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, background: 'rgba(8,8,8,0.92)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(201,168,76,0.12)', padding: '0 2rem', height: '68px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          <svg width="22" height="18" viewBox="0 0 22 18" fill="none">
+            <rect x="0" y="6" width="3" height="6" rx="1.5" fill="#C9A84C"/>
+            <rect x="5" y="2" width="3" height="14" rx="1.5" fill="#C9A84C"/>
+            <rect x="10" y="0" width="3" height="18" rx="1.5" fill="#C9A84C"/>
+            <rect x="15" y="3" width="3" height="12" rx="1.5" fill="#C9A84C"/>
+            <rect x="20" y="7" width="2" height="5" rx="1" fill="#C9A84C"/>
+          </svg>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '1.2rem', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.02em' }}>
+            Gig<span style={{ color: '#C9A84C' }}>XO</span>
+          </span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+          <Link href="/artists">
+            <span style={{ color: 'rgba(240,237,232,0.6)', fontSize: '0.7rem', letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer', textDecoration: 'none' }}>Browse Artists</span>
+          </Link>
+          <Link href="/pricing">
+            <span style={{ color: 'rgba(240,237,232,0.6)', fontSize: '0.7rem', letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer', textDecoration: 'none' }}>Pricing</span>
+          </Link>
+          <Link href="/login">
+            <button style={{ background: 'transparent', color: '#f0ede8', fontSize: '0.7rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.5rem 1.25rem', border: '1px solid rgba(240,237,232,0.25)', borderRadius: '2px', cursor: 'pointer' }}>Sign In</button>
+          </Link>
+          <Link href="/signup">
+            <button style={{ background: 'linear-gradient(135deg,#c9a84c,#e8c97a)', color: '#080808', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.5rem 1.25rem', border: 'none', borderRadius: '2px', cursor: 'pointer' }}>Get Access</button>
+          </Link>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden py-20 sm:py-32">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Left: Hero Text */}
-            <div className="space-y-8">
-              <div className="space-y-4">
-                <div className="inline-block px-4 py-2 bg-purple-500/10 border border-purple-500/20 rounded-full">
-                  <p className="text-sm font-semibold text-purple-400">🎵 Founded by artists, for artists</p>
-                </div>
-                <h1 className="text-5xl sm:text-6xl font-bold text-white leading-tight">
-                  Find Your Next <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">Gig</span>
-                </h1>
-                <p className="text-xl text-slate-300">
-                  The performer lead marketplace powered by better intelligence. Get curated gig leads matched to your style and location — Discovery leads $3, Standard $7, Premium $15. Pro: $49/month — 15 leads included, any tier, your choice. No commission. No booking fees. Ever. New leads added daily.
-                </p>
-              </div>
+      {/* ── HERO ── */}
+      <section style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+        <img
+          src="/images/hero_v2_golden.jpg"
+          alt="Luxury yacht party Fort Lauderdale DJ"
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 60%' }}
+        />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom,rgba(8,8,8,0.4) 0%,rgba(8,8,8,0.3) 40%,rgba(8,8,8,0.92) 100%)' }} />
 
-              {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/signup">
-                  <Button size="lg" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white w-full sm:w-auto">
-                    Get Started Free <ArrowRight className="ml-2 w-4 h-4" />
-                  </Button>
-                </Link>
-                <Button asChild variant="outline" size="lg" className="border-slate-600 text-slate-300 hover:bg-slate-700">
-                  <a href="#how-it-works">Learn More</a>
-                </Button>
-              </div>
+        <div style={{ position: 'relative', zIndex: 2, textAlign: 'center', maxWidth: '900px', padding: '0 2rem', paddingTop: '68px' }}>
+          <p style={{ fontSize: '0.65rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#c9a84c', fontWeight: 500, marginBottom: '1.5rem' }}>Fort Lauderdale · 17th Street Marina · South Florida</p>
+          <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 'clamp(3rem,8vw,7rem)', fontWeight: 300, lineHeight: 1.05, color: '#f0ede8', marginBottom: '0.25rem', letterSpacing: '-0.02em' }}>
+            South Florida's
+          </h1>
+          <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 'clamp(3rem,8vw,7rem)', fontWeight: 700, lineHeight: 1.05, color: '#c9a84c', marginBottom: '1.5rem', letterSpacing: '-0.02em' }}>
+            Gig Lead Marketplace
+          </h1>
+          <p style={{ fontSize: '1.1rem', color: 'rgba(240,237,232,0.75)', maxWidth: '580px', margin: '0 auto 2.5rem', lineHeight: 1.7, fontWeight: 300 }}>
+            The only platform connecting DJs and live artists with verified private events, yacht charters, festivals, and clubs across Fort Lauderdale, Miami, and Palm Beach. No commission. No middleman. Ever.
+          </p>
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Link href="/signup">
+              <button style={{ background: 'linear-gradient(135deg,#c9a84c,#e8c97a)', color: '#080808', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '0.75rem', padding: '1rem 2.5rem', borderRadius: '2px', border: 'none', cursor: 'pointer' }}>
+                Browse Gig Leads
+              </button>
+            </Link>
+            <Link href="/signup">
+              <button style={{ background: 'transparent', color: '#f0ede8', fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', fontSize: '0.7rem', padding: '1rem 2.5rem', borderRadius: '2px', border: '1px solid rgba(240,237,232,0.25)', cursor: 'pointer' }}>
+                Sign Up Free
+              </button>
+            </Link>
+          </div>
 
-              {/* Social Proof */}
-              <div className="pt-4 border-t border-slate-700">
-                <p className="text-sm text-slate-400 mb-3">Trusted by artists across South Florida — Miami, Fort Lauderdale, Boca, West Palm</p>
-                <div className="flex items-center gap-4">
-                  <div className="flex -space-x-2">
-                    {[1, 2, 3, 4].map((i) => (
-                      <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 border-2 border-slate-900" />
-                    ))}
-                  </div>
-                  <p className="text-sm text-slate-300">
-                    <span className="font-semibold text-white">50+</span> artists already booking
-                  </p>
-                </div>
+          {/* Stats */}
+          <div style={{ display: 'flex', gap: '3rem', justifyContent: 'center', flexWrap: 'wrap', marginTop: '4rem', paddingTop: '2rem', borderTop: '1px solid rgba(201,168,76,0.15)' }}>
+            {[{value:'50+',label:'Artists Booking'},{value:'$0',label:'Commission Ever'},{value:'$3',label:'Leads Start At'},{value:'Daily',label:'New Leads Added'}].map(s => (
+              <div key={s.label} style={{ textAlign: 'center' }}>
+                <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '1.8rem', fontWeight: 600, color: '#c9a84c' }}>{s.value}</div>
+                <div style={{ fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(240,237,232,0.5)', marginTop: '0.25rem' }}>{s.label}</div>
               </div>
-            </div>
-
-            {/* Right: imagery + Feature Cards */}
-            <div className="space-y-4">
-              <div className="rounded-2xl overflow-hidden ring-1 ring-white/10 shadow-2xl">
-                <img
-                  src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&w=900&q=80"
-                  alt="Professional DJ performing at a club event in South Florida — Gigxo gig marketplace for DJs"
-                  className="w-full h-56 sm:h-64 object-cover"
-                  width={900}
-                  height={480}
-                  loading="eager"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <img
-                  src="https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&w=500&q=80"
-                  alt="Wedding reception live entertainment Miami Florida DJs and bands on Gigxo"
-                  className="w-full h-32 sm:h-36 rounded-lg object-cover ring-1 ring-white/10"
-                  width={500}
-                  height={280}
-                  loading="lazy"
-                />
-                <img
-                  src="https://images.unsplash.com/photo-1540575467063-027a383147d88?auto=format&w=500&q=80"
-                  alt="Corporate event stage lighting and DJ setup — book entertainers on Gigxo"
-                  className="w-full h-32 sm:h-36 rounded-lg object-cover ring-1 ring-white/10"
-                  width={500}
-                  height={280}
-                  loading="lazy"
-                />
-              </div>
-              <Card className="bg-slate-800/50 border-slate-700 p-6 hover:border-purple-500/50 transition-colors">
-                <div className="flex gap-4">
-                  <Zap className="w-6 h-6 text-purple-400 flex-shrink-0 mt-1" />
-                  <div>
-                    <h3 className="font-semibold text-white mb-2">AI-Matched Gigs</h3>
-                    <p className="text-sm text-slate-300">Only see opportunities that match your style, location, and budget</p>
-                  </div>
-                </div>
-              </Card>
-
-              <Card className="bg-slate-800/50 border-slate-700 p-6 hover:border-purple-500/50 transition-colors">
-                <div className="flex gap-4">
-                  <CheckCircle2 className="w-6 h-6 text-purple-400 flex-shrink-0 mt-1" />
-                  <div>
-                    <h3 className="font-semibold text-white mb-2">Verified Opportunities</h3>
-                    <p className="text-sm text-slate-300">Every gig is curated and verified by our team. No spam, no scams</p>
-                  </div>
-                </div>
-              </Card>
-
-              <Card className="bg-slate-800/50 border-slate-700 p-6 hover:border-purple-500/50 transition-colors">
-                <div className="flex gap-4">
-                  <Users className="w-6 h-6 text-purple-400 flex-shrink-0 mt-1" />
-                  <div>
-                    <h3 className="font-semibold text-white mb-2">Community First</h3>
-                    <p className="text-sm text-slate-300">Connect with other artists, share experiences, and grow together</p>
-                  </div>
-                </div>
-              </Card>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* How It Works */}
-      <section id="how-it-works" className="py-20 bg-slate-800/50 border-t border-slate-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-4">How Gigxo Works</h2>
-            <p className="text-lg text-slate-300">Three simple steps to your next gig</p>
-          </div>
+      {/* ── TRUST BAR ── */}
+      <div style={{ background: '#0d0d0d', borderTop: '1px solid rgba(201,168,76,0.1)', borderBottom: '1px solid rgba(201,168,76,0.1)', padding: '1.25rem 2rem' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <span style={{ fontSize: '0.65rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#c9a84c', fontWeight: 500, whiteSpace: 'nowrap' }}>Leads From</span>
+          <div style={{ width: '1px', height: '16px', background: 'rgba(201,168,76,0.3)' }} />
+          {['Bahia Mar Marina','Pier Sixty-Six','Port Everglades','Las Olas Riverfront','Coconut Grove','South Beach','Palm Beach','Private Estates'].map((v,i) => (
+            <span key={i} style={{ fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(240,237,232,0.4)', whiteSpace: 'nowrap' }}>{v}</span>
+          ))}
+        </div>
+      </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      {/* ── SPLIT SECTION ── */}
+      <section style={{ maxWidth: '1200px', margin: '0 auto', padding: '8rem 2rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6rem', alignItems: 'center' }}>
+        <div>
+          <p style={{ fontSize: '0.65rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#c9a84c', fontWeight: 500, marginBottom: '1rem' }}>Why Gigxo</p>
+          <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 'clamp(2.5rem,4vw,4rem)', fontWeight: 300, lineHeight: 1.1, color: '#f0ede8', marginBottom: '1.5rem' }}>
+            Built for artists who<br /><em style={{ color: '#c9a84c', fontStyle: 'italic' }}>want to make money</em>
+          </h2>
+          <p style={{ color: 'rgba(240,237,232,0.6)', lineHeight: 1.8, marginBottom: '2rem', fontSize: '0.95rem' }}>
+            Every lead on Gigxo is curated and verified. No spam, no tire-kickers. We specialize in the South Florida market — from 17th Street Causeway to Bahia Mar, Port Everglades, and beyond. Unlock direct contact info and book without a middleman.
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2.5rem' }}>
+            {["Verified yacht, marina & private event leads","Direct contact — no booking fees, ever","Fort Lauderdale, Miami, Palm Beach coverage","New leads added daily"].map((f,i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <span style={{ color: '#c9a84c', fontSize: '0.6rem' }}>◆</span>
+                <span style={{ fontSize: '0.875rem', color: 'rgba(240,237,232,0.7)' }}>{f}</span>
+              </div>
+            ))}
+          </div>
+          <Link href="/signup">
+            <button style={{ background: 'linear-gradient(135deg,#c9a84c,#e8c97a)', color: '#080808', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '0.75rem', padding: '0.85rem 2rem', borderRadius: '2px', border: 'none', cursor: 'pointer' }}>
+              View Available Leads
+            </button>
+          </Link>
+        </div>
+        <div style={{ position: 'relative' }}>
+          <img src="/images/hero_v2_night.jpg" alt="Luxury yacht event Fort Lauderdale"
+            style={{ width: '100%', height: '520px', objectFit: 'cover', borderRadius: '2px', display: 'block' }} />
+          <div style={{ position: 'absolute', bottom: '2rem', left: '-2rem', background: '#111', border: '1px solid rgba(201,168,76,0.3)', padding: '1.25rem 1.5rem', borderRadius: '2px', boxShadow: '0 20px 60px rgba(0,0,0,0.6)' }}>
+            <div style={{ fontSize: '0.6rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#c9a84c', marginBottom: '0.4rem' }}>Latest Lead</div>
+            <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '1.3rem', color: '#f0ede8', fontWeight: 600 }}>Yacht Charter · Fort Lauderdale</div>
+            <div style={{ fontSize: '0.75rem', color: 'rgba(240,237,232,0.5)', marginTop: '0.25rem' }}>17th St Marina · Premium Lead</div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── PHOTO STRIP ── */}
+      <section style={{ padding: '0 2rem 6rem', maxWidth: '1200px', margin: '0 auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1rem' }}>
+          <img src="/images/hero_v2_sportboat.jpg" alt="Intracoastal boat party Fort Lauderdale"
+            style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '2px' }} />
+          <img src="https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&w=600&q=80" alt="Festival DJ gig South Florida"
+            style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '2px' }} />
+          <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&w=600&q=80" alt="Nightclub DJ Miami"
+            style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '2px' }} />
+        </div>
+      </section>
+
+      {/* ── HOW IT WORKS ── */}
+      <section style={{ background: '#0a0a0a', padding: '6rem 2rem', borderTop: '1px solid rgba(201,168,76,0.08)' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '5rem' }}>
+            <p style={{ fontSize: '0.65rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#c9a84c', fontWeight: 500, marginBottom: '1rem' }}>The Process</p>
+            <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 'clamp(2rem,4vw,3.5rem)', fontWeight: 300, color: '#f0ede8' }}>How Gigxo Works</h2>
+            <div style={{ width: '40px', height: '1px', background: '#c9a84c', margin: '1rem auto' }} />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '3rem' }}>
             {[
-              {
-                step: "1",
-                title: "Create Your Profile",
-                description: "Tell us your genres, location, and what you're looking for. We'll match you with the perfect gigs.",
-                icon: Music,
-              },
-              {
-                step: "2",
-                title: "Browse Matched Gigs",
-                description: "See gigs that match your profile. View details, budget, and location—all for free.",
-                icon: TrendingUp,
-              },
-              {
-                step: "3",
-                title: "Unlock & Book",
-                description: "Choose Discovery $3 (post link), Standard $7 (partial contact), Premium $15 (direct email and phone), or Pro $49/month with 15 leads in any tier.",
-                icon: CheckCircle2,
-              },
-            ].map((item, i) => {
-              const Icon = item.icon;
-              return (
-                <div key={i} className="relative">
-                  <Card className="bg-slate-900 border-slate-700 p-8 h-full">
-                    <div className="absolute -top-4 -left-4 w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white font-bold">
-                      {item.step}
-                    </div>
-                    <Icon className="w-8 h-8 text-purple-400 mb-4" />
-                    <h3 className="text-xl font-semibold text-white mb-3">{item.title}</h3>
-                    <p className="text-slate-300">{item.description}</p>
-                  </Card>
-                  {i < 2 && (
-                    <div className="hidden md:block absolute top-1/2 -right-4 w-8 h-0.5 bg-gradient-to-r from-purple-500 to-transparent" />
-                  )}
-                </div>
-              );
-            })}
+              { step: "01", title: "Create Your Profile", desc: "Tell us your genres, location, and what you're looking for. We'll match you with the right leads." },
+              { step: "02", title: "Browse Matched Leads", desc: "See verified gigs that match your profile. View budget, location, and event details — all free." },
+              { step: "03", title: "Unlock & Book Direct", desc: "Pay once to unlock contact info. Discovery $3, Standard $7, Premium $15. No commission, no middleman. Ever." },
+            ].map(item => (
+              <div key={item.step} style={{ textAlign: 'center' }}>
+                <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '4rem', fontWeight: 300, color: 'rgba(201,168,76,0.2)', lineHeight: 1, marginBottom: '1rem' }}>{item.step}</div>
+                <h3 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '1.4rem', fontWeight: 600, color: '#f0ede8', marginBottom: '0.75rem' }}>{item.title}</h3>
+                <p style={{ fontSize: '0.875rem', color: 'rgba(240,237,232,0.5)', lineHeight: 1.7 }}>{item.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Featured Leads */}
+      {/* ── FEATURED LEADS ── */}
       <FeaturedLeads />
 
-      {/* Proof strip — real event / artist imagery */}
-      <section className="py-12 border-y border-slate-700/80 bg-slate-900/40" aria-label="Event and DJ photography">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <img
-              src="https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&w=400&q=80"
-              alt="Outdoor festival crowd and DJ gig Florida entertainment marketplace Gigxo"
-              className="w-full h-28 md:h-32 rounded-lg object-cover"
-              width={400}
-              height={200}
-              loading="lazy"
-            />
-            <img
-              src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&w=400&q=80"
-              alt="Party and nightlife DJ lighting — find paid gigs for DJs on Gigxo"
-              className="w-full h-28 md:h-32 rounded-lg object-cover"
-              width={400}
-              height={200}
-              loading="lazy"
-            />
-            <img
-              src="https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?auto=format&w=400&q=80"
-              alt="Live band and wedding music performers South Florida bookings"
-              className="w-full h-28 md:h-32 rounded-lg object-cover col-span-2 md:col-span-1"
-              width={400}
-              height={200}
-              loading="lazy"
-            />
-            <img
-              src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&w=400&q=80"
-              alt="Event planner and venue celebration — Gigxo connects entertainers with clients"
-              className="hidden md:block w-full h-32 rounded-lg object-cover"
-              width={400}
-              height={200}
-              loading="lazy"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing */}
-      <section className="py-20" id="pricing">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-4">Simple, Transparent Pricing</h2>
-            <p className="text-lg text-slate-300">No hidden fees. No commission. Pay per unlock or go Pro.</p>
+      {/* ── PRICING ── */}
+      <section style={{ padding: '6rem 2rem', background: '#080808' }} id="pricing">
+        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+            <p style={{ fontSize: '0.65rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#c9a84c', fontWeight: 500, marginBottom: '1rem' }}>Membership</p>
+            <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 'clamp(2rem,4vw,3.5rem)', fontWeight: 300, color: '#f0ede8' }}>Simple, Transparent Pricing</h2>
+            <div style={{ width: '40px', height: '1px', background: '#c9a84c', margin: '1rem auto' }} />
+            <p style={{ color: 'rgba(240,237,232,0.5)', fontSize: '0.875rem' }}>No hidden fees. No commission. Pay per unlock or go Pro.</p>
           </div>
           <PricingPlans variant="dark" />
         </div>
       </section>
 
-      {/* CTA Footer */}
-      <section className="py-20 border-t border-slate-700 bg-gradient-to-r from-purple-600/10 to-pink-600/10">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl font-bold text-white mb-4">Ready to Find Your Next Gig?</h2>
-          <p className="text-lg text-slate-300 mb-8">
-            Join 50+ artists already booking through Gigxo. Discovery leads $3, Standard $7, Premium $15. Pro: $49/month — 15 leads any tier, no commission or booking fees, new leads daily.
+      {/* ── FINAL CTA ── */}
+      <section style={{ position: 'relative', padding: '8rem 2rem', overflow: 'hidden', textAlign: 'center' }}>
+        <img src="https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=2000&auto=format&fit=crop" alt="Fort Lauderdale marina"
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.15 }} />
+        <div style={{ position: 'relative', zIndex: 2, maxWidth: '600px', margin: '0 auto' }}>
+          <p style={{ fontSize: '0.65rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#c9a84c', fontWeight: 500, marginBottom: '1.5rem' }}>Ready to Book?</p>
+          <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 'clamp(2.5rem,5vw,4.5rem)', fontWeight: 300, color: '#f0ede8', lineHeight: 1.1, marginBottom: '1.5rem' }}>
+            Find Your Next<br /><em style={{ color: '#c9a84c' }}>Gig Today</em>
+          </h2>
+          <p style={{ color: 'rgba(240,237,232,0.55)', fontSize: '0.95rem', lineHeight: 1.7, marginBottom: '2.5rem' }}>
+            Join 50+ artists already booking through Gigxo. Discovery leads $3, Standard $7, Premium $15. Pro: $49/month — no commission or booking fees, new leads daily.
           </p>
           <Link href="/signup">
-            <Button size="lg" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
-              Sign Up Now <ArrowRight className="ml-2 w-4 h-4" />
-            </Button>
+            <button style={{ background: 'linear-gradient(135deg,#c9a84c,#e8c97a)', color: '#080808', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '0.8rem', padding: '1rem 2.5rem', borderRadius: '2px', border: 'none', cursor: 'pointer' }}>
+              Sign Up Free →
+            </button>
           </Link>
         </div>
       </section>
