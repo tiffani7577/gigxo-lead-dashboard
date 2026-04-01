@@ -214,14 +214,14 @@ function getPreviewTags(lead: any): string[] {
 
 function getSourceBadgeColor(source: string) {
   switch (source) {
-    case "gigxo": return "bg-purple-100 text-purple-700";
-    case "manual": return "bg-purple-100 text-purple-700";
+    case "gigxo": return "bg-transparent text-stone-500";
+    case "manual": return "bg-transparent text-stone-500";
     case "eventbrite": return "bg-orange-100 text-orange-700";
-    case "thumbtack": return "bg-blue-100 text-blue-700";
+    case "thumbtack": return "bg-transparent text-stone-500";
     case "yelp": return "bg-red-100 text-red-700";
     case "craigslist": return "bg-amber-100 text-amber-700";
     case "nextdoor": return "bg-green-100 text-green-700";
-    case "facebook": return "bg-sky-100 text-sky-700";
+    case "facebook": return "bg-transparent text-stone-500";
     default: return "bg-gray-100 text-gray-700";
   }
 }
@@ -261,9 +261,9 @@ type Inquiry = {
 };
 
 const STATUS_CONFIG: Record<InquiryStatus, { label: string; bg: string; text: string; dot: string }> = {
-  new:      { label: "New",      bg: "bg-purple-100", text: "text-purple-700", dot: "bg-purple-500" },
+  new:      { label: "New",      bg: "bg-transparent", text: "text-stone-400", dot: "bg-stone-500" },
   read:     { label: "Read",     bg: "bg-slate-100",  text: "text-slate-600",  dot: "bg-slate-400" },
-  replied:  { label: "Replied",  bg: "bg-blue-100",   text: "text-blue-700",   dot: "bg-blue-500" },
+  replied:  { label: "Replied",  bg: "bg-transparent", text: "text-stone-400",   dot: "bg-stone-500" },
   booked:   { label: "Booked",   bg: "bg-green-100",  text: "text-green-700",  dot: "bg-green-500" },
   declined: { label: "Declined", bg: "bg-red-100",    text: "text-red-700",    dot: "bg-red-400" },
 };
@@ -1158,19 +1158,19 @@ export default function ArtistDashboard() {
                         </div>
 
                         {getLeadDescriptionForDisplay(lead) && (
-                          <p className="text-xs text-slate-500 line-clamp-3 mb-2">
+                          <p style={{fontSize:'0.78rem',color:'#888880',display:'-webkit-box',WebkitLineClamp:3,WebkitBoxOrient:'vertical',overflow:'hidden',marginBottom:'0.5rem',lineHeight:1.5}}>
                             {getLeadDescriptionForDisplay(lead)}
                           </p>
                         )}
                         {!lead.isUnlocked && (
-                          <p className="text-[11px] text-slate-400 mb-2">
-                            Full details and contact access after purchase
+                          <p style={{fontSize:'0.7rem',color:'#555550',marginBottom:'0.5rem',fontStyle:'italic'}}>
+                            Full contact info revealed after unlock
                           </p>
                         )}
                         {!lead.isUnlocked && getPreviewTags(lead).length > 0 && (
-                          <div className="flex flex-wrap items-center gap-1.5 mb-2">
+                          <div style={{display:'flex',flexWrap:'wrap',alignItems:'center',gap:'0.35rem',marginBottom:'0.5rem'}}>
                             {getPreviewTags(lead).map((tag) => (
-                              <span key={tag} className="text-[10px] font-medium text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full">
+                              <span key={tag} style={{fontSize:'0.68rem',fontWeight:600,color:'#888880',background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.08)',padding:'0.1rem 0.5rem',borderRadius:'3px',letterSpacing:'0.04em',textTransform:'uppercase'}}>
                                 {tag}
                               </span>
                             ))}
@@ -1179,23 +1179,14 @@ export default function ArtistDashboard() {
 
                         {/* Win Probability Bar */}
                         {(lead as any).winProbability !== undefined && (lead as any).winProbability !== null && (
-                          <div className="mb-2">
-                            <div className="flex items-center justify-between mb-0.5">
-                              <span className="text-xs text-slate-400">Win probability</span>
-                              <span className={`text-xs font-bold ${
-                                (lead as any).winProbability >= 70 ? 'text-green-600' :
-                                (lead as any).winProbability >= 45 ? 'text-orange-500' :
-                                'text-slate-400'
-                              }`}>{Math.round((lead as any).winProbability)}%</span>
+                          <div style={{marginBottom:'0.5rem'}}>
+                            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'0.2rem'}}>
+                              <span style={{fontSize:'0.7rem',color:'#555550',textTransform:'uppercase',letterSpacing:'0.05em'}}>Win probability</span>
+                              <span style={{fontSize:'0.75rem',fontWeight:700,color:(lead as any).winProbability>=70?'#22c55e':(lead as any).winProbability>=45?'#f97316':'#555550'}}>{Math.round((lead as any).winProbability)}%</span>
                             </div>
-                            <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div style={{height:'3px',background:'rgba(255,255,255,0.06)',borderRadius:'999px',overflow:'hidden'}}>
                               <div
-                                className={`h-full rounded-full transition-all ${
-                                  (lead as any).winProbability >= 70 ? 'bg-green-500' :
-                                  (lead as any).winProbability >= 45 ? 'bg-orange-400' :
-                                  'bg-slate-300'
-                                }`}
-                                style={{ width: `${Math.min(100, Math.round((lead as any).winProbability))}%` }}
+                                style={{height:'100%',borderRadius:'999px',transition:'width 0.3s',background:(lead as any).winProbability>=70?'#22c55e':(lead as any).winProbability>=45?'#f97316':'rgba(255,255,255,0.15)',width:`${Math.min(100,Math.round((lead as any).winProbability))}%`}}
                               />
                             </div>
                           </div>
@@ -1203,22 +1194,22 @@ export default function ArtistDashboard() {
 
                         {/* Contact availability badges — what artists unlock */}
                         {!lead.isUnlocked && (
-                          <div className="flex flex-wrap items-center gap-1.5 mb-2">
+                          <div style={{display:'flex',flexWrap:'wrap',alignItems:'center',gap:'0.35rem',marginBottom:'0.5rem'}}>
                             {(lead as any).hasContactEmail && (
-                              <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
-                                <Mail className="w-3 h-3" />
-                                Email available
+                              <span style={{display:'inline-flex',alignItems:'center',gap:'0.25rem',fontSize:'0.68rem',fontWeight:600,color:'#c9a84c',background:'rgba(201,168,76,0.08)',border:'1px solid rgba(201,168,76,0.2)',padding:'0.15rem 0.5rem',borderRadius:'3px'}}>
+                                <Mail style={{width:'0.65rem',height:'0.65rem'}} />
+                                Email included
                               </span>
                             )}
                             {(lead as any).hasContactPhone && (
-                              <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
-                                <Phone className="w-3 h-3" />
-                                Phone available
+                              <span style={{display:'inline-flex',alignItems:'center',gap:'0.25rem',fontSize:'0.68rem',fontWeight:600,color:'#c9a84c',background:'rgba(201,168,76,0.08)',border:'1px solid rgba(201,168,76,0.2)',padding:'0.15rem 0.5rem',borderRadius:'3px'}}>
+                                <Phone style={{width:'0.65rem',height:'0.65rem'}} />
+                                Phone included
                               </span>
                             )}
                             {showFacebookProfileLeadCta(lead) && (
-                              <span className="inline-flex items-center gap-1 text-xs font-medium text-sky-700 bg-sky-100 px-2 py-0.5 rounded-full">
-                                Facebook Lead — contact via profile link
+                              <span style={{display:'inline-flex',alignItems:'center',gap:'0.25rem',fontSize:'0.68rem',fontWeight:600,color:'#888880',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',padding:'0.15rem 0.5rem',borderRadius:'3px'}}>
+                                Direct profile link included
                               </span>
                             )}
                           </div>
@@ -1234,7 +1225,7 @@ export default function ArtistDashboard() {
                                 handleUnlock(lead.id);
                               }}
                               disabled={isProcessing && unlockingLeadId === lead.id}
-                              className="bg-purple-600 hover:bg-purple-700 text-white text-xs h-7 px-3"
+                              style={{background:'#c9a84c',color:'#080808',fontSize:'0.75rem',fontWeight:800,height:'1.75rem',padding:'0 0.75rem',border:'none',borderRadius:'3px',cursor:'pointer',letterSpacing:'0.04em',display:'inline-flex',alignItems:'center',gap:'0.25rem'}} className=""
                             >
                               {isProcessing && unlockingLeadId === lead.id ? (
                                 <Loader2 className="w-3 h-3 animate-spin" />
