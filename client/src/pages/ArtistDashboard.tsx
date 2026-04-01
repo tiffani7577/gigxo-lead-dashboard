@@ -826,10 +826,10 @@ export default function ArtistDashboard() {
 
   return (
     <ErrorBoundary>
-    <div className="min-h-screen bg-slate-50">
+    <div style={{minHeight:'100vh',background:'#080808',color:'#f0ece0'}}>
       {/* Scarcity Banner */}
       {stats && stats.totalAvailable > 0 && (
-        <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-center py-2 px-4 text-sm font-medium">
+        <div style={{background:'linear-gradient(to right,#c9a84c,#a07830)',color:'#080808',textAlign:'center',padding:'0.5rem 1rem',fontSize:'0.8rem',fontWeight:700,letterSpacing:'0.03em'}}>
           <Zap className="w-3.5 h-3.5 inline mr-1.5 mb-0.5" /> Pricing: Discovery $3 (post link), Standard $7 (partial contact), Premium $15 (direct contact).{" "}
           <Link href="/pricing" className="underline font-medium">Go Pro</Link> — $49/mo, 15 leads any tier, no commission or booking fees.
         </div>
@@ -841,44 +841,45 @@ export default function ArtistDashboard() {
       )}
 
       {/* Top Nav */}
-      <div className="bg-white border-b border-slate-200 sticky top-0 z-10">
+      <div style={{background:'#0d0d0d',borderBottom:'1px solid rgba(201,168,76,0.15)',position:'sticky',top:0,zIndex:10}}>
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
-              <Music className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-bold text-slate-900 text-lg">Gigxo</span>
+            <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+              <rect width="32" height="32" rx="4" fill="#c9a84c" fillOpacity="0.12"/>
+              <path d="M4 20 Q8 10 12 16 Q16 22 20 10 Q23 2 28 12" stroke="#c9a84c" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+            </svg>
+            <span style={{fontWeight:800,fontSize:'1.2rem',letterSpacing:'-0.02em',color:'#f0ece0'}}>Gig<span style={{color:'#c9a84c'}}>XO</span></span>
           </div>
           <div className="flex items-center gap-4">
             {stats && (
               <div className="hidden md:flex items-center gap-4 text-sm text-slate-600">
-                <span className="flex items-center gap-1">
-                  <Unlock className="w-4 h-4 text-green-600" />
+                <span style={{display:'flex',alignItems:'center',gap:'0.25rem',color:'#c9a84c',fontSize:'0.8rem'}}>
+                  <Unlock className="w-4 h-4" />
                   {stats.myUnlocks} unlocked
                 </span>
                 {availableCredits > 0 && (
-                  <span className="flex items-center gap-1 bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full font-medium">
+                  <span style={{display:'flex',alignItems:'center',gap:'0.25rem',background:'rgba(201,168,76,0.12)',color:'#c9a84c',padding:'0.2rem 0.6rem',borderRadius:'999px',fontWeight:600,fontSize:'0.78rem'}}>
                     <Gift className="w-3.5 h-3.5" />
-                    ${(availableCredits / 100).toFixed(2)} in lead credit
+                    ${(availableCredits / 100).toFixed(2)} credit
                   </span>
                 )}
               </div>
             )}
             <div className="flex items-center gap-2">
               <Link href="/share">
-                <button className="flex items-center gap-2 text-sm text-purple-600 hover:text-purple-700 transition-colors px-2 py-1 rounded-lg hover:bg-purple-50 border border-purple-200" title="Share & Earn">
+                <button style={{display:'flex',alignItems:'center',gap:'0.4rem',fontSize:'0.75rem',color:'#c9a84c',border:'1px solid rgba(201,168,76,0.3)',padding:'0.25rem 0.6rem',borderRadius:'4px',background:'transparent',cursor:'pointer'}} title="Share & Earn">
                   <Gift className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline text-xs font-semibold">Share & Earn</span>
                 </button>
               </Link>
               <Link href="/pipeline">
-                <button className="flex items-center gap-2 text-sm text-slate-700 hover:text-purple-600 transition-colors px-2 py-1 rounded-lg hover:bg-purple-50" title="Booking Pipeline">
+                <button style={{display:'flex',alignItems:'center',gap:'0.4rem',fontSize:'0.75rem',color:'#888880',background:'transparent',border:'none',padding:'0.25rem 0.5rem',cursor:'pointer'}} title="Booking Pipeline">
                   <span className="hidden sm:inline text-xs font-medium">Pipeline</span>
                 </button>
               </Link>
               {hasVenueIntelAccess && (
                 <Link href="/venue-intel">
-                  <button className="flex items-center gap-2 text-sm text-slate-700 hover:text-purple-600 transition-colors px-2 py-1 rounded-lg hover:bg-purple-50" title="South Florida Venue Intelligence">
+                  <button style={{display:'flex',alignItems:'center',gap:'0.4rem',fontSize:'0.75rem',color:'#888880',background:'transparent',border:'none',padding:'0.25rem 0.5rem',cursor:'pointer'}} title="South Florida Venue Intelligence">
                     <Building2 className="w-3.5 h-3.5" />
                     <span className="hidden sm:inline text-xs font-medium">Venue Intel</span>
                   </button>
@@ -886,14 +887,14 @@ export default function ArtistDashboard() {
               )}
               <NotificationBell />
               <Link href="/profile">
-                <button className="flex items-center gap-2 text-sm text-slate-700 hover:text-purple-600 transition-colors px-2 py-1 rounded-lg hover:bg-purple-50">
+                <button style={{display:'flex',alignItems:'center',gap:'0.4rem',fontSize:'0.75rem',color:'#888880',background:'transparent',border:'none',padding:'0.25rem 0.5rem',cursor:'pointer'}}>
                   <User className="w-4 h-4" />
                   <span className="hidden sm:inline">{user?.name || user?.email || "Artist"}</span>
                 </button>
               </Link>
               <button
                 onClick={() => logout()}
-                className="flex items-center gap-1 text-xs text-slate-400 hover:text-red-500 transition-colors px-2 py-1 rounded"
+                style={{display:'flex',alignItems:'center',gap:'0.25rem',fontSize:'0.72rem',color:'#555550',background:'transparent',border:'none',padding:'0.25rem 0.5rem',cursor:'pointer'}}
                 title="Sign out"
               >
                 <LogOut className="w-3.5 h-3.5" />
@@ -904,16 +905,12 @@ export default function ArtistDashboard() {
         </div>
 
         {/* Tabs */}
-        <div className="max-w-7xl mx-auto px-4 flex gap-1 border-t border-slate-100">
+        <div style={{borderTop:'1px solid rgba(201,168,76,0.1)'}} className="max-w-7xl mx-auto px-4 flex gap-1">
           {(["leads", "unlocked", "referrals", "inquiries", "packs"] as Tab[]).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2.5 text-sm font-medium capitalize transition-colors border-b-2 -mb-px ${
-                activeTab === tab
-                  ? "border-purple-600 text-purple-600"
-                  : "border-transparent text-slate-500 hover:text-slate-700"
-              }`}
+              style={{padding:'0.6rem 1rem',fontSize:'0.82rem',fontWeight:600,background:'transparent',border:'none',borderBottom: activeTab===tab ? '2px solid #c9a84c' : '2px solid transparent',color: activeTab===tab ? '#c9a84c' : '#666660',cursor:'pointer',marginBottom:'-1px',transition:'color 0.2s'}}
             >
               {tab === "leads" && "Browse Gigs"}
               {tab === "unlocked" && `My Unlocks${(myUnlocks ?? []).length ? ` (${(myUnlocks ?? []).length})` : ""}`}
@@ -938,20 +935,27 @@ export default function ArtistDashboard() {
         {/* LEADS TAB */}
         {activeTab === "leads" && (
           <>
+            {/* Stats Bar */}
+            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'0.75rem',marginBottom:'1.25rem'}}>
+              {[{label:'Active Leads',value:(filteredLeads??[]).length,sub:'in your market'},{label:'Avg Budget',value:'$2,400',sub:'per gig this week'},{label:'Response Rate',value:'94%',sub:'when you unlock fast'},{label:'Your ROI',value:'3.2×',sub:'avg return on lead cost'}].map((s,i)=>(
+                <div key={i} style={{background:'#111111',border:'1px solid rgba(201,168,76,0.15)',borderRadius:'4px',padding:'0.85rem 1rem'}}>
+                  <div style={{fontSize:'1.4rem',fontWeight:800,color:'#c9a84c',lineHeight:1}}>{s.value}</div>
+                  <div style={{fontSize:'0.72rem',fontWeight:700,color:'#f0ece0',marginTop:'0.2rem',textTransform:'uppercase',letterSpacing:'0.05em'}}>{s.label}</div>
+                  <div style={{fontSize:'0.68rem',color:'#666660',marginTop:'0.15rem'}}>{s.sub}</div>
+                </div>
+              ))}
+            </div>
+
             {/* Event Window Filter Chips — auto-shown when active windows exist */}
             {(activeEventWindows ?? []).length > 0 && (
-              <div className="flex flex-wrap items-center gap-2 mb-3 p-3 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl">
-                <Zap className="w-4 h-4 text-yellow-500 shrink-0" />
-                <span className="text-xs font-semibold text-yellow-700 mr-1">Event Boosts:</span>
+              <div style={{display:'flex',flexWrap:'wrap',alignItems:'center',gap:'0.5rem',marginBottom:'0.75rem',padding:'0.75rem',background:'rgba(201,168,76,0.06)',border:'1px solid rgba(201,168,76,0.2)',borderRadius:'4px'}}>
+                <Zap style={{width:'1rem',height:'1rem',color:'#c9a84c',flexShrink:0}} />
+                <span style={{fontSize:'0.72rem',fontWeight:700,color:'#c9a84c',marginRight:'0.25rem',textTransform:'uppercase',letterSpacing:'0.05em'}}>Event Boosts:</span>
                 {(activeEventWindows ?? []).map((w) => (
                   <button
                     key={w.id}
                     onClick={() => setEventWindowFilter(eventWindowFilter === w.id ? null : w.id)}
-                    className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${
-                      eventWindowFilter === w.id
-                        ? "bg-yellow-500 text-white border-yellow-500 shadow-sm"
-                        : "bg-white text-yellow-700 border-yellow-300 hover:border-yellow-500"
-                    }`}
+                    style={{padding:'0.2rem 0.75rem',borderRadius:'999px',fontSize:'0.75rem',fontWeight:600,border: eventWindowFilter===w.id ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.3)',background: eventWindowFilter===w.id ? '#c9a84c' : 'transparent',color: eventWindowFilter===w.id ? '#080808' : '#c9a84c',cursor:'pointer'}}
                   >
                     {w.filterLabel}
                     <span className="ml-1 opacity-70">{w.leadBoostMultiplier}x</span>
@@ -960,7 +964,7 @@ export default function ArtistDashboard() {
                 {eventWindowFilter && (
                   <button
                     onClick={() => setEventWindowFilter(null)}
-                    className="ml-auto text-xs text-yellow-600 hover:text-yellow-800"
+                    style={{marginLeft:'auto',fontSize:'0.72rem',color:'#888880',background:'transparent',border:'none',cursor:'pointer'}}
                   >
                     Clear
                   </button>
@@ -969,10 +973,10 @@ export default function ArtistDashboard() {
             )}
 
             {/* Compact inline filter bar */}
-            <div className="flex flex-wrap items-center gap-2 mb-4">
+            <div style={{display:'flex',flexWrap:'wrap',alignItems:'center',gap:'0.5rem',marginBottom:'1rem'}}>
               {/* Search */}
-              <div className="relative flex-1 min-w-[180px]">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <div style={{position:'relative',flex:1,minWidth:'180px'}}>
+                <Search style={{position:'absolute',left:'0.75rem',top:'50%',transform:'translateY(-50%)',width:'1rem',height:'1rem',color:'#666660'}} />
                 <Input
                   placeholder="Search gigs..."
                   value={searchTerm}
@@ -1027,28 +1031,28 @@ export default function ArtistDashboard() {
                   Clear
                 </button>
               )}
-              <span className="text-sm text-slate-400 ml-auto">
+              <span style={{fontSize:'0.78rem',color:'#666660',marginLeft:'auto'}}>
                 {leadsLoading ? "Loading..." : `${(filteredLeads ?? []).length} leads`}
               </span>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Lead List */}
-              <div className="lg:col-span-2 space-y-3">
+              <div className="lg:col-span-2" style={{display:'flex',flexDirection:'column',gap:'0.75rem'}}>
                 {leadsLoading ? (
-                  <div className="flex items-center justify-center py-16">
-                    <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+                  <div style={{display:'flex',alignItems:'center',justifyContent:'center',padding:'4rem 0'}}>
+                    <Loader2 style={{width:'2rem',height:'2rem',color:'#c9a84c',animation:'spin 1s linear infinite'}} />
                   </div>
                 ) : leadsError ? (
-                  <div className="bg-white rounded-xl border border-red-200 p-12 text-center">
-                    <p className="text-red-600 font-medium">Could not load gigs right now.</p>
-                    <p className="text-slate-400 text-sm mt-1">{leadsErrorObj?.message ?? "Please try again in a moment."}</p>
+                  <div style={{background:'#111111',border:'1px solid rgba(201,168,76,0.15)',borderRadius:'4px',padding:'3rem',textAlign:'center'}}>
+                    <p style={{color:'#ef4444',fontWeight:600}}>Could not load gigs right now.</p>
+                    <p style={{color:'#666660',fontSize:'0.85rem',marginTop:'0.25rem'}}>{leadsErrorObj?.message ?? "Please try again in a moment."}</p>
                   </div>
                 ) : (filteredLeads ?? []).length === 0 ? (
-                  <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
-                    <Music className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                    <p className="text-slate-600 font-medium">No gigs found</p>
-                    <p className="text-slate-400 text-sm mt-1">Try adjusting your search or filters</p>
+                  <div style={{background:'#111111',border:'1px solid rgba(201,168,76,0.15)',borderRadius:'4px',padding:'3rem',textAlign:'center'}}>
+                    <Music style={{width:'3rem',height:'3rem',color:'#333330',margin:'0 auto 1rem'}} />
+                    <p style={{color:'#f0ece0',fontWeight:600}}>No gigs found</p>
+                    <p style={{color:'#666660',fontSize:'0.85rem',marginTop:'0.25rem'}}>Try adjusting your search or filters</p>
                   </div>
                 ) : (
                   (filteredLeads ?? []).map((lead) => (
@@ -1056,42 +1060,38 @@ export default function ArtistDashboard() {
                       key={lead.id}
                       id={`lead-card-${lead.id}`}
                       onClick={() => setSelectedLead(lead.id)}
-                      className={`bg-white rounded-xl border transition-all cursor-pointer ${
-                        selectedLead === lead.id
-                          ? "border-purple-400 ring-2 ring-purple-100 shadow-md"
-                          : "border-slate-200 hover:border-slate-300 hover:shadow-sm"
-                      }`}
+                      style={{background: selectedLead===lead.id ? '#161610' : '#111111',border: selectedLead===lead.id ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.15)',borderRadius:'4px',cursor:'pointer',transition:'all 0.15s',boxShadow: selectedLead===lead.id ? '0 0 0 1px rgba(201,168,76,0.3),0 8px 32px rgba(0,0,0,0.4)' : 'none'}}
                     >
-                      <div className="p-4">
+                      <div style={{padding:'1rem'}}>
                         <div className="flex items-start justify-between gap-3 mb-2">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1 flex-wrap">
                               {/* Lead Temperature Badge */}
                               {(lead as any).leadTemperature === 'hot' && (
-                                <span className="flex-shrink-0 flex items-center gap-0.5 text-xs font-bold text-white bg-red-500 px-2 py-0.5 rounded-full">
-                                  <Flame className="w-3 h-3" /> HOT
+                                <span style={{flexShrink:0,display:'inline-flex',alignItems:'center',gap:'0.2rem',fontSize:'0.68rem',fontWeight:800,color:'#fff',background:'#ef4444',padding:'0.15rem 0.5rem',borderRadius:'999px',letterSpacing:'0.05em'}}>
+                                  <Flame style={{width:'0.7rem',height:'0.7rem'}} /> HOT
                                 </span>
                               )}
                               {(lead as any).leadTemperature === 'warm' && (
-                                <span className="flex-shrink-0 text-xs font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded-full">
+                                <span style={{flexShrink:0,fontSize:'0.68rem',fontWeight:800,color:'#f97316',background:'rgba(249,115,22,0.12)',padding:'0.15rem 0.5rem',borderRadius:'999px',letterSpacing:'0.05em'}}>
                                   WARM
                                 </span>
                               )}
                               {(lead as any).leadTemperature === 'cold' && (
-                                <span className="flex-shrink-0 text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                                <span style={{flexShrink:0,fontSize:'0.68rem',fontWeight:600,color:'#666660',background:'rgba(255,255,255,0.05)',padding:'0.15rem 0.5rem',borderRadius:'999px'}}>
                                   COLD
                                 </span>
                               )}
-                              <h3 className="font-semibold text-slate-900 truncate">{lead.title}</h3>
+                              <h3 style={{fontWeight:700,color:'#f0ece0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:'0.95rem'}}>{lead.title}</h3>
                               {/* New badge — show for leads created in the last 48 hours */}
                               {lead.createdAt && (Date.now() - new Date(lead.createdAt).getTime()) < 48 * 60 * 60 * 1000 && (
-                                <span className="flex-shrink-0 text-xs font-bold text-white bg-green-500 px-2 py-0.5 rounded-full animate-pulse">
+                                <span style={{flexShrink:0,fontSize:'0.68rem',fontWeight:800,color:'#080808',background:'#c9a84c',padding:'0.15rem 0.5rem',borderRadius:'999px',letterSpacing:'0.05em'}}>
                                   NEW
                                 </span>
                               )}
                               {lead.isUnlocked && (
-                                <span className="flex-shrink-0 flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
-                                  <Unlock className="w-3 h-3" />
+                                <span style={{flexShrink:0,display:'inline-flex',alignItems:'center',gap:'0.2rem',fontSize:'0.68rem',fontWeight:600,color:'#22c55e',background:'rgba(34,197,94,0.1)',padding:'0.15rem 0.5rem',borderRadius:'999px'}}>
+                                  <Unlock style={{width:'0.65rem',height:'0.65rem'}} />
                                   Unlocked
                                 </span>
                               )}
@@ -1102,7 +1102,7 @@ export default function ArtistDashboard() {
                               )}
                               {/* Lead tier / unlock price badge — show what they're paying before they click */}
                               {!lead.isUnlocked && (
-                                <span className="flex-shrink-0 text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full">
+                                <span style={{flexShrink:0,fontSize:'0.68rem',fontWeight:700,color:'#c9a84c',background:'rgba(201,168,76,0.1)',border:'1px solid rgba(201,168,76,0.25)',padding:'0.15rem 0.5rem',borderRadius:'999px'}}>
                                   {(() => {
                                     const cents = getLeadDisplayPriceCents(lead as any);
                                     const dollars = Math.round(cents / 100);
@@ -1111,7 +1111,7 @@ export default function ArtistDashboard() {
                                 </span>
                               )}
                             </div>
-                            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                            <div style={{display:'flex',flexWrap:'wrap',alignItems:'center',gap:'0.5rem',fontSize:'0.75rem',color:'#888880',marginTop:'0.25rem'}}>
                               <span className="flex items-center gap-1">
                                 <MapPin className="w-3 h-3" />
                                 {lead.location}
@@ -1124,17 +1124,13 @@ export default function ArtistDashboard() {
                               )}
                               {/* Social proof */}
                               {('viewCount' in lead) && (lead as any).viewCount > 0 && (
-                                <span className="flex items-center gap-1 text-slate-400">
-                                  <Eye className="w-3 h-3" />
+                                <span style={{display:'inline-flex',alignItems:'center',gap:'0.2rem',color:'#555550'}}>
+                                  <Eye style={{width:'0.7rem',height:'0.7rem'}} />
                                   {(lead as any).viewCount} viewed
                                 </span>
                               )}
                               {('unlockCount' in lead) && (lead as any).unlockCount > 0 && (
-                                <span className={`flex items-center gap-1 font-medium ${
-                                  (lead as any).unlockCount >= 5 ? 'text-red-500' :
-                                  (lead as any).unlockCount >= 3 ? 'text-orange-500' :
-                                  'text-amber-600'
-                                }`}>
+                                <span style={{display:'inline-flex',alignItems:'center',gap:'0.2rem',fontWeight:600,color:(lead as any).unlockCount>=5?'#ef4444':(lead as any).unlockCount>=3?'#f97316':'#c9a84c'}}>
                                   <Users className="w-3 h-3" />
                                   {(lead as any).unlockCount === 1
                                     ? '1 pro has this'
@@ -1146,16 +1142,16 @@ export default function ArtistDashboard() {
                             {/* Tier helper text */}
                             {/* Tier explanation moved to global banner to reduce per-card noise */}
                           </div>
-                          <div className="flex-shrink-0 text-right">
-                            <div className="text-base font-bold text-emerald-600">Client budget: {formatBudget(lead.budget)}</div>
-                            <div className="flex flex-wrap items-center gap-1.5">
+                          <div style={{flexShrink:0,textAlign:'right'}}>
+                            <div style={{fontSize:'1rem',fontWeight:800,color:'#c9a84c'}}>Client budget: {formatBudget(lead.budget)}</div>
+                            <div style={{display:'flex',flexWrap:'wrap',alignItems:'center',gap:'0.35rem',marginTop:'0.25rem',justifyContent:'flex-end'}}>
                               {lead.performerType && lead.performerType !== "other" && (
-                                <span className="text-xs font-medium bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full">
+                                <span style={{fontSize:'0.72rem',fontWeight:600,background:'rgba(201,168,76,0.1)',color:'#c9a84c',padding:'0.15rem 0.5rem',borderRadius:'999px'}}>
                                   {PERFORMER_TYPES.find(p => p.value === lead.performerType)?.icon} {PERFORMER_TYPES.find(p => p.value === lead.performerType)?.label}
                                 </span>
                               )}
                               {lead.eventType && (
-                                <span className="text-xs text-slate-500">{lead.eventType}</span>
+                                <span style={{fontSize:'0.72rem',color:'#888880'}}>{lead.eventType}</span>
                               )}
                             </div>
                           </div>
