@@ -1,6 +1,4 @@
 import { Link } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Music } from "lucide-react";
 import { SiteFooter } from "@/components/SiteFooter";
 import { PricingPlans } from "@/components/PricingPlans";
 import { Helmet } from "react-helmet-async";
@@ -13,7 +11,7 @@ export default function Pricing() {
   const url = canonicalUrlForPathname("/pricing");
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div style={{ minHeight: '100vh', background: '#080808' }}>
       <Helmet>
         <title>{title}</title>
         <meta name="description" content={description} />
@@ -27,39 +25,54 @@ export default function Pricing() {
         <meta name="twitter:description" content={description} />
         <meta name="twitter:image" content={DEFAULT_OG_IMAGE} />
       </Helmet>
-      <nav className="border-b border-slate-700 bg-slate-900/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+
+      {/* Nav */}
+      <nav style={{ borderBottom: '1px solid rgba(201,168,76,0.15)', background: 'rgba(8,8,8,0.95)', backdropFilter: 'blur(12px)', position: 'sticky', top: 0, zIndex: 50 }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '1rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Link href="/">
-            <div className="flex items-center gap-2 cursor-pointer">
-              <Music className="w-8 h-8 text-purple-500" />
-              <span className="text-2xl font-bold text-white">Gigxo</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+              <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                <rect width="28" height="28" rx="4" fill="#c9a84c" fillOpacity="0.12"/>
+                <path d="M4 18 Q7 10 10 14 Q13 18 16 10 Q19 2 22 10 Q24 15 26 12" stroke="#c9a84c" strokeWidth="2" strokeLinecap="round" fill="none"/>
+              </svg>
+              <span style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#f0ece0' }}>
+                Gig<span style={{ color: '#c9a84c' }}>XO</span>
+              </span>
             </div>
           </Link>
-          <div className="flex items-center gap-3">
+          <div style={{ display: 'flex', gap: '0.75rem' }}>
             <Link href="/login">
-              <Button variant="outline" className="border-purple-500 text-purple-400 hover:bg-purple-500/10">
+              <button style={{ padding: '0.5rem 1.25rem', border: '1px solid rgba(201,168,76,0.4)', background: 'transparent', color: '#c9a84c', borderRadius: '2px', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', cursor: 'pointer' }}>
                 Sign In
-              </Button>
+              </button>
             </Link>
             <Link href="/signup">
-              <Button className="bg-purple-600 hover:bg-purple-700 text-white">
-                Sign Up Free
-              </Button>
+              <button style={{ padding: '0.5rem 1.25rem', background: 'linear-gradient(135deg,#c9a84c,#e8c97a)', color: '#080808', borderRadius: '2px', fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', border: 'none', cursor: 'pointer' }}>
+                Get Access
+              </button>
             </Link>
           </div>
         </div>
       </nav>
 
-      <section className="py-16 sm:py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-14">
-            <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">Gigxo pricing for gig leads</h1>
-            <p className="text-lg text-slate-300 max-w-2xl mx-auto">
-              The performer lead marketplace powered by better intelligence. Discovery leads $3, Standard $7, Premium
-              $15 — or go Pro: $49/month, 15 leads any tier, no commission or booking fees, new leads daily.
-            </p>
+      {/* Hero */}
+      <section style={{ padding: '5rem 1.5rem 3rem', textAlign: 'center' }}>
+        <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+          <div style={{ display: 'inline-block', background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.3)', borderRadius: '2px', padding: '0.35rem 1rem', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#c9a84c', marginBottom: '1.5rem' }}>
+            Transparent Pricing
           </div>
+          <h1 style={{ fontSize: 'clamp(2.2rem,5vw,3.5rem)', fontWeight: 900, color: '#f0ece0', lineHeight: 1.1, marginBottom: '1.25rem', letterSpacing: '-0.02em' }}>
+            Pay only for the<br /><span style={{ color: '#c9a84c' }}>leads you want</span>
+          </h1>
+          <p style={{ fontSize: '1.1rem', color: '#888880', lineHeight: 1.7, maxWidth: '560px', margin: '0 auto' }}>
+            Discovery leads $3 · Standard $7 · Premium $15 — or go Pro at $49/month for 15 leads any tier.
+            No commission. No booking fees. Ever.
+          </p>
+        </div>
+      </section>
 
+      <section style={{ padding: '2rem 1.5rem 6rem' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
           <PricingPlans variant="dark" />
         </div>
       </section>

@@ -2,15 +2,12 @@ import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { setAuthToken } from "@/lib/authToken";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, Music, Eye, EyeOff, CheckCircle2 } from "lucide-react";
+import { Loader2, Eye, EyeOff, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { SiteFooter } from "@/components/SiteFooter";
 
-// Simple Google icon SVG
 function GoogleIcon() {
   return (
     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
@@ -21,12 +18,12 @@ function GoogleIcon() {
     </svg>
   );
 }
+
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [referralCode, setReferralCode] = useState<string | null>(null);
 
-  // Pick up referral code from URL (?ref=123)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const ref = params.get("ref");
@@ -35,9 +32,8 @@ export default function Signup() {
 
   const { mutate: signup, isPending } = trpc.auth.signup.useMutation({
     onSuccess: async (data) => {
-      // Store token in localStorage — works in all browsers including Safari
       if (data.token) setAuthToken(data.token);
-      toast.success("Welcome to Gigxo! 🎉");
+      toast.success("Welcome to GigXO!");
       window.location.href = "/dashboard";
     },
     onError: (e) => toast.error(e.message),
@@ -54,163 +50,156 @@ export default function Signup() {
   const passwordStrength = (() => {
     const p = form.password;
     if (p.length === 0) return null;
-    if (p.length < 8) return { label: "Too short", color: "bg-red-400", width: "25%" };
-    if (p.length < 10 && !/[A-Z]/.test(p)) return { label: "Weak", color: "bg-orange-400", width: "50%" };
-    if (/[A-Z]/.test(p) && /[0-9]/.test(p)) return { label: "Strong", color: "bg-green-500", width: "100%" };
-    return { label: "Good", color: "bg-blue-500", width: "75%" };
+    if (p.length < 8) return { label: "Too short", color: "#ef4444", width: "25%" };
+    if (p.length < 10 && !/[A-Z]/.test(p)) return { label: "Weak", color: "#f97316", width: "50%" };
+    if (/[A-Z]/.test(p) && /[0-9]/.test(p)) return { label: "Strong", color: "#22c55e", width: "100%" };
+    return { label: "Good", color: "#c9a84c", width: "75%" };
   })();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-950 via-slate-900 to-slate-950 flex flex-col">
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-purple-600/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-violet-600/10 rounded-full blur-3xl" />
+    <div style={{ minHeight: '100vh', background: '#080808', display: 'flex', flexDirection: 'column' }}>
+      {/* Subtle gold glow */}
+      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: '15%', right: '25%', width: '500px', height: '500px', background: 'radial-gradient(circle, rgba(201,168,76,0.05) 0%, transparent 70%)', borderRadius: '50%' }} />
       </div>
 
-      <div className="flex-1 flex items-center justify-center p-4">
-      <div className="w-full max-w-md relative">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <Link href="/">
-            <div className="inline-flex items-center gap-3 cursor-pointer">
-              <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-600/30">
-                <Music className="w-5 h-5 text-white" />
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem' }}>
+        <div style={{ width: '100%', maxWidth: '440px', position: 'relative' }}>
+
+          {/* Logo */}
+          <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
+            <Link href="/">
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                  <rect width="32" height="32" rx="4" fill="#c9a84c" fillOpacity="0.12"/>
+                  <path d="M4 20 Q8 10 12 16 Q16 22 20 10 Q23 2 28 12" stroke="#c9a84c" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+                </svg>
+                <span style={{ fontSize: '1.6rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#f0ece0' }}>
+                  Gig<span style={{ color: '#c9a84c' }}>XO</span>
+                </span>
               </div>
-              <span className="text-2xl font-bold text-white">Gigxo</span>
-            </div>
-          </Link>
-          <p className="text-slate-400 mt-2 text-sm">Miami & Fort Lauderdale Gig Leads</p>
-        </div>
-
-        {referralCode && (
-          <div className="mb-4 bg-purple-900/40 border border-purple-500/30 rounded-xl p-3 flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-purple-400 flex-shrink-0" />
-            <p className="text-purple-300 text-sm">
-              Referral applied — you'll get a launch promo on your first few leads.
-            </p>
+            </Link>
+            <p style={{ color: '#888880', marginTop: '0.5rem', fontSize: '0.85rem' }}>South Florida's Gig Lead Marketplace</p>
           </div>
-        )}
 
-        <Card className="bg-slate-800/60 border-slate-700/50 backdrop-blur-sm shadow-2xl">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-white text-xl">Create your account</CardTitle>
-            <CardDescription className="text-slate-400">
-              Join 50+ artists. Discovery leads $3, Standard $7, Premium $15. Pro: $49/month — 15 leads any tier. No commission. No booking fees. New leads daily.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="name" className="text-slate-300 text-sm">Full name</Label>
+          {referralCode && (
+            <div style={{ marginBottom: '1rem', background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.3)', borderRadius: '4px', padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <CheckCircle2 style={{ width: '1rem', height: '1rem', color: '#c9a84c', flexShrink: 0 }} />
+              <p style={{ color: '#c9a84c', fontSize: '0.82rem' }}>
+                Referral applied — you'll get a launch promo on your first few leads.
+              </p>
+            </div>
+          )}
+
+          {/* Card */}
+          <div style={{ background: '#111111', border: '1px solid rgba(201,168,76,0.15)', borderRadius: '4px', padding: '2rem', boxShadow: '0 24px 80px rgba(0,0,0,0.6)' }}>
+            <h1 style={{ color: '#f0ece0', fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.35rem' }}>Create your account</h1>
+            <p style={{ color: '#888880', fontSize: '0.82rem', marginBottom: '1.75rem', lineHeight: 1.5 }}>
+              Join 50+ artists. Discovery $3 · Standard $7 · Premium $15 · Pro $49/mo. No commission. Ever.
+            </p>
+
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <Label htmlFor="name" style={{ color: '#c9a84c', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Full name</Label>
                 <Input
                   id="name"
                   type="text"
                   placeholder="DJ Nova"
                   value={form.name}
                   onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))}
-                  className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-purple-500 focus:ring-purple-500/20"
+                  style={{ marginTop: '0.4rem', background: '#1a1a1a', border: '1px solid rgba(201,168,76,0.2)', color: '#f0ece0' }}
                   autoComplete="name"
                   required
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-slate-300 text-sm">Email address</Label>
+              <div>
+                <Label htmlFor="email" style={{ color: '#c9a84c', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Email address</Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="you@example.com"
                   value={form.email}
                   onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))}
-                  className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-purple-500 focus:ring-purple-500/20"
+                  style={{ marginTop: '0.4rem', background: '#1a1a1a', border: '1px solid rgba(201,168,76,0.2)', color: '#f0ece0' }}
                   autoComplete="email"
                   required
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="password" className="text-slate-300 text-sm">Password</Label>
-                <div className="relative">
+              <div>
+                <Label htmlFor="password" style={{ color: '#c9a84c', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Password</Label>
+                <div style={{ position: 'relative', marginTop: '0.4rem' }}>
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="At least 8 characters"
                     value={form.password}
                     onChange={(e) => setForm(f => ({ ...f, password: e.target.value }))}
-                    className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-purple-500 focus:ring-purple-500/20 pr-10"
+                    style={{ background: '#1a1a1a', border: '1px solid rgba(201,168,76,0.2)', color: '#f0ece0', paddingRight: '2.5rem' }}
                     autoComplete="new-password"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(s => !s)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
+                    style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#888880', cursor: 'pointer' }}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
                 {passwordStrength && (
-                  <div className="space-y-1">
-                    <div className="h-1 bg-slate-700 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all ${passwordStrength.color}`}
-                        style={{ width: passwordStrength.width }}
-                      />
+                  <div style={{ marginTop: '0.4rem' }}>
+                    <div style={{ height: '3px', background: '#1a1a1a', borderRadius: '2px', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', borderRadius: '2px', background: passwordStrength.color, width: passwordStrength.width, transition: 'width 0.3s' }} />
                     </div>
-                    <p className="text-xs text-slate-400">{passwordStrength.label}</p>
+                    <p style={{ fontSize: '0.72rem', color: '#888880', marginTop: '0.25rem' }}>{passwordStrength.label}</p>
                   </div>
                 )}
               </div>
 
-              <Button
+              <button
                 type="submit"
                 disabled={isPending}
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold h-11 shadow-lg shadow-purple-600/20"
+                style={{ width: '100%', background: 'linear-gradient(135deg,#c9a84c,#e8c97a)', color: '#080808', fontWeight: 700, fontSize: '0.8rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.85rem', border: 'none', borderRadius: '2px', cursor: isPending ? 'not-allowed' : 'pointer', opacity: isPending ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
               >
-                {isPending ? (
-                  <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Creating account...</>
-                ) : (
-                  "Create account — it's free"
-                )}
-              </Button>
+                {isPending ? <><Loader2 className="w-4 h-4 animate-spin" /> Creating account...</> : "Create Account — It's Free"}
+              </button>
 
               {/* Divider */}
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-slate-600" />
+              <div style={{ position: 'relative', margin: '0.25rem 0' }}>
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center' }}>
+                  <div style={{ width: '100%', borderTop: '1px solid rgba(201,168,76,0.12)' }} />
                 </div>
-                <div className="relative flex justify-center text-xs">
-                  <span className="bg-slate-800/60 px-3 text-slate-400">or sign up with</span>
+                <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
+                  <span style={{ background: '#111111', padding: '0 0.75rem', color: '#888880', fontSize: '0.75rem' }}>or sign up with</span>
                 </div>
               </div>
 
-              {/* Google Sign Up */}
               <a
                 href={`/api/auth/google/login?origin=${encodeURIComponent(window.location.origin)}`}
-                className="flex items-center justify-center gap-3 w-full h-11 rounded-md border border-slate-600 bg-slate-700/50 hover:bg-slate-700 text-white text-sm font-medium transition-colors"
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', width: '100%', padding: '0.75rem', border: '1px solid rgba(201,168,76,0.2)', background: '#1a1a1a', color: '#f0ece0', fontSize: '0.85rem', fontWeight: 500, borderRadius: '2px', textDecoration: 'none' }}
               >
                 <GoogleIcon />
                 Sign up with Google
               </a>
 
-              <p className="text-center text-slate-400 text-sm">
+              <p style={{ textAlign: 'center', color: '#888880', fontSize: '0.85rem' }}>
                 Already have an account?{" "}
-                <Link href="/login" className="text-purple-400 hover:text-purple-300 font-medium">
+                <Link href="/login" style={{ color: '#c9a84c', fontWeight: 600, textDecoration: 'none' }}>
                   Sign in
                 </Link>
               </p>
             </form>
-          </CardContent>
-        </Card>
+          </div>
 
-        <p className="text-center text-slate-500 text-xs mt-4">
-          By signing up, you agree to our{" "}
-          <Link href="/terms"><a className="text-purple-400 hover:underline">Terms of Service</a></Link>
-          {" "}and{" "}
-          <Link href="/privacy"><a className="text-purple-400 hover:underline">Privacy Policy</a></Link>.
-        </p>
-      </div>
+          <p style={{ textAlign: 'center', color: '#555550', fontSize: '0.72rem', marginTop: '1rem' }}>
+            By signing up, you agree to our{" "}
+            <Link href="/terms" style={{ color: '#c9a84c', textDecoration: 'none' }}>Terms of Service</Link>
+            {" "}and{" "}
+            <Link href="/privacy" style={{ color: '#c9a84c', textDecoration: 'none' }}>Privacy Policy</Link>.
+          </p>
+        </div>
       </div>
       <SiteFooter compact />
     </div>

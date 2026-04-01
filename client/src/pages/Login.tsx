@@ -2,15 +2,12 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { setAuthToken } from "@/lib/authToken";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, Music, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { SiteFooter } from "@/components/SiteFooter";
 
-// Simple Google icon SVG
 function GoogleIcon() {
   return (
     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
@@ -21,17 +18,16 @@ function GoogleIcon() {
     </svg>
   );
 }
+
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ email: "", password: "" });
 
-  // Check for Google OAuth error in URL
   const urlParams = new URLSearchParams(window.location.search);
   const googleError = urlParams.get("error");
 
   const { mutate: login, isPending } = trpc.auth.login.useMutation({
     onSuccess: async (data) => {
-      // Store token in localStorage — works in all browsers including Safari
       if (data.token) setAuthToken(data.token);
       toast.success("Welcome back!");
       window.location.href = "/dashboard";
@@ -46,126 +42,122 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-950 via-slate-900 to-slate-950 flex flex-col">
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-purple-600/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-violet-600/10 rounded-full blur-3xl" />
+    <div style={{ minHeight: '100vh', background: '#080808', display: 'flex', flexDirection: 'column' }}>
+      {/* Subtle gold glow */}
+      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: '20%', left: '30%', width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(201,168,76,0.06) 0%, transparent 70%)', borderRadius: '50%' }} />
       </div>
 
-      <div className="flex-1 flex items-center justify-center p-4">
-      <div className="w-full max-w-md relative">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <Link href="/">
-            <div className="inline-flex items-center gap-3 cursor-pointer">
-              <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-600/30">
-                <Music className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-2xl font-bold text-white">Gigxo</span>
-            </div>
-          </Link>
-          <p className="text-slate-400 mt-2 text-sm">Miami & Fort Lauderdale Gig Leads</p>
-        </div>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem' }}>
+        <div style={{ width: '100%', maxWidth: '420px', position: 'relative' }}>
 
-        <Card className="bg-slate-800/60 border-slate-700/50 backdrop-blur-sm shadow-2xl">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-white text-xl">Sign in to Gigxo</CardTitle>
-            <CardDescription className="text-slate-400">
-              Access your gig leads, unlock contacts (Discovery $3, Standard $7, Premium $15), and manage Pro ($49/mo, 15 leads any tier)
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-slate-300 text-sm">Email address</Label>
+          {/* Logo */}
+          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            <Link href="/">
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                  <rect width="32" height="32" rx="4" fill="#c9a84c" fillOpacity="0.12"/>
+                  <path d="M4 20 Q8 10 12 16 Q16 22 20 10 Q23 2 28 12" stroke="#c9a84c" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+                </svg>
+                <span style={{ fontSize: '1.6rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#f0ece0' }}>
+                  Gig<span style={{ color: '#c9a84c' }}>XO</span>
+                </span>
+              </div>
+            </Link>
+            <p style={{ color: '#888880', marginTop: '0.5rem', fontSize: '0.85rem' }}>South Florida's Gig Lead Marketplace</p>
+          </div>
+
+          {/* Card */}
+          <div style={{ background: '#111111', border: '1px solid rgba(201,168,76,0.15)', borderRadius: '4px', padding: '2rem', boxShadow: '0 24px 80px rgba(0,0,0,0.6)' }}>
+            <h1 style={{ color: '#f0ece0', fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.35rem' }}>Sign in to GigXO</h1>
+            <p style={{ color: '#888880', fontSize: '0.82rem', marginBottom: '1.75rem', lineHeight: 1.5 }}>
+              Access leads · Discovery $3 · Standard $7 · Premium $15 · Pro $49/mo
+            </p>
+
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <Label htmlFor="email" style={{ color: '#c9a84c', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Email address</Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="you@example.com"
                   value={form.email}
                   onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))}
-                  className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-purple-500 focus:ring-purple-500/20"
+                  style={{ marginTop: '0.4rem', background: '#1a1a1a', border: '1px solid rgba(201,168,76,0.2)', color: '#f0ece0' }}
                   autoComplete="email"
                   required
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password" className="text-slate-300 text-sm">Password</Label>
-                  <Link href="/forgot-password" className="text-purple-400 hover:text-purple-300 text-xs">
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Label htmlFor="password" style={{ color: '#c9a84c', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Password</Label>
+                  <Link href="/forgot-password" style={{ color: '#c9a84c', fontSize: '0.75rem', textDecoration: 'none' }}>
                     Forgot password?
                   </Link>
                 </div>
-                <div className="relative">
+                <div style={{ position: 'relative', marginTop: '0.4rem' }}>
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="Your password"
                     value={form.password}
                     onChange={(e) => setForm(f => ({ ...f, password: e.target.value }))}
-                    className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-purple-500 focus:ring-purple-500/20 pr-10"
+                    style={{ background: '#1a1a1a', border: '1px solid rgba(201,168,76,0.2)', color: '#f0ece0', paddingRight: '2.5rem' }}
                     autoComplete="current-password"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(s => !s)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
+                    style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#888880', cursor: 'pointer' }}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
 
-              <Button
+              <button
                 type="submit"
                 disabled={isPending}
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold h-11 shadow-lg shadow-purple-600/20"
+                style={{ width: '100%', background: 'linear-gradient(135deg,#c9a84c,#e8c97a)', color: '#080808', fontWeight: 700, fontSize: '0.8rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.85rem', border: 'none', borderRadius: '2px', cursor: isPending ? 'not-allowed' : 'pointer', opacity: isPending ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
               >
-                {isPending ? (
-                  <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Signing in...</>
-                ) : (
-                  "Sign in"
-                )}
-              </Button>
+                {isPending ? <><Loader2 className="w-4 h-4 animate-spin" /> Signing in...</> : "Sign In"}
+              </button>
 
               {/* Divider */}
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-slate-600" />
+              <div style={{ position: 'relative', margin: '0.25rem 0' }}>
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center' }}>
+                  <div style={{ width: '100%', borderTop: '1px solid rgba(201,168,76,0.12)' }} />
                 </div>
-                <div className="relative flex justify-center text-xs">
-                  <span className="bg-slate-800/60 px-3 text-slate-400">or continue with</span>
+                <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
+                  <span style={{ background: '#111111', padding: '0 0.75rem', color: '#888880', fontSize: '0.75rem' }}>or continue with</span>
                 </div>
               </div>
 
-              {/* Google Sign In — user login only (separate from Microsoft Graph / outreach) */}
               <a
                 href={`/api/auth/google/login?origin=${encodeURIComponent(window.location.origin)}`}
-                className="flex items-center justify-center gap-3 w-full h-11 rounded-md border border-slate-600 bg-slate-700/50 hover:bg-slate-700 text-white text-sm font-medium transition-colors"
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', width: '100%', padding: '0.75rem', border: '1px solid rgba(201,168,76,0.2)', background: '#1a1a1a', color: '#f0ece0', fontSize: '0.85rem', fontWeight: 500, borderRadius: '2px', textDecoration: 'none', transition: 'border-color 0.2s' }}
               >
                 <GoogleIcon />
                 Continue with Google
               </a>
 
               {googleError && (
-                <p className="text-center text-red-400 text-sm">
+                <p style={{ textAlign: 'center', color: '#ef4444', fontSize: '0.85rem' }}>
                   {googleError === "google_cancelled" ? "Google sign-in was cancelled." : "Google sign-in failed. Please try again."}
                 </p>
               )}
 
-              <p className="text-center text-slate-400 text-sm">
+              <p style={{ textAlign: 'center', color: '#888880', fontSize: '0.85rem' }}>
                 Don't have an account?{" "}
-                <Link href="/signup" className="text-purple-400 hover:text-purple-300 font-medium">
+                <Link href="/signup" style={{ color: '#c9a84c', fontWeight: 600, textDecoration: 'none' }}>
                   Create one free
                 </Link>
               </p>
             </form>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </div>
       </div>
       <SiteFooter compact />
     </div>
