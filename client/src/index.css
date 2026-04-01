@@ -163,3 +163,69 @@
     }
   }
 }
+
+/* ─── GigXO Dashboard Theme Overrides ─── */
+/* Force dark/gold on all white/light backgrounds */
+.bg-white { background-color: #111111 !important; }
+.bg-slate-50 { background-color: #0d0d0d !important; }
+.bg-slate-100 { background-color: #1a1a1a !important; }
+.bg-slate-200 { background-color: #222222 !important; }
+.bg-slate-800 { background-color: #111111 !important; }
+.bg-slate-800\/60 { background-color: rgba(17,17,17,0.95) !important; }
+.bg-slate-900 { background-color: #0d0d0d !important; }
+.bg-slate-900\/50 { background-color: rgba(8,8,8,0.8) !important; }
+.bg-slate-950 { background-color: #080808 !important; }
+
+/* Text overrides */
+.text-slate-900 { color: #f0ece0 !important; }
+.text-slate-800 { color: #e0dcd0 !important; }
+.text-slate-700 { color: #c8c4b8 !important; }
+.text-slate-600 { color: #aaa89e !important; }
+.text-slate-500 { color: #888880 !important; }
+.text-slate-400 { color: #666660 !important; }
+.text-slate-300 { color: #c9a84c !important; }
+
+/* Border overrides */
+.border-slate-200 { border-color: rgba(201,168,76,0.15) !important; }
+.border-slate-300 { border-color: rgba(201,168,76,0.2) !important; }
+.border-slate-600 { border-color: rgba(201,168,76,0.2) !important; }
+.border-slate-700 { border-color: rgba(201,168,76,0.15) !important; }
+.border-slate-700\/50 { border-color: rgba(201,168,76,0.1) !important; }
+
+/* Purple → Gold overrides */
+.bg-purple-600 { background-color: #c9a84c !important; }
+.bg-purple-700 { background-color: #a07830 !important; }
+.hover\:bg-purple-700:hover { background-color: #a07830 !important; }
+.text-purple-400 { color: #c9a84c !important; }
+.text-purple-500 { color: #c9a84c !important; }
+.text-purple-600 { color: #c9a84c !important; }
+.text-purple-700 { color: #c9a84c !important; }
+.bg-purple-100 { background-color: rgba(201,168,76,0.12) !important; }
+.border-purple-300 { border-color: rgba(201,168,76,0.4) !important; }
+.border-purple-500 { border-color: rgba(201,168,76,0.5) !important; }
+.focus\:border-purple-500:focus { border-color: #c9a84c !important; }
+.shadow-purple-600\/20 { box-shadow: 0 4px 20px rgba(201,168,76,0.2) !important; }
+
+/* Input backgrounds */
+.bg-slate-700\/50 { background-color: #1a1a1a !important; }
+.bg-slate-700 { background-color: #1a1a1a !important; }
+
+/* Card overrides */
+.bg-slate-800\/60 { background-color: #111111 !important; }
+
+/* Announcement banner */
+.bg-purple-900 { background-color: #111111 !important; }
+.bg-purple-950 { background-color: #080808 !important; }
+.from-purple-950 { --tw-gradient-from: #080808 !important; }
+.via-slate-900 { --tw-gradient-via: #0d0d0d !important; }
+.to-slate-950 { --tw-gradient-to: #080808 !important; }
+
+/* Top announcement bar */
+.bg-gradient-to-r.from-purple-600 { background: linear-gradient(to right, #c9a84c, #a07830) !important; }
+[class*="from-purple"] { --tw-gradient-from: #c9a84c !important; }
+[class*="to-purple"] { --tw-gradient-to: #a07830 !important; }
+
+/* Hover states */
+.hover\:bg-slate-50:hover { background-color: #1a1a1a !important; }
+.hover\:bg-slate-100:hover { background-color: #222222 !important; }
+.hover\:bg-slate-700:hover { background-color: #222222 !important; }
