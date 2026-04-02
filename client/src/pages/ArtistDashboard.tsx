@@ -1078,7 +1078,8 @@ export default function ArtistDashboard() {
                                 </span>
                               )}
                               {(lead as any).leadTemperature === 'cold' && (
-                                <span style={{flexShrstyle={{fontSize:'0.68rem',fontWeight:600,color:'#9ca3af',background:'#f0ede6',padding:'0.15rem 0.5rem',borderRadius:'999px'}}>                                 COLD
+                                <span style={{flexShrink:0,fontSize:'0.68rem',fontWeight:600,color:'#9ca3af',background:'#f0ede6',padding:'0.15rem 0.5rem',borderRadius:'999px'}}>
+                                  COLD
                                 </span>
                               )}
                               <h3 style={{fontWeight:700,color:'#1c1c2e',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:'0.95rem'}}>{lead.title}</h3>
