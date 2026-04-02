@@ -7,7 +7,7 @@ interface SiteFooterProps {
 }
 
 export function SiteFooter({ className = "", compact }: SiteFooterProps) {
-  const base = "border-t border-slate-700 bg-slate-900/50 text-slate-400 text-sm";
+  const base = "border-t border-slate-200 bg-white text-slate-500 text-sm";
   const padding = compact ? "py-4" : "py-8";
 
   return (
@@ -16,15 +16,15 @@ export function SiteFooter({ className = "", compact }: SiteFooterProps) {
         <div className={`flex flex-col items-center gap-2 ${compact ? "text-center" : "text-center"}`}>
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
             <Link href="/pricing">
-              <a className="hover:text-white transition-colors">Pricing</a>
+              <a className="hover:text-slate-900 transition-colors">Pricing</a>
             </Link>
             <span className="text-slate-600">·</span>
             <Link href="/privacy">
-              <a className="hover:text-white transition-colors">Privacy Policy</a>
+              <a className="hover:text-slate-900 transition-colors">Privacy Policy</a>
             </Link>
             <span className="text-slate-600">·</span>
             <Link href="/terms">
-              <a className="hover:text-white transition-colors">Terms of Service</a>
+              <a className="hover:text-slate-900 transition-colors">Terms of Service</a>
             </Link>
           </div>
           {!compact && <p>© 2026 Gigxo. Founded by artists, for artists.</p>}

@@ -37,10 +37,10 @@ function FeaturedLeads() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1.5rem' }}>
             {[1,2,3].map(i => (
-              <div key={i} style={{ background: '#111', border: '1px solid rgba(201,168,76,0.1)', borderRadius: '4px', padding: '1.5rem', animation: 'pulse 2s infinite' }}>
-                <div style={{ height: '2rem', background: '#1a1a1a', borderRadius: '2px', marginBottom: '1rem', width: '60%' }} />
-                <div style={{ height: '1rem', background: '#1a1a1a', borderRadius: '2px', marginBottom: '0.5rem', width: '80%' }} />
-                <div style={{ height: '1rem', background: '#1a1a1a', borderRadius: '2px', width: '50%' }} />
+              <div key={i} style={{ background: '#ffffff', border: '1px solid rgba(201,168,76,0.1)', borderRadius: '4px', padding: '1.5rem', animation: 'pulse 2s infinite' }}>
+                <div style={{ height: '2rem', background: '#f0ede6', borderRadius: '2px', marginBottom: '1rem', width: '60%' }} />
+                <div style={{ height: '1rem', background: '#f0ede6', borderRadius: '2px', marginBottom: '0.5rem', width: '80%' }} />
+                <div style={{ height: '1rem', background: '#f0ede6', borderRadius: '2px', width: '50%' }} />
               </div>
             ))}
           </div>
@@ -70,7 +70,7 @@ function FeaturedLeads() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
           {leads.map((lead, idx) => (
-            <div key={lead.id} style={{ background: '#111111', border: '1px solid rgba(201,168,76,0.15)', borderRadius: '4px', overflow: 'hidden', transition: 'all 0.3s' }}
+            <div key={lead.id} style={{ background: '#ffffff', border: '1px solid rgba(201,168,76,0.15)', borderRadius: '4px', overflow: 'hidden', transition: 'all 0.3s' }}
               onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(201,168,76,0.4)'; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(201,168,76,0.15)'; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)'; }}>
               {/* Card header */}
@@ -110,7 +110,7 @@ function FeaturedLeads() {
               {/* CTA */}
               <div style={{ padding: '0 1.5rem 1.5rem' }}>
                 <Link href="/signup">
-                  <button style={{ width: '100%', background: 'linear-gradient(135deg,#c9a84c,#e8c97a)', color: '#080808', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '0.7rem', padding: '0.85rem', borderRadius: '2px', border: 'none', cursor: 'pointer', transition: 'all 0.3s' }}>
+                  <button style={{ width: '100%', background: 'linear-gradient(135deg,#c9a84c,#e8c97a)', color: '#1c1c2e', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '0.7rem', padding: '0.85rem', borderRadius: '2px', border: 'none', cursor: 'pointer', transition: 'all 0.3s' }}>
                     Unlock Lead · Discovery $3 · Standard $7 · Premium $15
                   </button>
                 </Link>
@@ -149,7 +149,7 @@ export default function Home() {
   const homeOg = `${homeCanonical.replace(/\/$/, "")}/og-default.png`;
 
   return (
-    <div style={{ background: '#080808', minHeight: '100vh' }}>
+    <div style={{ background: '#f9f7f4', minHeight: '100vh' }}>
       <Helmet>
         <title>{homeTitle}</title>
         <meta name="description" content={homeDescription} />
@@ -192,7 +192,7 @@ export default function Home() {
             <button style={{ background: 'transparent', color: '#f0ede8', fontSize: '0.7rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.5rem 1.25rem', border: '1px solid rgba(240,237,232,0.25)', borderRadius: '2px', cursor: 'pointer' }}>Sign In</button>
           </Link>
           <Link href="/signup">
-            <button style={{ background: 'linear-gradient(135deg,#c9a84c,#e8c97a)', color: '#080808', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.5rem 1.25rem', border: 'none', borderRadius: '2px', cursor: 'pointer' }}>Get Access</button>
+            <button style={{ background: 'linear-gradient(135deg,#c9a84c,#e8c97a)', color: '#1c1c2e', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.5rem 1.25rem', border: 'none', borderRadius: '2px', cursor: 'pointer' }}>Get Access</button>
           </Link>
         </div>
       </nav>
@@ -219,7 +219,7 @@ export default function Home() {
           </p>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link href="/signup">
-              <button style={{ background: 'linear-gradient(135deg,#c9a84c,#e8c97a)', color: '#080808', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '0.75rem', padding: '1rem 2.5rem', borderRadius: '2px', border: 'none', cursor: 'pointer' }}>
+              <button style={{ background: 'linear-gradient(135deg,#c9a84c,#e8c97a)', color: '#1c1c2e', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '0.75rem', padding: '1rem 2.5rem', borderRadius: '2px', border: 'none', cursor: 'pointer' }}>
                 Browse Gig Leads
               </button>
             </Link>
@@ -243,7 +243,7 @@ export default function Home() {
       </section>
 
       {/* ── TRUST BAR ── */}
-      <div style={{ background: '#0d0d0d', borderTop: '1px solid rgba(201,168,76,0.1)', borderBottom: '1px solid rgba(201,168,76,0.1)', padding: '1.25rem 2rem' }}>
+      <div style={{ background: '#ffffff', borderTop: '1px solid rgba(201,168,76,0.1)', borderBottom: '1px solid rgba(201,168,76,0.1)', padding: '1.25rem 2rem' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
           <span style={{ fontSize: '0.65rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#c9a84c', fontWeight: 500, whiteSpace: 'nowrap' }}>Leads From</span>
           <div style={{ width: '1px', height: '16px', background: 'rgba(201,168,76,0.3)' }} />
@@ -272,7 +272,7 @@ export default function Home() {
             ))}
           </div>
           <Link href="/signup">
-            <button style={{ background: 'linear-gradient(135deg,#c9a84c,#e8c97a)', color: '#080808', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '0.75rem', padding: '0.85rem 2rem', borderRadius: '2px', border: 'none', cursor: 'pointer' }}>
+            <button style={{ background: 'linear-gradient(135deg,#c9a84c,#e8c97a)', color: '#1c1c2e', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '0.75rem', padding: '0.85rem 2rem', borderRadius: '2px', border: 'none', cursor: 'pointer' }}>
               View Available Leads
             </button>
           </Link>
@@ -280,7 +280,7 @@ export default function Home() {
         <div style={{ position: 'relative' }}>
           <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663413300520/FfzDPmosjlPHpdHO.jpg" alt="Luxury yacht event Fort Lauderdale"
             style={{ width: '100%', height: '520px', objectFit: 'cover', borderRadius: '2px', display: 'block' }} />
-          <div style={{ position: 'absolute', bottom: '2rem', left: '-2rem', background: '#111', border: '1px solid rgba(201,168,76,0.3)', padding: '1.25rem 1.5rem', borderRadius: '2px', boxShadow: '0 20px 60px rgba(0,0,0,0.6)' }}>
+          <div style={{ position: 'absolute', bottom: '2rem', left: '-2rem', background: '#ffffff', border: '1px solid rgba(201,168,76,0.3)', padding: '1.25rem 1.5rem', borderRadius: '2px', boxShadow: '0 20px 60px rgba(0,0,0,0.6)' }}>
             <div style={{ fontSize: '0.6rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#c9a84c', marginBottom: '0.4rem' }}>Latest Lead</div>
             <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '1.3rem', color: '#f0ede8', fontWeight: 600 }}>Yacht Charter · Fort Lauderdale</div>
             <div style={{ fontSize: '0.75rem', color: 'rgba(240,237,232,0.5)', marginTop: '0.25rem' }}>17th St Marina · Premium Lead</div>
@@ -328,7 +328,7 @@ export default function Home() {
       <FeaturedLeads />
 
       {/* ── PRICING ── */}
-      <section style={{ padding: '6rem 2rem', background: '#080808' }} id="pricing">
+      <section style={{ padding: '6rem 2rem', background: '#f9f7f4' }} id="pricing">
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
             <p style={{ fontSize: '0.65rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#c9a84c', fontWeight: 500, marginBottom: '1rem' }}>Membership</p>
@@ -353,7 +353,7 @@ export default function Home() {
             Join 50+ artists already booking through Gigxo. Discovery leads $3, Standard $7, Premium $15. Pro: $49/month — no commission or booking fees, new leads daily.
           </p>
           <Link href="/signup">
-            <button style={{ background: 'linear-gradient(135deg,#c9a84c,#e8c97a)', color: '#080808', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '0.8rem', padding: '1rem 2.5rem', borderRadius: '2px', border: 'none', cursor: 'pointer' }}>
+            <button style={{ background: 'linear-gradient(135deg,#c9a84c,#e8c97a)', color: '#1c1c2e', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '0.8rem', padding: '1rem 2.5rem', borderRadius: '2px', border: 'none', cursor: 'pointer' }}>
               Sign Up Free →
             </button>
           </Link>

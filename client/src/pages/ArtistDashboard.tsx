@@ -312,7 +312,7 @@ function InquiriesTab({ inquiries, onUpdateStatus }: {
             onClick={() => setFilterStatus(s)}
             className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
               filterStatus === s
-                ? "bg-purple-600 text-white shadow-sm"
+                ? "border border-amber-400 bg-amber-50 text-amber-800 font-medium"
                 : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
             }`}
           >
@@ -337,7 +337,7 @@ function InquiriesTab({ inquiries, onUpdateStatus }: {
             const noteVal = notes[inquiry.id] ?? inquiry.artistNotes ?? "";
             return (
               <Card key={inquiry.id} className={`border transition-all ${
-                inquiry.status === "new" ? "border-purple-300 shadow-sm" : "border-slate-200"
+                inquiry.status === "new" ? "shadow-sm" : "border-slate-200"
               }`}>
                 <CardContent className="p-0">
                   {/* Header row */}
@@ -358,7 +358,7 @@ function InquiriesTab({ inquiries, onUpdateStatus }: {
                               {cfg.label}
                             </span>
                             {inquiry.status === "new" && (
-                              <span className="text-xs bg-purple-600 text-white px-1.5 py-0.5 rounded font-medium animate-pulse">NEW</span>
+                              <span className="text-xs px-1.5 py-0.5 rounded font-medium animate-pulse" style={{background:"#c9a84c",color:"#1c1c2e"}}>NEW</span>
                             )}
                           </div>
                           <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-slate-500 mt-1">
@@ -403,7 +403,7 @@ function InquiriesTab({ inquiries, onUpdateStatus }: {
                           onChange={(e) => setNotes(n => ({ ...n, [inquiry.id]: e.target.value }))}
                           placeholder="Add notes about this inquiry (only you can see this)..."
                           rows={2}
-                          className="w-full text-sm border border-slate-200 rounded-lg p-2 text-slate-700 placeholder:text-slate-400 resize-none focus:outline-none focus:ring-2 focus:ring-purple-300"
+                          className="w-full text-sm border rounded-lg p-2 resize-none" style={{borderColor:"#e8e4dc",color:"#1c1c2e"}}
                         />
                       </div>
 
@@ -436,7 +436,7 @@ function InquiriesTab({ inquiries, onUpdateStatus }: {
                           </button>
                           <a
                             href={`mailto:${inquiry.inquirerEmail}?subject=Re: Your booking inquiry`}
-                            className="text-xs bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-md font-medium flex items-center gap-1"
+                            className="text-xs px-3 py-1.5 rounded-md font-medium flex items-center gap-1" style={{background:"#c9a84c",color:"#1c1c2e"}}
                           >
                             <Mail className="w-3 h-3" /> Reply by Email
                           </a>
@@ -480,8 +480,8 @@ function CreditPackButton({ packId, highlighted }: { packId: "pack_3" | "pack_10
       disabled={isPending}
       className={`w-full ${
         highlighted
-          ? "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
-          : "bg-slate-800 hover:bg-slate-700 text-white"
+          ? "bg-amber-500 text-slate-900 font-bold"
+          : "bg-slate-700 text-white"
       }`}
     >
       {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Buy Now"}
@@ -767,9 +767,9 @@ export default function ArtistDashboard() {
   // Show spinner while auth is resolving to prevent white screen flash
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900">
+      <div className="min-h-screen flex items-center justify-center" style={{background:"#f9f7f4"}}>
         <div className="text-center">
-          <Loader2 className="w-10 h-10 text-purple-400 animate-spin mx-auto mb-4" />
+          <Loader2 className="w-10 h-10 animate-spin mx-auto mb-4" style={{color:"#c9a84c"}} />
           <p className="text-slate-400 text-sm">Loading your dashboard...</p>
         </div>
       </div>
@@ -778,21 +778,21 @@ export default function ArtistDashboard() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900">
+      <div className="min-h-screen flex items-center justify-center" style={{background:"#f9f7f4"}}>
         <div className="text-center max-w-md px-6">
-          <div className="w-16 h-16 bg-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{background:"#c9a84c"}}>
             <Music className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-white mb-3">Sign in to browse gigs</h1>
           <p className="text-slate-400 mb-8">Access curated gig leads for South Florida artists — Miami, Fort Lauderdale, Boca, West Palm</p>
           <div className="flex gap-3 justify-center">
             <Link href="/login">
-              <Button className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg">
+              <Button style={{background:"#c9a84c",color:"#1c1c2e",fontWeight:700}} className="px-8 py-3 text-lg">
                 Sign In
               </Button>
             </Link>
             <Link href="/signup">
-              <Button variant="outline" className="border-purple-500 text-purple-400 hover:bg-purple-900/20 px-8 py-3 text-lg">
+              <Button variant="outline" style={{borderColor:"#c9a84c",color:"#b8963e"}} className="px-8 py-3 text-lg">
                 Create Account
               </Button>
             </Link>
@@ -826,10 +826,10 @@ export default function ArtistDashboard() {
 
   return (
     <ErrorBoundary>
-    <div style={{minHeight:'100vh',background:'#080808',color:'#f0ece0'}}>
+    <div style={{minHeight:'100vh',background:'#f9f7f4',color:'#1c1c2e'}}>
       {/* Scarcity Banner */}
       {stats && stats.totalAvailable > 0 && (
-        <div style={{background:'linear-gradient(to right,#c9a84c,#a07830)',color:'#080808',textAlign:'center',padding:'0.5rem 1rem',fontSize:'0.8rem',fontWeight:700,letterSpacing:'0.03em'}}>
+        <div style={{background:'linear-gradient(to right,#c9a84c,#a07830)',color:'#f9f7f4',textAlign:'center',padding:'0.5rem 1rem',fontSize:'0.8rem',fontWeight:700,letterSpacing:'0.03em'}}>
           <Zap className="w-3.5 h-3.5 inline mr-1.5 mb-0.5" /> Pricing: Discovery $3 (post link), Standard $7 (partial contact), Premium $15 (direct contact).{" "}
           <Link href="/pricing" className="underline font-medium">Go Pro</Link> — $49/mo, 15 leads any tier, no commission or booking fees.
         </div>
@@ -841,14 +841,14 @@ export default function ArtistDashboard() {
       )}
 
       {/* Top Nav */}
-      <div style={{background:'#0d0d0d',borderBottom:'1px solid rgba(201,168,76,0.15)',position:'sticky',top:0,zIndex:10}}>
+      <div style={{background:'#ffffff',borderBottom:'1px solid rgba(201,168,76,0.15)',position:'sticky',top:0,zIndex:10}}>
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
               <rect width="32" height="32" rx="4" fill="#c9a84c" fillOpacity="0.12"/>
               <path d="M4 20 Q8 10 12 16 Q16 22 20 10 Q23 2 28 12" stroke="#c9a84c" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
             </svg>
-            <span style={{fontWeight:800,fontSize:'1.2rem',letterSpacing:'-0.02em',color:'#f0ece0'}}>Gig<span style={{color:'#c9a84c'}}>XO</span></span>
+            <span style={{fontWeight:800,fontSize:'1.2rem',letterSpacing:'-0.02em',color:'#1c1c2e'}}>Gig<span style={{color:'#c9a84c'}}>XO</span></span>
           </div>
           <div className="flex items-center gap-4">
             {stats && (
@@ -873,13 +873,13 @@ export default function ArtistDashboard() {
                 </button>
               </Link>
               <Link href="/pipeline">
-                <button style={{display:'flex',alignItems:'center',gap:'0.4rem',fontSize:'0.75rem',color:'#888880',background:'transparent',border:'none',padding:'0.25rem 0.5rem',cursor:'pointer'}} title="Booking Pipeline">
+                <button style={{display:'flex',alignItems:'center',gap:'0.4rem',fontSize:'0.75rem',color:'#6b6860',background:'transparent',border:'none',padding:'0.25rem 0.5rem',cursor:'pointer'}} title="Booking Pipeline">
                   <span className="hidden sm:inline text-xs font-medium">Pipeline</span>
                 </button>
               </Link>
               {hasVenueIntelAccess && (
                 <Link href="/venue-intel">
-                  <button style={{display:'flex',alignItems:'center',gap:'0.4rem',fontSize:'0.75rem',color:'#888880',background:'transparent',border:'none',padding:'0.25rem 0.5rem',cursor:'pointer'}} title="South Florida Venue Intelligence">
+                  <button style={{display:'flex',alignItems:'center',gap:'0.4rem',fontSize:'0.75rem',color:'#6b6860',background:'transparent',border:'none',padding:'0.25rem 0.5rem',cursor:'pointer'}} title="South Florida Venue Intelligence">
                     <Building2 className="w-3.5 h-3.5" />
                     <span className="hidden sm:inline text-xs font-medium">Venue Intel</span>
                   </button>
@@ -887,14 +887,14 @@ export default function ArtistDashboard() {
               )}
               <NotificationBell />
               <Link href="/profile">
-                <button style={{display:'flex',alignItems:'center',gap:'0.4rem',fontSize:'0.75rem',color:'#888880',background:'transparent',border:'none',padding:'0.25rem 0.5rem',cursor:'pointer'}}>
+                <button style={{display:'flex',alignItems:'center',gap:'0.4rem',fontSize:'0.75rem',color:'#6b6860',background:'transparent',border:'none',padding:'0.25rem 0.5rem',cursor:'pointer'}}>
                   <User className="w-4 h-4" />
                   <span className="hidden sm:inline">{user?.name || user?.email || "Artist"}</span>
                 </button>
               </Link>
               <button
                 onClick={() => logout()}
-                style={{display:'flex',alignItems:'center',gap:'0.25rem',fontSize:'0.72rem',color:'#555550',background:'transparent',border:'none',padding:'0.25rem 0.5rem',cursor:'pointer'}}
+                style={{display:'flex',alignItems:'center',gap:'0.25rem',fontSize:'0.72rem',color:'#6b6860',background:'transparent',border:'none',padding:'0.25rem 0.5rem',cursor:'pointer'}}
                 title="Sign out"
               >
                 <LogOut className="w-3.5 h-3.5" />
@@ -910,7 +910,7 @@ export default function ArtistDashboard() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              style={{padding:'0.6rem 1rem',fontSize:'0.82rem',fontWeight:600,background:'transparent',border:'none',borderBottom: activeTab===tab ? '2px solid #c9a84c' : '2px solid transparent',color: activeTab===tab ? '#c9a84c' : '#666660',cursor:'pointer',marginBottom:'-1px',transition:'color 0.2s'}}
+              style={{padding:'0.6rem 1rem',fontSize:'0.82rem',fontWeight:600,background:'transparent',border:'none',borderBottom: activeTab===tab ? '2px solid #c9a84c' : '2px solid transparent',color: activeTab===tab ? '#c9a84c' : '#6b6860',cursor:'pointer',marginBottom:'-1px',transition:'color 0.2s'}}
             >
               {tab === "leads" && "Browse Gigs"}
               {tab === "unlocked" && `My Unlocks${(myUnlocks ?? []).length ? ` (${(myUnlocks ?? []).length})` : ""}`}
@@ -938,10 +938,10 @@ export default function ArtistDashboard() {
             {/* Stats Bar */}
             <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'0.75rem',marginBottom:'1.25rem'}}>
               {[{label:'Active Leads',value:(filteredLeads??[]).length,sub:'in your market'},{label:'Avg Budget',value:'$2,400',sub:'per gig this week'},{label:'Response Rate',value:'94%',sub:'when you unlock fast'},{label:'Your ROI',value:'3.2×',sub:'avg return on lead cost'}].map((s,i)=>(
-                <div key={i} style={{background:'#111111',border:'1px solid rgba(201,168,76,0.15)',borderRadius:'4px',padding:'0.85rem 1rem'}}>
+                <div key={i} style={{background:'#ffffff',border:'1px solid rgba(201,168,76,0.15)',borderRadius:'4px',padding:'0.85rem 1rem'}}>
                   <div style={{fontSize:'1.4rem',fontWeight:800,color:'#c9a84c',lineHeight:1}}>{s.value}</div>
-                  <div style={{fontSize:'0.72rem',fontWeight:700,color:'#f0ece0',marginTop:'0.2rem',textTransform:'uppercase',letterSpacing:'0.05em'}}>{s.label}</div>
-                  <div style={{fontSize:'0.68rem',color:'#666660',marginTop:'0.15rem'}}>{s.sub}</div>
+                  <div style={{fontSize:'0.72rem',fontWeight:700,color:'#1c1c2e',marginTop:'0.2rem',textTransform:'uppercase',letterSpacing:'0.05em'}}>{s.label}</div>
+                  <div style={{fontSize:'0.68rem',color:'#6b6860',marginTop:'0.15rem'}}>{s.sub}</div>
                 </div>
               ))}
             </div>
@@ -955,7 +955,7 @@ export default function ArtistDashboard() {
                   <button
                     key={w.id}
                     onClick={() => setEventWindowFilter(eventWindowFilter === w.id ? null : w.id)}
-                    style={{padding:'0.2rem 0.75rem',borderRadius:'999px',fontSize:'0.75rem',fontWeight:600,border: eventWindowFilter===w.id ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.3)',background: eventWindowFilter===w.id ? '#c9a84c' : 'transparent',color: eventWindowFilter===w.id ? '#080808' : '#c9a84c',cursor:'pointer'}}
+                    style={{padding:'0.2rem 0.75rem',borderRadius:'999px',fontSize:'0.75rem',fontWeight:600,border: eventWindowFilter===w.id ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.3)',background: eventWindowFilter===w.id ? '#c9a84c' : 'transparent',color: eventWindowFilter===w.id ? '#f9f7f4' : '#c9a84c',cursor:'pointer'}}
                   >
                     {w.filterLabel}
                     <span className="ml-1 opacity-70">{w.leadBoostMultiplier}x</span>
@@ -964,7 +964,7 @@ export default function ArtistDashboard() {
                 {eventWindowFilter && (
                   <button
                     onClick={() => setEventWindowFilter(null)}
-                    style={{marginLeft:'auto',fontSize:'0.72rem',color:'#888880',background:'transparent',border:'none',cursor:'pointer'}}
+                    style={{marginLeft:'auto',fontSize:'0.72rem',color:'#6b6860',background:'transparent',border:'none',cursor:'pointer'}}
                   >
                     Clear
                   </button>
@@ -976,7 +976,7 @@ export default function ArtistDashboard() {
             <div style={{display:'flex',flexWrap:'wrap',alignItems:'center',gap:'0.5rem',marginBottom:'1rem'}}>
               {/* Search */}
               <div style={{position:'relative',flex:1,minWidth:'180px'}}>
-                <Search style={{position:'absolute',left:'0.75rem',top:'50%',transform:'translateY(-50%)',width:'1rem',height:'1rem',color:'#666660'}} />
+                <Search style={{position:'absolute',left:'0.75rem',top:'50%',transform:'translateY(-50%)',width:'1rem',height:'1rem',color:'#6b6860'}} />
                 <Input
                   placeholder="Search gigs..."
                   value={searchTerm}
@@ -988,8 +988,8 @@ export default function ArtistDashboard() {
               <select
                 value={cityFilter}
                 onChange={(e) => setCityFilter(e.target.value)}
-                className={`h-9 text-sm border rounded-lg px-3 pr-8 focus:outline-none focus:ring-2 focus:ring-purple-400 transition-colors ${
-                  cityFilter !== "all" ? "border-indigo-400 bg-indigo-50 text-indigo-700 font-medium" : "border-slate-200 bg-white text-slate-700"
+                className={`h-9 text-sm border rounded-lg px-3 pr-8 focus:outline-none transition-colors ${
+                  cityFilter !== "all" ? "border-amber-400 bg-amber-50 text-amber-800 font-medium" : "border-slate-200 bg-white text-slate-700"
                 }`}
               >
                 <option value="all">All Cities</option>
@@ -1001,8 +1001,8 @@ export default function ArtistDashboard() {
               <select
                 value={performerTypeFilter}
                 onChange={(e) => setPerformerTypeFilter(e.target.value)}
-                className={`h-9 text-sm border rounded-lg px-3 pr-8 focus:outline-none focus:ring-2 focus:ring-purple-400 transition-colors ${
-                  performerTypeFilter !== "all" ? "border-purple-400 bg-purple-50 text-purple-700 font-medium" : "border-slate-200 bg-white text-slate-700"
+                className={`h-9 text-sm border rounded-lg px-3 pr-8 focus:outline-none transition-colors ${
+                  performerTypeFilter !== "all" ? "border-amber-400 bg-amber-50 text-amber-800 font-medium" : "border-slate-200 bg-white text-slate-700"
                 }`}
               >
                 <option value="all">All Types</option>
@@ -1014,8 +1014,8 @@ export default function ArtistDashboard() {
               <select
                 value={eventTypeFilter}
                 onChange={(e) => setEventTypeFilter(e.target.value)}
-                className={`h-9 text-sm border rounded-lg px-3 pr-8 focus:outline-none focus:ring-2 focus:ring-purple-400 transition-colors ${
-                  eventTypeFilter !== "All" ? "border-pink-400 bg-pink-50 text-pink-700 font-medium" : "border-slate-200 bg-white text-slate-700"
+                className={`h-9 text-sm border rounded-lg px-3 pr-8 focus:outline-none transition-colors ${
+                  eventTypeFilter !== "All" ? "border-amber-400 bg-amber-50 text-amber-800 font-medium" : "border-slate-200 bg-white text-slate-700"
                 }`}
               >
                 {(EVENT_TYPES ?? []).map(type => (
@@ -1031,7 +1031,7 @@ export default function ArtistDashboard() {
                   Clear
                 </button>
               )}
-              <span style={{fontSize:'0.78rem',color:'#666660',marginLeft:'auto'}}>
+              <span style={{fontSize:'0.78rem',color:'#6b6860',marginLeft:'auto'}}>
                 {leadsLoading ? "Loading..." : `${(filteredLeads ?? []).length} leads`}
               </span>
             </div>
@@ -1044,15 +1044,15 @@ export default function ArtistDashboard() {
                     <Loader2 style={{width:'2rem',height:'2rem',color:'#c9a84c',animation:'spin 1s linear infinite'}} />
                   </div>
                 ) : leadsError ? (
-                  <div style={{background:'#111111',border:'1px solid rgba(201,168,76,0.15)',borderRadius:'4px',padding:'3rem',textAlign:'center'}}>
+                  <div style={{background:'#ffffff',border:'1px solid rgba(201,168,76,0.15)',borderRadius:'4px',padding:'3rem',textAlign:'center'}}>
                     <p style={{color:'#ef4444',fontWeight:600}}>Could not load gigs right now.</p>
-                    <p style={{color:'#666660',fontSize:'0.85rem',marginTop:'0.25rem'}}>{leadsErrorObj?.message ?? "Please try again in a moment."}</p>
+                    <p style={{color:'#6b6860',fontSize:'0.85rem',marginTop:'0.25rem'}}>{leadsErrorObj?.message ?? "Please try again in a moment."}</p>
                   </div>
                 ) : (filteredLeads ?? []).length === 0 ? (
-                  <div style={{background:'#111111',border:'1px solid rgba(201,168,76,0.15)',borderRadius:'4px',padding:'3rem',textAlign:'center'}}>
-                    <Music style={{width:'3rem',height:'3rem',color:'#333330',margin:'0 auto 1rem'}} />
-                    <p style={{color:'#f0ece0',fontWeight:600}}>No gigs found</p>
-                    <p style={{color:'#666660',fontSize:'0.85rem',marginTop:'0.25rem'}}>Try adjusting your search or filters</p>
+                  <div style={{background:'#ffffff',border:'1px solid rgba(201,168,76,0.15)',borderRadius:'4px',padding:'3rem',textAlign:'center'}}>
+                    <Music style={{width:'3rem',height:'3rem',color:'#c9a84c',margin:'0 auto 1rem'}} />
+                    <p style={{color:'#1c1c2e',fontWeight:600}}>No gigs found</p>
+                    <p style={{color:'#6b6860',fontSize:'0.85rem',marginTop:'0.25rem'}}>Try adjusting your search or filters</p>
                   </div>
                 ) : (
                   (filteredLeads ?? []).map((lead) => (
@@ -1085,7 +1085,7 @@ export default function ArtistDashboard() {
                               <h3 style={{fontWeight:700,color:'#1c1c2e',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:'0.95rem'}}>{lead.title}</h3>
                               {/* New badge — show for leads created in the last 48 hours */}
                               {lead.createdAt && (Date.now() - new Date(lead.createdAt).getTime()) < 48 * 60 * 60 * 1000 && (
-                                <span style={{flexShrink:0,fontSize:'0.68rem',fontWeight:800,color:'#080808',background:'#c9a84c',padding:'0.15rem 0.5rem',borderRadius:'999px',letterSpacing:'0.05em'}}>
+                                <span style={{flexShrink:0,fontSize:'0.68rem',fontWeight:800,color:'#f9f7f4',background:'#c9a84c',padding:'0.15rem 0.5rem',borderRadius:'999px',letterSpacing:'0.05em'}}>
                                   NEW
                                 </span>
                               )}
@@ -1151,7 +1151,7 @@ export default function ArtistDashboard() {
                                 </span>
                               )}
                               {lead.eventType && (
-                                <span style={{fontSize:'0.72rem',color:'#888880'}}>{lead.eventType}</span>
+                                <span style={{fontSize:'0.72rem',color:'#6b6860'}}>{lead.eventType}</span>
                               )}
                             </div>
                           </div>
@@ -1181,8 +1181,8 @@ export default function ArtistDashboard() {
                         {(lead as any).winProbability !== undefined && (lead as any).winProbability !== null && (
                           <div style={{marginBottom:'0.5rem'}}>
                             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'0.2rem'}}>
-                              <span style={{fontSize:'0.7rem',color:'#555550',textTransform:'uppercase',letterSpacing:'0.05em'}}>Win probability</span>
-                              <span style={{fontSize:'0.75rem',fontWeight:700,color:(lead as any).winProbability>=70?'#22c55e':(lead as any).winProbability>=45?'#f97316':'#555550'}}>{Math.round((lead as any).winProbability)}%</span>
+                              <span style={{fontSize:'0.7rem',color:'#6b6860',textTransform:'uppercase',letterSpacing:'0.05em'}}>Win probability</span>
+                              <span style={{fontSize:'0.75rem',fontWeight:700,color:(lead as any).winProbability>=70?'#22c55e':(lead as any).winProbability>=45?'#f97316':'#6b6860'}}>{Math.round((lead as any).winProbability)}%</span>
                             </div>
                             <div style={{height:'3px',background:'#e8e4dc',borderRadius:'999px',overflow:'hidden'}}>
                               <div
@@ -1263,7 +1263,7 @@ export default function ArtistDashboard() {
                                       lead.contactName,
                                       lead.performerType
                                     )}
-                                    className="flex items-center gap-1 text-purple-600 hover:underline"
+                                    style={{color:"#b8963e"}} className="flex items-center gap-1 hover:underline"
                                   >
                                     <Mail className="w-3 h-3" />
                                     {lead.contactEmail}
@@ -1272,7 +1272,7 @@ export default function ArtistDashboard() {
                                 {lead.contactPhone && (
                                   <a
                                     href={`tel:${lead.contactPhone}`}
-                                    className="flex items-center gap-1 text-purple-600 hover:underline"
+                                    style={{color:"#b8963e"}} className="flex items-center gap-1 hover:underline"
                                   >
                                     <Phone className="w-3 h-3" />
                                     {lead.contactPhone}
@@ -1318,7 +1318,7 @@ export default function ArtistDashboard() {
                                   const el = document.getElementById(`lead-card-${lead.id}`);
                                   if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
                                 }}
-                                className="text-[11px] text-purple-600 hover:text-purple-800 font-medium"
+                                className="text-[11px] font-medium" style={{color:'#b8963e'}}
                               >
                                 View full details
                               </button>
@@ -1335,10 +1335,10 @@ export default function ArtistDashboard() {
               <div className="lg:sticky lg:top-28 lg:self-start space-y-4">
                 {selectedLeadData ? (
                   <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                    <div className="bg-gradient-to-br from-purple-600 to-pink-600 p-5 text-white">
+                    <div className="p-5 text-white" style={{background:"linear-gradient(135deg,#1c1c2e,#2d2d42)"}}>
                       <h2 className="font-bold text-lg leading-tight mb-1">{selectedLeadData.title}</h2>
                       {selectedLeadData.eventType && (
-                        <p className="text-purple-200 text-sm">{selectedLeadData.eventType}</p>
+                        <p className="text-sm" style={{color:"#c9a84c",opacity:0.8}}>{selectedLeadData.eventType}</p>
                       )}
                       {(selectedLeadData as any).lastContactedAt && (
                         <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-1 text-[11px] font-medium text-white">
@@ -1397,8 +1397,8 @@ export default function ArtistDashboard() {
 
                       {selectedLeadData.eventDate && (
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <Calendar className="w-4 h-4 text-purple-600" />
+                          <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{background:"#fef9ec"}}>
+                            <Calendar className="w-4 h-4" style={{color:"#c9a84c"}} />
                           </div>
                           <div>
                             <p className="text-xs text-slate-500">Event Date</p>
@@ -1479,9 +1479,9 @@ export default function ArtistDashboard() {
 
                           {/* Pitch Style */}
                           {(selectedLeadData as any).pitchStyle && (
-                            <div className="bg-purple-50 border border-purple-200 rounded-lg p-2.5 mb-2">
-                              <p className="text-xs text-purple-600 font-medium mb-0.5">Pitch Approach</p>
-                              <p className="text-xs text-purple-800">{(selectedLeadData as any).pitchStyle}</p>
+                            <div className="rounded-lg p-2.5 mb-2" style={{background:"#fef9ec",border:"1px solid rgba(201,168,76,0.3)"}}>
+                              <p style={{color:"#b8963e"}} className="text-xs font-medium mb-0.5">Pitch Approach</p>
+                              <p style={{color:"#1c1c2e"}} className="text-xs">{(selectedLeadData as any).pitchStyle}</p>
                             </div>
                           )}
 
@@ -1523,7 +1523,7 @@ export default function ArtistDashboard() {
                                 updateLeadStatus({ leadId: selectedLeadData.id, status: nextStatus });
                               }}
                               disabled={statusUpdatePending}
-                              className="w-full h-9 rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 focus:outline-none focus:ring-1 focus:ring-purple-400 disabled:opacity-60"
+                              style={{borderColor:"#e8e4dc",color:"#1c1c2e"}} className="w-full h-9 rounded-md border bg-white px-3 text-sm disabled:opacity-60"
                             >
                               <option value="new">New</option>
                               <option value="contacted">Contacted</option>
@@ -1554,7 +1554,7 @@ export default function ArtistDashboard() {
                                     selectedLeadData.contactName,
                                     selectedLeadData.performerType
                                   )}
-                                  className="text-purple-600 hover:underline"
+                                  style={{color:"#b8963e"}} className="hover:underline"
                                 >
                                   {selectedLeadData.contactEmail}
                                 </a>
@@ -1563,7 +1563,7 @@ export default function ArtistDashboard() {
                             {selectedLeadData.contactPhone && (
                               <div className="flex items-center gap-2 text-sm">
                                 <Phone className="w-3.5 h-3.5 text-green-600" />
-                                <a href={`tel:${selectedLeadData.contactPhone}`} className="text-purple-600 hover:underline">
+                                <a href={`tel:${selectedLeadData.contactPhone}`} style={{color:'#b8963e'}} className="hover:underline">
                                   {selectedLeadData.contactPhone}
                                 </a>
                               </div>
@@ -1638,9 +1638,9 @@ export default function ArtistDashboard() {
 
                           {/* AI Pitch Draft */}
                           {pitchLeadId === selectedLeadData.id && pitchText ? (
-                            <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                            <div className="rounded-lg p-3" style={{background:"#fef9ec",border:"1px solid rgba(201,168,76,0.3)"}}>
                               <div className="flex items-center justify-between mb-2">
-                                <p className="text-xs font-semibold text-purple-700 flex items-center gap-1">
+                                <p style={{color:"#b8963e"}} className="text-xs font-semibold flex items-center gap-1">
                                   <Sparkles className="w-3.5 h-3.5" /> AI Pitch Draft
                                 </p>
                                 <button
@@ -1649,7 +1649,7 @@ export default function ArtistDashboard() {
                                     setPitchCopied(true);
                                     setTimeout(() => setPitchCopied(false), 2000);
                                   }}
-                                  className="text-xs text-purple-600 hover:text-purple-800 flex items-center gap-1"
+                                  style={{color:"#b8963e"}} className="text-xs flex items-center gap-1"
                                 >
                                   {pitchCopied ? <><Check className="w-3 h-3" /> Copied!</> : <><Copy className="w-3 h-3" /> Copy</>}
                                 </button>
@@ -1657,7 +1657,7 @@ export default function ArtistDashboard() {
                               <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-line">{pitchText}</p>
                               <button
                                 onClick={() => handleGeneratePitch(selectedLeadData.id)}
-                                className="mt-2 text-xs text-purple-500 hover:text-purple-700"
+                                style={{color:"#b8963e"}} className="mt-2 text-xs"
                               >
                                 Regenerate
                               </button>
@@ -1666,7 +1666,7 @@ export default function ArtistDashboard() {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="w-full border-purple-300 text-purple-700 hover:bg-purple-50 gap-2"
+                              style={{borderColor:"rgba(201,168,76,0.4)",color:"#b8963e"}} className="w-full gap-2"
                               onClick={() => handleGeneratePitch(selectedLeadData.id)}
                               disabled={pitchLoading && pitchLeadId === selectedLeadData.id}
                             >
@@ -1720,7 +1720,7 @@ export default function ArtistDashboard() {
                           <Button
                             onClick={() => handleUnlock(selectedLeadData.id)}
                             disabled={isProcessing && unlockingLeadId === selectedLeadData.id}
-                            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+                            style={{background:"#c9a84c",color:"#1c1c2e",fontWeight:700,width:"100%"}} className=""
                             size="lg"
                           >
                             {isProcessing && unlockingLeadId === selectedLeadData.id ? (
@@ -1772,7 +1772,7 @@ export default function ArtistDashboard() {
                 <p className="text-slate-400 text-sm mt-1 mb-6">
                   Browse gigs and unlock contact info — Discovery leads $3, Standard $7, Premium $15.
                 </p>
-                <Button onClick={() => setActiveTab("leads")} className="bg-purple-600 hover:bg-purple-700">
+                <Button onClick={() => setActiveTab("leads")} style={{background:"#c9a84c",color:"#1c1c2e",fontWeight:700}} className="">
                   Browse Gigs <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
               </div>
@@ -1817,7 +1817,7 @@ export default function ArtistDashboard() {
                                 unlock.contactName,
                                 unlock.performerType
                               )}
-                              className="text-purple-600 hover:underline"
+                              style={{color:"#b8963e"}} className="hover:underline"
                             >
                               {unlock.contactEmail}
                             </a>
@@ -1826,7 +1826,7 @@ export default function ArtistDashboard() {
                         {unlock.contactPhone && (
                           <div className="flex items-center gap-2 text-sm">
                             <Phone className="w-3.5 h-3.5 text-green-600" />
-                            <a href={`tel:${unlock.contactPhone}`} className="text-purple-600 hover:underline">{unlock.contactPhone}</a>
+                            <a href={`tel:${unlock.contactPhone}`} style={{color:'#b8963e'}} className="hover:underline">{unlock.contactPhone}</a>
                           </div>
                         )}
                       </div>
@@ -1866,7 +1866,7 @@ export default function ArtistDashboard() {
                         ) : (
                           <button
                             onClick={() => setFeedbackLeadId(unlock.leadId)}
-                            className="text-xs text-purple-600 hover:text-purple-800 font-medium flex items-center gap-1"
+                            style={{color:"#b8963e"}} className="text-xs font-medium flex items-center gap-1"
                           >
                             <MessageSquare className="w-3 h-3" /> Record outcome
                           </button>
@@ -1920,8 +1920,8 @@ export default function ArtistDashboard() {
                   { icon: Gift, text: "You earn a $7 lead credit — use it to unlock your next lead free" },
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <item.icon className="w-4 h-4 text-purple-600" />
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{background:"#fef9ec"}}>
+                      <item.icon className="w-4 h-4" style={{color:"#c9a84c"}} />
                     </div>
                     <p className="text-sm text-slate-700">{item.text}</p>
                   </div>
@@ -1930,7 +1930,7 @@ export default function ArtistDashboard() {
             </Card>
 
             {/* Referral Link */}
-            <Card className="border-purple-200 bg-purple-50">
+            <Card className="" style={{borderColor:"rgba(201,168,76,0.3)",background:"#fef9ec"}}>
               <CardContent className="p-5">
                 <p className="text-sm font-medium text-slate-700 mb-2">Your referral link</p>
                 <div className="flex gap-2">
@@ -1941,7 +1941,7 @@ export default function ArtistDashboard() {
                   />
                   <Button
                     onClick={handleCopyReferral}
-                    className="bg-purple-600 hover:bg-purple-700 flex-shrink-0"
+                    style={{background:"#c9a84c",color:"#1c1c2e",fontWeight:700}} className="flex-shrink-0"
                   >
                     {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                   </Button>
@@ -1969,14 +1969,14 @@ export default function ArtistDashboard() {
             </p>
             {/* Pro subscription CTA */}
             {!mySubscription?.tier && (
-              <Card className="mb-6 border-2 border-purple-400 bg-gradient-to-br from-purple-50 to-pink-50">
+              <Card className="mb-6 border-2" style={{borderColor:"#c9a84c",background:"#fef9ec"}}>
                 <CardContent className="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div>
                     <p className="font-bold text-slate-900 text-lg">Pro — $49/month</p>
                     <p className="text-sm text-slate-600 whitespace-pre-line">{`15 leads included — any tier, your choice\nNo commission. No booking fees. Ever.\nNew leads added daily.`}</p>
                   </div>
                   <Button
-                    className="bg-purple-600 hover:bg-purple-700 shrink-0"
+                    style={{background:"#c9a84c",color:"#1c1c2e",fontWeight:700}} className="shrink-0"
                     disabled={isStartingPremium}
                     onClick={() => startPremium({ origin: typeof window !== "undefined" ? window.location.origin : undefined })}
                   >
@@ -1991,12 +1991,12 @@ export default function ArtistDashboard() {
                 { id: "pack_10" as const, label: "10-Pack", unlocks: 10, price: "$49", perLead: "$4.90/lead", savings: "Save $21", highlighted: true },
                 { id: "pack_25" as const, label: "25-Pack", unlocks: 25, price: "$99", perLead: "$3.96/lead", savings: "Save $76", highlighted: false },
               ]).map((pack) => (
-                <Card key={pack.id} className={`relative p-5 ${pack.highlighted ? "border-2 border-purple-400 bg-gradient-to-br from-purple-50 to-pink-50" : "border-slate-200"}`}>
+                <Card key={pack.id} className={`relative p-5 ${pack.highlighted ? "border-2" : "border-slate-200"}`}>
                   {pack.highlighted && (
                     <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">Most Popular</span>
                   )}
                   <p className="font-bold text-slate-900 text-lg mb-1">{pack.label}</p>
-                  <p className="text-3xl font-bold text-purple-700 mb-0.5">{pack.price}</p>
+                  <p className="text-3xl font-bold mb-0.5" style={{color:"#c9a84c"}}>{pack.price}</p>
                   <p className="text-xs text-slate-500 mb-1">{pack.perLead}</p>
                   <p className="text-xs font-semibold text-green-600 mb-4">{pack.savings}</p>
                   <CreditPackButton packId={pack.id} highlighted={pack.highlighted} />

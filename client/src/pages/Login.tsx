@@ -42,7 +42,7 @@ export default function Login() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080808', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', background: '#f9f7f4', display: 'flex', flexDirection: 'column' }}>
       {/* Subtle gold glow */}
       <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: '20%', left: '30%', width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(201,168,76,0.06) 0%, transparent 70%)', borderRadius: '50%' }} />
@@ -59,18 +59,18 @@ export default function Login() {
                   <rect width="32" height="32" rx="4" fill="#c9a84c" fillOpacity="0.12"/>
                   <path d="M4 20 Q8 10 12 16 Q16 22 20 10 Q23 2 28 12" stroke="#c9a84c" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
                 </svg>
-                <span style={{ fontSize: '1.6rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#f0ece0' }}>
+                <span style={{ fontSize: '1.6rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#1c1c2e' }}>
                   Gig<span style={{ color: '#c9a84c' }}>XO</span>
                 </span>
               </div>
             </Link>
-            <p style={{ color: '#888880', marginTop: '0.5rem', fontSize: '0.85rem' }}>South Florida's Gig Lead Marketplace</p>
+            <p style={{ color: '#6b6860', marginTop: '0.5rem', fontSize: '0.85rem' }}>South Florida's Gig Lead Marketplace</p>
           </div>
 
           {/* Card */}
-          <div style={{ background: '#111111', border: '1px solid rgba(201,168,76,0.15)', borderRadius: '4px', padding: '2rem', boxShadow: '0 24px 80px rgba(0,0,0,0.6)' }}>
-            <h1 style={{ color: '#f0ece0', fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.35rem' }}>Sign in to GigXO</h1>
-            <p style={{ color: '#888880', fontSize: '0.82rem', marginBottom: '1.75rem', lineHeight: 1.5 }}>
+          <div style={{ background: '#ffffff', border: '1px solid rgba(201,168,76,0.15)', borderRadius: '4px', padding: '2rem', boxShadow: '0 24px 80px rgba(0,0,0,0.6)' }}>
+            <h1 style={{ color: '#1c1c2e', fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.35rem' }}>Sign in to GigXO</h1>
+            <p style={{ color: '#6b6860', fontSize: '0.82rem', marginBottom: '1.75rem', lineHeight: 1.5 }}>
               Access leads · Discovery $3 · Standard $7 · Premium $15 · Pro $49/mo
             </p>
 
@@ -83,7 +83,7 @@ export default function Login() {
                   placeholder="you@example.com"
                   value={form.email}
                   onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))}
-                  style={{ marginTop: '0.4rem', background: '#1a1a1a', border: '1px solid rgba(201,168,76,0.2)', color: '#f0ece0' }}
+                  style={{ marginTop: '0.4rem', background: '#f0ede6', border: '1px solid rgba(201,168,76,0.2)', color: '#1c1c2e' }}
                   autoComplete="email"
                   required
                 />
@@ -103,14 +103,14 @@ export default function Login() {
                     placeholder="Your password"
                     value={form.password}
                     onChange={(e) => setForm(f => ({ ...f, password: e.target.value }))}
-                    style={{ background: '#1a1a1a', border: '1px solid rgba(201,168,76,0.2)', color: '#f0ece0', paddingRight: '2.5rem' }}
+                    style={{ background: '#f0ede6', border: '1px solid rgba(201,168,76,0.2)', color: '#1c1c2e', paddingRight: '2.5rem' }}
                     autoComplete="current-password"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(s => !s)}
-                    style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#888880', cursor: 'pointer' }}
+                    style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#6b6860', cursor: 'pointer' }}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -120,7 +120,7 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={isPending}
-                style={{ width: '100%', background: 'linear-gradient(135deg,#c9a84c,#e8c97a)', color: '#080808', fontWeight: 700, fontSize: '0.8rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.85rem', border: 'none', borderRadius: '2px', cursor: isPending ? 'not-allowed' : 'pointer', opacity: isPending ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                style={{ width: '100%', background: 'linear-gradient(135deg,#c9a84c,#e8c97a)', color: '#1c1c2e', fontWeight: 700, fontSize: '0.8rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.85rem', border: 'none', borderRadius: '2px', cursor: isPending ? 'not-allowed' : 'pointer', opacity: isPending ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
               >
                 {isPending ? <><Loader2 className="w-4 h-4 animate-spin" /> Signing in...</> : "Sign In"}
               </button>
@@ -131,13 +131,13 @@ export default function Login() {
                   <div style={{ width: '100%', borderTop: '1px solid rgba(201,168,76,0.12)' }} />
                 </div>
                 <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
-                  <span style={{ background: '#111111', padding: '0 0.75rem', color: '#888880', fontSize: '0.75rem' }}>or continue with</span>
+                  <span style={{ background: '#ffffff', padding: '0 0.75rem', color: '#6b6860', fontSize: '0.75rem' }}>or continue with</span>
                 </div>
               </div>
 
               <a
                 href={`/api/auth/google/login?origin=${encodeURIComponent(window.location.origin)}`}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', width: '100%', padding: '0.75rem', border: '1px solid rgba(201,168,76,0.2)', background: '#1a1a1a', color: '#f0ece0', fontSize: '0.85rem', fontWeight: 500, borderRadius: '2px', textDecoration: 'none', transition: 'border-color 0.2s' }}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', width: '100%', padding: '0.75rem', border: '1px solid rgba(201,168,76,0.2)', background: '#f0ede6', color: '#1c1c2e', fontSize: '0.85rem', fontWeight: 500, borderRadius: '2px', textDecoration: 'none', transition: 'border-color 0.2s' }}
               >
                 <GoogleIcon />
                 Continue with Google
@@ -149,7 +149,7 @@ export default function Login() {
                 </p>
               )}
 
-              <p style={{ textAlign: 'center', color: '#888880', fontSize: '0.85rem' }}>
+              <p style={{ textAlign: 'center', color: '#6b6860', fontSize: '0.85rem' }}>
                 Don't have an account?{" "}
                 <Link href="/signup" style={{ color: '#c9a84c', fontWeight: 600, textDecoration: 'none' }}>
                   Create one free

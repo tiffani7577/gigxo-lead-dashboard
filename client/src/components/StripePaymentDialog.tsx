@@ -160,7 +160,7 @@ function CheckoutForm({
         <Button
           type="submit"
           disabled={!stripe || !elements || !cardReady || isProcessing}
-          className="flex-1 bg-purple-600 hover:bg-purple-700 h-11 text-base font-semibold"
+          className="flex-1 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold h-11 text-base font-semibold"
         >
           {isProcessing ? (
             <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Processing...</>
@@ -217,7 +217,7 @@ function DemoCheckoutForm({
         <Button
           onClick={handleConfirm}
           disabled={isProcessing}
-          className="flex-1 bg-purple-600 hover:bg-purple-700 h-11"
+          className="flex-1 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold h-11"
         >
           {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : `Simulate Payment ($${displayAmount})`}
         </Button>
@@ -282,7 +282,7 @@ export default function StripePaymentDialog({
 
         {!isReady ? (
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="w-6 h-6 animate-spin text-purple-600" />
+            <Loader2 className="w-6 h-6 animate-spin text-amber-600" />
           </div>
         ) : isDemoMode ? (
           <DemoCheckoutForm

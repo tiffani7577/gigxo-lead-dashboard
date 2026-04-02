@@ -45,9 +45,9 @@
 
 /* ─────────────────────────────────────────────────────────────
    GigXO Premium Light Theme
-   Science: Airbnb, Booking.com, Stripe all use light warm
+   Warm cream body, deep navy text, amber-gold CTAs.
+   Science: Airbnb / Booking.com / Stripe all use light warm
    backgrounds — longer sessions, higher conversion, more trust.
-   ONE gold CTA = clear purchase trigger. Navy = authority.
    ───────────────────────────────────────────────────────────── */
 :root {
   --radius: 0.625rem;
@@ -131,109 +131,7 @@
   }
 }
 
-/* ─────────────────────────────────────────────────────────────
-   GLOBAL OVERRIDES — force light theme on ALL hardcoded classes
-   ───────────────────────────────────────────────────────────── */
-
-/* ── Page & card backgrounds ── */
-.bg-white            { background-color: #ffffff !important; color: #1c1c2e !important; }
-.bg-gray-50          { background-color: #f9f7f4 !important; }
-.bg-gray-100         { background-color: #f0ede6 !important; }
-.bg-gray-200         { background-color: #e8e4dc !important; }
-.bg-slate-50         { background-color: #f9f7f4 !important; }
-.bg-slate-100        { background-color: #f0ede6 !important; }
-.bg-slate-200        { background-color: #e8e4dc !important; }
-
-/* ── Dark backgrounds → white ── */
-.bg-gray-900, .bg-gray-800, .bg-gray-950,
-.bg-slate-900, .bg-slate-800, .bg-slate-950,
-.bg-zinc-900, .bg-zinc-800, .bg-zinc-950,
-.bg-neutral-900, .bg-neutral-800,
-.bg-black {
-  background-color: #ffffff !important;
-  color: #1c1c2e !important;
-}
-
-/* ── Purple → Gold ── */
-.bg-purple-600, .bg-purple-700, .bg-purple-500,
-.bg-violet-600, .bg-violet-700 {
-  background-color: #c9a84c !important;
-  color: #1c1c2e !important;
-}
-.hover\:bg-purple-700:hover, .hover\:bg-purple-600:hover {
-  background-color: #b8963e !important;
-}
-.bg-purple-100, .bg-purple-50 {
-  background-color: #fef9ec !important;
-}
-.bg-purple-900, .bg-purple-950 {
-  background-color: #1c1c2e !important;
-}
-.text-purple-400, .text-purple-500, .text-purple-600 {
-  color: #c9a84c !important;
-}
-.text-purple-700 { color: #92400e !important; }
-.border-purple-300 { border-color: #fcd34d !important; }
-.border-purple-500, .border-purple-600 { border-color: #c9a84c !important; }
-.focus\:border-purple-500:focus { border-color: #c9a84c !important; }
-.from-purple-950, .from-purple-900 { --tw-gradient-from: #1c1c2e !important; }
-[class*="from-purple"] { --tw-gradient-from: #c9a84c !important; }
-[class*="to-purple"]   { --tw-gradient-to: #b8963e !important; }
-
-/* ── Slate text → navy ── */
-.text-slate-900, .text-gray-900, .text-zinc-900 { color: #1c1c2e !important; }
-.text-slate-800, .text-gray-800, .text-zinc-800 { color: #2d2d42 !important; }
-.text-slate-700, .text-gray-700, .text-zinc-700 { color: #3d3d55 !important; }
-.text-slate-600, .text-gray-600, .text-zinc-600 { color: #5a5a72 !important; }
-.text-slate-500, .text-gray-500, .text-zinc-500 { color: #6b6860 !important; }
-.text-slate-400, .text-gray-400, .text-zinc-400 { color: #8a8898 !important; }
-.text-slate-300, .text-gray-300, .text-zinc-300 { color: #b0aec0 !important; }
-
-/* ── Borders ── */
-.border-slate-200, .border-gray-200 { border-color: #e8e4dc !important; }
-.border-slate-300, .border-gray-300 { border-color: #d8d4cc !important; }
-.border-slate-600, .border-gray-600 { border-color: #3d3d55 !important; }
-.border-slate-700, .border-gray-700 { border-color: #2d2d42 !important; }
-
-/* ── Inputs ── */
-.bg-slate-700, .bg-slate-700\/50, .bg-slate-800\/60,
-.bg-gray-700, .bg-gray-800 {
-  background-color: #ffffff !important;
-  color: #1c1c2e !important;
-  border-color: #e8e4dc !important;
-}
-
-/* ── Hover states ── */
-.hover\:bg-slate-50:hover, .hover\:bg-gray-50:hover   { background-color: #f0ede6 !important; }
-.hover\:bg-slate-100:hover, .hover\:bg-gray-100:hover { background-color: #e8e4dc !important; }
-.hover\:bg-slate-700:hover, .hover\:bg-gray-700:hover { background-color: #e8e4dc !important; }
-
-/* ── Indigo/blue filter chips → navy ── */
-.border-indigo-400 { border-color: #1c1c2e !important; }
-.bg-indigo-50      { background-color: #f9f7f4 !important; }
-.text-indigo-700   { color: #1c1c2e !important; }
-
-/* ── Blue verification banners → warm gold ── */
-.bg-blue-50, .bg-sky-50 { background-color: #fef9ec !important; }
-.text-blue-700, .text-sky-700 { color: #92400e !important; }
-.border-blue-200, .border-sky-200 { border-color: #c9a84c !important; }
-
-/* ── Active tab underline ── */
-.text-purple-600.border-purple-600,
-.border-b-2.border-purple-600 {
-  color: #c9a84c !important;
-  border-color: #c9a84c !important;
-}
-
-/* ── Announcement bar ── */
-.bg-gradient-to-r.from-purple-600 {
-  background: linear-gradient(to right, #1c1c2e, #2d2d42) !important;
-  color: #c9a84c !important;
-}
-
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: #f0ede6; }
 ::-webkit-scrollbar-thumb { background: #c9a84c; border-radius: 3px; }
-
-/* ── Google Fonts ── */

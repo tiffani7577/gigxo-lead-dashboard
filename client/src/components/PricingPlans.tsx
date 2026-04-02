@@ -62,64 +62,56 @@ export const PRICING_PLANS = [
 ] as const;
 
 type PricingPlansProps = {
-  /** Dark theme (homepage). False = light footer area */
   variant?: "dark" | "light";
   showFooterNote?: boolean;
 };
 
-export function PricingPlans({ variant = "dark", showFooterNote = true }: PricingPlansProps) {
-  const isDark = variant === "dark";
-  const textMuted = isDark ? "text-slate-300" : "text-slate-600";
-  const textBody = isDark ? "text-slate-300" : "text-slate-700";
-
+export function PricingPlans({ variant = "light", showFooterNote = true }: PricingPlansProps) {
   return (
     <div className="w-full max-w-6xl mx-auto">
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 items-stretch gap-6">
         {PRICING_PLANS.map((plan, i) => (
           <div
             key={i}
-            className={`relative h-full rounded-2xl px-6 py-7 shadow-lg transition-shadow flex flex-col ${
-              plan.highlighted
-                ? isDark
-                  ? "bg-gradient-to-br from-purple-600/25 to-pink-600/20 shadow-purple-900/30 ring-1 ring-purple-400/30"
-                  : "bg-gradient-to-br from-purple-50 to-pink-50 shadow-md ring-1 ring-purple-200/60"
-                : isDark
-                  ? "bg-slate-800/50 shadow-slate-950/40"
-                  : "bg-slate-50/90 shadow-slate-200/50"
-            }`}
+            className="relative h-full rounded-2xl px-6 py-7 shadow-lg transition-shadow flex flex-col"
+            style={plan.highlighted
+              ? { background: '#fef9ec', border: '2px solid #c9a84c', boxShadow: '0 8px 30px rgba(201,168,76,0.15)' }
+              : { background: '#ffffff', border: '1px solid #e8e4dc', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }
+            }
           >
             {plan.badge && (
-              <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap shadow-sm">
+              <span
+                className="absolute -top-3 left-1/2 -translate-x-1/2 text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap shadow-sm"
+                style={{ background: '#22c55e' }}
+              >
                 {plan.badge}
               </span>
             )}
-            <h3 className={`text-2xl font-bold mb-2 ${isDark ? "text-white" : "text-slate-900"}`}>{plan.name}</h3>
+            <h3 className="text-2xl font-bold mb-2" style={{ color: '#1c1c2e' }}>{plan.name}</h3>
             <div className="mb-6">
-              <span className={`text-4xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}>{plan.price}</span>
-              <span className={`ml-2 ${isDark ? "text-slate-400" : "text-slate-500"}`}>{plan.description}</span>
+              <span className="text-4xl font-bold" style={{ color: '#c9a84c' }}>{plan.price}</span>
+              <span className="ml-2" style={{ color: '#6b6860' }}>{plan.description}</span>
             </div>
             {plan.name === "Pro" && (
-              <p className={`text-sm font-medium mb-4 ${isDark ? "text-purple-200" : "text-purple-700"}`}>
+              <p className="text-sm font-medium mb-4" style={{ color: '#b8963e' }}>
                 Pays for itself with one booking
               </p>
             )}
             <ul className="space-y-3 mb-8 flex-1">
               {plan.features.map((feature, j) => (
-                <li key={j} className={`flex items-start gap-2 ${textBody} text-sm`}>
-                  <CheckCircle2 className={`w-4 h-4 mt-0.5 flex-shrink-0 ${plan.highlighted ? "text-purple-400" : "text-purple-500"}`} />
+                <li key={j} className="flex items-start gap-2 text-sm" style={{ color: '#3d3d55' }}>
+                  <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: '#c9a84c' }} />
                   {feature}
                 </li>
               ))}
             </ul>
             <Link href={plan.href}>
               <Button
-                className={`w-full ${
-                  plan.highlighted
-                    ? "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
-                    : isDark
-                      ? "bg-slate-700 hover:bg-slate-600 text-white"
-                      : "bg-slate-900 hover:bg-slate-800 text-white"
-                }`}
+                className="w-full font-bold"
+                style={plan.highlighted
+                  ? { background: '#c9a84c', color: '#1c1c2e' }
+                  : { background: '#1c1c2e', color: '#ffffff' }
+                }
               >
                 {plan.cta} <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
@@ -128,7 +120,7 @@ export function PricingPlans({ variant = "dark", showFooterNote = true }: Pricin
         ))}
       </div>
       {showFooterNote && (
-        <p className={`text-center text-sm mt-10 max-w-xl mx-auto ${textMuted}`}>
+        <p className="text-center text-sm mt-10 max-w-xl mx-auto" style={{ color: '#6b6860' }}>
           Clear unlock options: Discovery $3, Standard $7, Premium $15, or Pro at $49/month for 15 leads in any tier.
         </p>
       )}

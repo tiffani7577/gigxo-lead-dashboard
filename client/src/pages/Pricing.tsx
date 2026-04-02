@@ -11,7 +11,7 @@ export default function Pricing() {
   const url = canonicalUrlForPathname("/pricing");
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080808' }}>
+    <div style={{ minHeight: '100vh', background: '#f9f7f4' }}>
       <Helmet>
         <title>{title}</title>
         <meta name="description" content={description} />
@@ -27,7 +27,7 @@ export default function Pricing() {
       </Helmet>
 
       {/* Nav */}
-      <nav style={{ borderBottom: '1px solid rgba(201,168,76,0.15)', background: 'rgba(8,8,8,0.95)', backdropFilter: 'blur(12px)', position: 'sticky', top: 0, zIndex: 50 }}>
+      <nav style={{ borderBottom: '1px solid rgba(201,168,76,0.15)', background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(12px)', position: 'sticky', top: 0, zIndex: 50 }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '1rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Link href="/">
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
@@ -35,7 +35,7 @@ export default function Pricing() {
                 <rect width="28" height="28" rx="4" fill="#c9a84c" fillOpacity="0.12"/>
                 <path d="M4 18 Q7 10 10 14 Q13 18 16 10 Q19 2 22 10 Q24 15 26 12" stroke="#c9a84c" strokeWidth="2" strokeLinecap="round" fill="none"/>
               </svg>
-              <span style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#f0ece0' }}>
+              <span style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#1c1c2e' }}>
                 Gig<span style={{ color: '#c9a84c' }}>XO</span>
               </span>
             </div>
@@ -47,7 +47,7 @@ export default function Pricing() {
               </button>
             </Link>
             <Link href="/signup">
-              <button style={{ padding: '0.5rem 1.25rem', background: 'linear-gradient(135deg,#c9a84c,#e8c97a)', color: '#080808', borderRadius: '2px', fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', border: 'none', cursor: 'pointer' }}>
+              <button style={{ padding: '0.5rem 1.25rem', background: 'linear-gradient(135deg,#c9a84c,#e8c97a)', color: '#1c1c2e', borderRadius: '2px', fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', border: 'none', cursor: 'pointer' }}>
                 Get Access
               </button>
             </Link>
@@ -61,10 +61,10 @@ export default function Pricing() {
           <div style={{ display: 'inline-block', background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.3)', borderRadius: '2px', padding: '0.35rem 1rem', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#c9a84c', marginBottom: '1.5rem' }}>
             Transparent Pricing
           </div>
-          <h1 style={{ fontSize: 'clamp(2.2rem,5vw,3.5rem)', fontWeight: 900, color: '#f0ece0', lineHeight: 1.1, marginBottom: '1.25rem', letterSpacing: '-0.02em' }}>
+          <h1 style={{ fontSize: 'clamp(2.2rem,5vw,3.5rem)', fontWeight: 900, color: '#1c1c2e', lineHeight: 1.1, marginBottom: '1.25rem', letterSpacing: '-0.02em' }}>
             Pay only for the<br /><span style={{ color: '#c9a84c' }}>leads you want</span>
           </h1>
-          <p style={{ fontSize: '1.1rem', color: '#888880', lineHeight: 1.7, maxWidth: '560px', margin: '0 auto' }}>
+          <p style={{ fontSize: '1.1rem', color: '#6b6860', lineHeight: 1.7, maxWidth: '560px', margin: '0 auto' }}>
             Discovery leads $3 · Standard $7 · Premium $15 — or go Pro at $49/month for 15 leads any tier.
             No commission. No booking fees. Ever.
           </p>
@@ -73,7 +73,7 @@ export default function Pricing() {
 
       <section style={{ padding: '2rem 1.5rem 6rem' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-          <PricingPlans variant="dark" />
+          <PricingPlans variant="light" />
         </div>
       </section>
 

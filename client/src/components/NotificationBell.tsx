@@ -47,7 +47,7 @@ export default function NotificationBell() {
       {/* Bell button */}
       <button
         onClick={() => setOpen(o => !o)}
-        className="relative p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+        className="relative p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
         aria-label="Notifications"
       >
         <Bell className="w-5 h-5" />
@@ -67,7 +67,7 @@ export default function NotificationBell() {
             {unreadCount > 0 && (
               <button
                 onClick={() => markAllRead.mutate()}
-                className="text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1"
+                className="text-xs text-amber-600 hover:text-purple-300 flex items-center gap-1"
               >
                 <Check className="w-3 h-3" />
                 Mark all read
@@ -79,7 +79,7 @@ export default function NotificationBell() {
           <div className="max-h-80 overflow-y-auto">
             {isLoading ? (
               <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-5 h-5 text-purple-500 animate-spin" />
+                <Loader2 className="w-5 h-5 text-amber-600 animate-spin" />
               </div>
             ) : !notifications || notifications.length === 0 ? (
               <div className="text-center py-8 text-slate-500 text-sm">
@@ -91,12 +91,12 @@ export default function NotificationBell() {
                   key={n.id}
                   onClick={() => !n.isRead && markRead.mutate({ id: n.id })}
                   className={`w-full text-left px-4 py-3 border-b border-slate-800 hover:bg-slate-800 transition-colors ${
-                    !n.isRead ? "bg-slate-800/60" : ""
+                    !n.isRead ? "bg-slate-50" : ""
                   }`}
                 >
                   <div className="flex items-start gap-2">
                     {!n.isRead && (
-                      <span className="mt-1.5 w-2 h-2 bg-purple-500 rounded-full flex-shrink-0" />
+                      <span className="mt-1.5 w-2 h-2 bg-amber-500 rounded-full flex-shrink-0" />
                     )}
                     <div className={!n.isRead ? "" : "pl-4"}>
                       <p className={`text-sm font-medium ${n.isRead ? "text-slate-400" : "text-white"}`}>
