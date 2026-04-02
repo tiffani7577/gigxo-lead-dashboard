@@ -10,6 +10,7 @@ import { generateAllPageConfigs, generatePageConfig, parseSlug } from "@/lib/seo
 import { canonicalUrlForPathname, DEFAULT_OG_IMAGE } from "@/lib/meta-tags";
 import { MapPin, Music, ChevronRight } from "lucide-react";
 import { Helmet } from "react-helmet-async";
+import NotFound from "@/pages/NotFound";
 import { SiteFooter } from "@/components/SiteFooter";
 
 interface FormData {
@@ -251,124 +252,8 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
     }
   };
 
-  // Unknown slug: render a simple page with title and minimal quote form (no crash)
   if (!pageConfig) {
-    const unknownTitle = "Gigxo Booking | Request a Quote";
-    const unknownDesc = "Request a quote for your wedding, party, or corporate event. Gigxo connects you with DJs and performers in South Florida.";
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white">
-        <Helmet>
-          <title>{unknownTitle}</title>
-          <meta name="description" content={unknownDesc} />
-          <link rel="canonical" href={pageCanonicalUrl} />
-          <meta property="og:title" content={unknownTitle} />
-          <meta property="og:description" content={unknownDesc} />
-          <meta property="og:url" content={pageCanonicalUrl} />
-          <meta property="og:image" content={DEFAULT_OG_IMAGE} />
-          <meta name="twitter:card" content="summary_large_image" />
-          <meta name="twitter:title" content={unknownTitle} />
-          <meta name="twitter:description" content={unknownDesc} />
-          <meta name="twitter:image" content={DEFAULT_OG_IMAGE} />
-        </Helmet>
-        <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-12 px-4">
-          <div className="max-w-2xl mx-auto text-center">
-            <h1 className="text-3xl md:text-4xl font-bold mb-2">Request a Gigxo event quote</h1>
-            <p className="text-lg opacity-90">Tell us about your event — we&apos;ll follow up shortly.</p>
-          </div>
-        </div>
-        <div className="max-w-md mx-auto px-4 py-8">
-          <Card className="p-6">
-            <h2 className="text-xl font-bold mb-4">Tell us about your event</h2>
-            {submitted ? (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-                <p className="text-green-800 font-semibold">✓ Thanks for reaching out!</p>
-                <p className="text-green-700 text-sm">We'll be in touch soon.</p>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Event Type</label>
-                  <Select
-                    value={formData.eventType}
-                    onValueChange={(value) => setFormData({ ...formData, eventType: value as FormData["eventType"] })}
-                  >
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="wedding">Wedding</SelectItem>
-                      <SelectItem value="party">Party</SelectItem>
-                      <SelectItem value="birthday">Birthday</SelectItem>
-                      <SelectItem value="corporate">Corporate</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Event Date</label>
-                  <Input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">City</label>
-                  <Input
-                    type="text"
-                    value={formData.city}
-                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    placeholder="City, State"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Budget ($)</label>
-                  <Input
-                    type="number"
-                    value={formData.budget}
-                    onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-                    placeholder="e.g., 1500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Description</label>
-                  <Textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Tell us about your event..."
-                    rows={3}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Your Name</label>
-                  <Input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Your name"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Email</label>
-                  <Input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="your@email.com"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Phone Number</label>
-                  <Input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="Your phone number"
-                  />
-                </div>
-                <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700" disabled={submitEventRequest.isPending}>
-                  {submitEventRequest.isPending ? "Submitting..." : "Get Matched"}
-                </Button>
-              </form>
-            )}
-          </Card>
-        </div>
-      </div>
-    );
+    return <NotFound />;
   }
 
   // Normalize optional config so undefined never crashes render
