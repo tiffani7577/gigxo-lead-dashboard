@@ -826,7 +826,7 @@ export default function ArtistDashboard() {
 
   return (
     <ErrorBoundary>
-    <div style={{minHeight:'100vh',background:'#f9f7f4',color:'#1c1c2e'}}>
+    <div style={{minHeight:'100vh',background:'#080808',color:'#f0ede8'}}>
       {/* Scarcity Banner */}
       {stats && stats.totalAvailable > 0 && (
         <div style={{background:'linear-gradient(to right,#c9a84c,#a07830)',color:'#f9f7f4',textAlign:'center',padding:'0.5rem 1rem',fontSize:'0.8rem',fontWeight:700,letterSpacing:'0.03em'}}>
@@ -841,18 +841,18 @@ export default function ArtistDashboard() {
       )}
 
       {/* Top Nav */}
-      <div style={{background:'#ffffff',borderBottom:'1px solid rgba(201,168,76,0.15)',position:'sticky',top:0,zIndex:10}}>
+      <div style={{background:'#080808',borderBottom:'1px solid rgba(201,168,76,0.15)',position:'sticky',top:0,zIndex:10}}>
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
               <rect width="32" height="32" rx="4" fill="#c9a84c" fillOpacity="0.12"/>
               <path d="M4 20 Q8 10 12 16 Q16 22 20 10 Q23 2 28 12" stroke="#c9a84c" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
             </svg>
-            <span style={{fontWeight:800,fontSize:'1.2rem',letterSpacing:'-0.02em',color:'#1c1c2e'}}>Gig<span style={{color:'#c9a84c'}}>XO</span></span>
+            <span style={{fontWeight:800,fontSize:'1.2rem',letterSpacing:'-0.02em',color:'#f0ede8'}}>Gig<span style={{color:'#c9a84c'}}>XO</span></span>
           </div>
           <div className="flex items-center gap-4">
             {stats && (
-              <div className="hidden md:flex items-center gap-4 text-sm text-slate-600">
+              <div className="hidden md:flex items-center gap-4 text-sm" style={{ color: 'rgba(240,237,232,0.65)' }}>
                 <span style={{display:'flex',alignItems:'center',gap:'0.25rem',color:'#c9a84c',fontSize:'0.8rem'}}>
                   <Unlock className="w-4 h-4" />
                   {stats.myUnlocks} unlocked
@@ -873,13 +873,13 @@ export default function ArtistDashboard() {
                 </button>
               </Link>
               <Link href="/pipeline">
-                <button style={{display:'flex',alignItems:'center',gap:'0.4rem',fontSize:'0.75rem',color:'#6b6860',background:'transparent',border:'none',padding:'0.25rem 0.5rem',cursor:'pointer'}} title="Booking Pipeline">
+                <button style={{display:'flex',alignItems:'center',gap:'0.4rem',fontSize:'0.75rem',color:'rgba(240,237,232,0.5)',background:'transparent',border:'none',padding:'0.25rem 0.5rem',cursor:'pointer'}} title="Booking Pipeline">
                   <span className="hidden sm:inline text-xs font-medium">Pipeline</span>
                 </button>
               </Link>
               {hasVenueIntelAccess && (
                 <Link href="/venue-intel">
-                  <button style={{display:'flex',alignItems:'center',gap:'0.4rem',fontSize:'0.75rem',color:'#6b6860',background:'transparent',border:'none',padding:'0.25rem 0.5rem',cursor:'pointer'}} title="South Florida Venue Intelligence">
+                  <button style={{display:'flex',alignItems:'center',gap:'0.4rem',fontSize:'0.75rem',color:'rgba(240,237,232,0.5)',background:'transparent',border:'none',padding:'0.25rem 0.5rem',cursor:'pointer'}} title="South Florida Venue Intelligence">
                     <Building2 className="w-3.5 h-3.5" />
                     <span className="hidden sm:inline text-xs font-medium">Venue Intel</span>
                   </button>
@@ -887,14 +887,14 @@ export default function ArtistDashboard() {
               )}
               <NotificationBell />
               <Link href="/profile">
-                <button style={{display:'flex',alignItems:'center',gap:'0.4rem',fontSize:'0.75rem',color:'#6b6860',background:'transparent',border:'none',padding:'0.25rem 0.5rem',cursor:'pointer'}}>
+                <button style={{display:'flex',alignItems:'center',gap:'0.4rem',fontSize:'0.75rem',color:'rgba(240,237,232,0.5)',background:'transparent',border:'none',padding:'0.25rem 0.5rem',cursor:'pointer'}}>
                   <User className="w-4 h-4" />
                   <span className="hidden sm:inline">{user?.name || user?.email || "Artist"}</span>
                 </button>
               </Link>
               <button
                 onClick={() => logout()}
-                style={{display:'flex',alignItems:'center',gap:'0.25rem',fontSize:'0.72rem',color:'#6b6860',background:'transparent',border:'none',padding:'0.25rem 0.5rem',cursor:'pointer'}}
+                style={{display:'flex',alignItems:'center',gap:'0.25rem',fontSize:'0.72rem',color:'rgba(240,237,232,0.5)',background:'transparent',border:'none',padding:'0.25rem 0.5rem',cursor:'pointer'}}
                 title="Sign out"
               >
                 <LogOut className="w-3.5 h-3.5" />
@@ -910,7 +910,7 @@ export default function ArtistDashboard() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              style={{padding:'0.6rem 1rem',fontSize:'0.82rem',fontWeight:600,background:'transparent',border:'none',borderBottom: activeTab===tab ? '2px solid #c9a84c' : '2px solid transparent',color: activeTab===tab ? '#c9a84c' : '#6b6860',cursor:'pointer',marginBottom:'-1px',transition:'color 0.2s'}}
+              style={{padding:'0.6rem 1rem',fontSize:'0.82rem',fontWeight:600,background:'transparent',border:'none',borderBottom: activeTab===tab ? '2px solid #c9a84c' : '2px solid transparent',color: activeTab===tab ? '#c9a84c' : 'rgba(240,237,232,0.5)',cursor:'pointer',marginBottom:'-1px',transition:'color 0.2s'}}
             >
               {tab === "leads" && "Browse Gigs"}
               {tab === "unlocked" && `My Unlocks${(myUnlocks ?? []).length ? ` (${(myUnlocks ?? []).length})` : ""}`}
@@ -931,17 +931,17 @@ export default function ArtistDashboard() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="max-w-7xl mx-auto px-4 py-6" style={{ background: '#080808', color: '#f0ede8' }}>
         {/* LEADS TAB */}
         {activeTab === "leads" && (
           <>
             {/* Stats Bar */}
             <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'0.75rem',marginBottom:'1.25rem'}}>
               {[{label:'Active Leads',value:(filteredLeads??[]).length,sub:'in your market'},{label:'Avg Budget',value:'$2,400',sub:'per gig this week'},{label:'Response Rate',value:'94%',sub:'when you unlock fast'},{label:'Your ROI',value:'3.2×',sub:'avg return on lead cost'}].map((s,i)=>(
-                <div key={i} style={{background:'#ffffff',border:'1px solid rgba(201,168,76,0.15)',borderRadius:'4px',padding:'0.85rem 1rem'}}>
+                <div key={i} className="card-luxury" style={{ borderRadius: '4px', padding: '0.85rem 1rem' }}>
                   <div style={{fontSize:'1.4rem',fontWeight:800,color:'#c9a84c',lineHeight:1}}>{s.value}</div>
-                  <div style={{fontSize:'0.72rem',fontWeight:700,color:'#1c1c2e',marginTop:'0.2rem',textTransform:'uppercase',letterSpacing:'0.05em'}}>{s.label}</div>
-                  <div style={{fontSize:'0.68rem',color:'#6b6860',marginTop:'0.15rem'}}>{s.sub}</div>
+                  <div style={{fontSize:'0.72rem',fontWeight:700,color:'#f0ede8',marginTop:'0.2rem',textTransform:'uppercase',letterSpacing:'0.05em'}}>{s.label}</div>
+                  <div style={{fontSize:'0.68rem',color:'rgba(240,237,232,0.5)',marginTop:'0.15rem'}}>{s.sub}</div>
                 </div>
               ))}
             </div>
@@ -964,7 +964,7 @@ export default function ArtistDashboard() {
                 {eventWindowFilter && (
                   <button
                     onClick={() => setEventWindowFilter(null)}
-                    style={{marginLeft:'auto',fontSize:'0.72rem',color:'#6b6860',background:'transparent',border:'none',cursor:'pointer'}}
+                    style={{marginLeft:'auto',fontSize:'0.72rem',color:'rgba(240,237,232,0.5)',background:'transparent',border:'none',cursor:'pointer'}}
                   >
                     Clear
                   </button>
@@ -976,12 +976,12 @@ export default function ArtistDashboard() {
             <div style={{display:'flex',flexWrap:'wrap',alignItems:'center',gap:'0.5rem',marginBottom:'1rem'}}>
               {/* Search */}
               <div style={{position:'relative',flex:1,minWidth:'180px'}}>
-                <Search style={{position:'absolute',left:'0.75rem',top:'50%',transform:'translateY(-50%)',width:'1rem',height:'1rem',color:'#6b6860'}} />
+                <Search style={{position:'absolute',left:'0.75rem',top:'50%',transform:'translateY(-50%)',width:'1rem',height:'1rem',color:'rgba(240,237,232,0.45)'}} />
                 <Input
                   placeholder="Search gigs..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9 h-9 text-sm"
+                  className="pl-9 h-9 text-sm bg-[#111] border-[rgba(201,168,76,0.2)] text-[#f0ede8] placeholder:text-[rgba(240,237,232,0.35)]"
                 />
               </div>
               {/* City dropdown */}
@@ -989,7 +989,7 @@ export default function ArtistDashboard() {
                 value={cityFilter}
                 onChange={(e) => setCityFilter(e.target.value)}
                 className={`h-9 text-sm border rounded-lg px-3 pr-8 focus:outline-none transition-colors ${
-                  cityFilter !== "all" ? "border-amber-400 bg-amber-50 text-amber-800 font-medium" : "border-slate-200 bg-white text-slate-700"
+                  cityFilter !== "all" ? "border-[#c9a84c] bg-[rgba(201,168,76,0.15)] text-[#f0ede8] font-medium" : "border-[rgba(201,168,76,0.2)] bg-[#111] text-[#f0ede8]"
                 }`}
               >
                 <option value="all">All Cities</option>
@@ -1002,7 +1002,7 @@ export default function ArtistDashboard() {
                 value={performerTypeFilter}
                 onChange={(e) => setPerformerTypeFilter(e.target.value)}
                 className={`h-9 text-sm border rounded-lg px-3 pr-8 focus:outline-none transition-colors ${
-                  performerTypeFilter !== "all" ? "border-amber-400 bg-amber-50 text-amber-800 font-medium" : "border-slate-200 bg-white text-slate-700"
+                  performerTypeFilter !== "all" ? "border-[#c9a84c] bg-[rgba(201,168,76,0.15)] text-[#f0ede8] font-medium" : "border-[rgba(201,168,76,0.2)] bg-[#111] text-[#f0ede8]"
                 }`}
               >
                 <option value="all">All Types</option>
@@ -1015,7 +1015,7 @@ export default function ArtistDashboard() {
                 value={eventTypeFilter}
                 onChange={(e) => setEventTypeFilter(e.target.value)}
                 className={`h-9 text-sm border rounded-lg px-3 pr-8 focus:outline-none transition-colors ${
-                  eventTypeFilter !== "All" ? "border-amber-400 bg-amber-50 text-amber-800 font-medium" : "border-slate-200 bg-white text-slate-700"
+                  eventTypeFilter !== "All" ? "border-[#c9a84c] bg-[rgba(201,168,76,0.15)] text-[#f0ede8] font-medium" : "border-[rgba(201,168,76,0.2)] bg-[#111] text-[#f0ede8]"
                 }`}
               >
                 {(EVENT_TYPES ?? []).map(type => (
@@ -1026,12 +1026,12 @@ export default function ArtistDashboard() {
               {(cityFilter !== "all" || performerTypeFilter !== "all" || eventTypeFilter !== "All" || searchTerm) && (
                 <button
                   onClick={() => { setCityFilter("all"); setPerformerTypeFilter("all"); setEventTypeFilter("All"); setSearchTerm(""); }}
-                  className="h-9 px-3 text-sm text-slate-500 hover:text-slate-700 border border-slate-200 rounded-lg bg-white hover:bg-slate-50 transition-colors"
+                  className="h-9 px-3 text-sm border rounded-lg transition-colors text-[rgba(240,237,232,0.6)] hover:text-[#f0ede8] border-[rgba(201,168,76,0.25)] bg-[#111] hover:bg-[#1a1a1a]"
                 >
                   Clear
                 </button>
               )}
-              <span style={{fontSize:'0.78rem',color:'#6b6860',marginLeft:'auto'}}>
+              <span style={{fontSize:'0.78rem',color:'rgba(240,237,232,0.5)',marginLeft:'auto'}}>
                 {leadsLoading ? "Loading..." : `${(filteredLeads ?? []).length} leads`}
               </span>
             </div>
@@ -1044,15 +1044,15 @@ export default function ArtistDashboard() {
                     <Loader2 style={{width:'2rem',height:'2rem',color:'#c9a84c',animation:'spin 1s linear infinite'}} />
                   </div>
                 ) : leadsError ? (
-                  <div style={{background:'#ffffff',border:'1px solid rgba(201,168,76,0.15)',borderRadius:'4px',padding:'3rem',textAlign:'center'}}>
+                  <div className="card-luxury" style={{ borderRadius: '4px', padding: '3rem', textAlign: 'center' }}>
                     <p style={{color:'#ef4444',fontWeight:600}}>Could not load gigs right now.</p>
-                    <p style={{color:'#6b6860',fontSize:'0.85rem',marginTop:'0.25rem'}}>{leadsErrorObj?.message ?? "Please try again in a moment."}</p>
+                    <p style={{color:'rgba(240,237,232,0.5)',fontSize:'0.85rem',marginTop:'0.25rem'}}>{leadsErrorObj?.message ?? "Please try again in a moment."}</p>
                   </div>
                 ) : (filteredLeads ?? []).length === 0 ? (
-                  <div style={{background:'#ffffff',border:'1px solid rgba(201,168,76,0.15)',borderRadius:'4px',padding:'3rem',textAlign:'center'}}>
+                  <div className="card-luxury" style={{ borderRadius: '4px', padding: '3rem', textAlign: 'center' }}>
                     <Music style={{width:'3rem',height:'3rem',color:'#c9a84c',margin:'0 auto 1rem'}} />
-                    <p style={{color:'#1c1c2e',fontWeight:600}}>No gigs found</p>
-                    <p style={{color:'#6b6860',fontSize:'0.85rem',marginTop:'0.25rem'}}>Try adjusting your search or filters</p>
+                    <p style={{color:'#f0ede8',fontWeight:600}}>No gigs found</p>
+                    <p style={{color:'rgba(240,237,232,0.5)',fontSize:'0.85rem',marginTop:'0.25rem'}}>Try adjusting your search or filters</p>
                   </div>
                 ) : (
                   (filteredLeads ?? []).map((lead) => (
@@ -1061,10 +1061,15 @@ export default function ArtistDashboard() {
                       id={`lead-card-${lead.id}`}
                       className="card-luxury"
                       onClick={() => setSelectedLead(lead.id)}
-                      style={{background: selectedLead===lead.id ? '#fffbf0' : '#ffffff',border: selectedLead===lead.id ? '2px solid #c9a84c' : '1px solid #e8e4dc',borderRadius:'12px',cursor:'pointer',transition:'all 0.15s',boxShadow: selectedLead===lead.id ? '0 4px 20px rgba(201,168,76,0.15)' : '0 1px 4px rgba(0,0,0,0.06)'}}
+                      style={{
+                        border: selectedLead === lead.id ? '2px solid #c9a84c' : undefined,
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s',
+                      }}
                     >
                       <div className="lead-card-header" style={{ padding: '1rem' }}>
-                        <div className="flex items-start justify-between gap-3 mb-2">
+                        <div className="flex items-start justify-between gap-3">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1 flex-wrap">
                               {/* Lead Temperature Badge */}
@@ -1079,11 +1084,10 @@ export default function ArtistDashboard() {
                                 </span>
                               )}
                               {(lead as any).leadTemperature === 'cold' && (
-                                <span style={{flexShrink:0,fontSize:'0.68rem',fontWeight:600,color:'#9ca3af',background:'#f0ede6',padding:'0.15rem 0.5rem',borderRadius:'999px'}}>
+                                <span style={{flexShrink:0,fontSize:'0.68rem',fontWeight:600,color:'#9ca3af',background:'rgba(255,255,255,0.06)',padding:'0.15rem 0.5rem',borderRadius:'999px'}}>
                                   COLD
                                 </span>
                               )}
-                              <h3 style={{fontWeight:700,color:'#1c1c2e',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:'0.95rem'}}>{lead.title}</h3>
                               {/* New badge — show for leads created in the last 48 hours */}
                               {lead.createdAt && (Date.now() - new Date(lead.createdAt).getTime()) < 48 * 60 * 60 * 1000 && (
                                 <span style={{flexShrink:0,fontSize:'0.68rem',fontWeight:800,color:'#f9f7f4',background:'#c9a84c',padding:'0.15rem 0.5rem',borderRadius:'999px',letterSpacing:'0.05em'}}>
@@ -1103,7 +1107,20 @@ export default function ArtistDashboard() {
                               )}
                               {/* Lead tier / unlock price badge — show what they're paying before they click */}
                               {!lead.isUnlocked && (
-                                <span style={{flexShrink:0,fontSize:'0.68rem',fontWeight:700,color:'#c9a84c',background:'rgba(201,168,76,0.1)',border:'1px solid rgba(201,168,76,0.25)',padding:'0.15rem 0.5rem',borderRadius:'999px'}}>
+                                <span
+                                  style={{
+                                    flexShrink: 0,
+                                    background: 'rgba(201,168,76,0.1)',
+                                    border: '1px solid rgba(201,168,76,0.25)',
+                                    color: '#c9a84c',
+                                    fontSize: '0.6rem',
+                                    letterSpacing: '0.15em',
+                                    textTransform: 'uppercase',
+                                    padding: '0.25rem 0.6rem',
+                                    borderRadius: '2px',
+                                    fontWeight: 700,
+                                  }}
+                                >
                                   {(() => {
                                     const cents = getLeadDisplayPriceCents(lead as any);
                                     const dollars = Math.round(cents / 100);
@@ -1112,67 +1129,139 @@ export default function ArtistDashboard() {
                                 </span>
                               )}
                             </div>
-                            <div style={{display:'flex',flexWrap:'wrap',alignItems:'center',gap:'0.5rem',fontSize:'0.75rem',color:'#6b6860',marginTop:'0.25rem'}}>
-                              <span className="flex items-center gap-1">
-                                <MapPin className="w-3 h-3" />
-                                {lead.location}
-                              </span>
-                              {lead.eventDate && (
-                                <span className="flex items-center gap-1">
-                                  <Calendar className="w-3 h-3" />
-                                  {new Date(lead.eventDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                                </span>
-                              )}
-                              {/* Social proof */}
-                              {('viewCount' in lead) && (lead as any).viewCount > 0 && (
-                                <span style={{display:'inline-flex',alignItems:'center',gap:'0.2rem',color:'#9ca3af'}}>
-                                  <Eye style={{width:'0.7rem',height:'0.7rem'}} />
-                                  {(lead as any).viewCount} viewed
-                                </span>
-                              )}
-                              {('unlockCount' in lead) && (lead as any).unlockCount > 0 && (
-                                <span style={{display:'inline-flex',alignItems:'center',gap:'0.2rem',fontWeight:600,color:(lead as any).unlockCount>=5?'#ef4444':(lead as any).unlockCount>=3?'#f97316':'#c9a84c'}}>
-                                  <Users className="w-3 h-3" />
-                                  {(lead as any).unlockCount === 1
-                                    ? '1 pro has this'
-                                    : `${(lead as any).unlockCount} pros have this`
-                                  }
-                                </span>
-                              )}
-                            </div>
+                            <h3
+                              style={{
+                                fontFamily: 'Cormorant Garamond, serif',
+                                fontSize: 'clamp(1.15rem, 2.5vw, 1.45rem)',
+                                fontWeight: 600,
+                                color: '#f0ede8',
+                                lineHeight: 1.25,
+                                margin: '0.35rem 0 0',
+                              }}
+                            >
+                              {lead.title}
+                            </h3>
                             {/* Tier helper text */}
                             {/* Tier explanation moved to global banner to reduce per-card noise */}
                           </div>
-                          <div style={{flexShrink:0,textAlign:'right'}}>
-                            <div style={{fontSize:'1rem',fontWeight:800,color:'#c9a84c'}}>Client budget: {formatBudget(lead.budget)}</div>
-                            <div style={{display:'flex',flexWrap:'wrap',alignItems:'center',gap:'0.35rem',marginTop:'0.25rem',justifyContent:'flex-end'}}>
+                          <div style={{ flexShrink: 0, textAlign: 'right' }}>
+                            <div>
+                              <span style={{ fontSize: '0.7rem', color: 'rgba(240,237,232,0.5)' }}>Client budget </span>
+                              <span style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '1.4rem', color: '#c9a84c', fontWeight: 600 }}>
+                                {formatBudget(lead.budget)}
+                              </span>
+                            </div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.35rem', marginTop: '0.25rem', justifyContent: 'flex-end' }}>
                               {lead.performerType && lead.performerType !== "other" && (
-                                <span style={{fontSize:'0.72rem',fontWeight:600,background:'rgba(201,168,76,0.1)',color:'#c9a84c',padding:'0.15rem 0.5rem',borderRadius:'999px'}}>
-                                  {PERFORMER_TYPES.find(p => p.value === lead.performerType)?.icon} {PERFORMER_TYPES.find(p => p.value === lead.performerType)?.label}
+                                <span
+                                  style={{
+                                    background: 'rgba(201,168,76,0.1)',
+                                    border: '1px solid rgba(201,168,76,0.25)',
+                                    color: '#c9a84c',
+                                    fontSize: '0.6rem',
+                                    letterSpacing: '0.15em',
+                                    textTransform: 'uppercase',
+                                    padding: '0.25rem 0.6rem',
+                                    borderRadius: '2px',
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  {PERFORMER_TYPES.find(p => p.value === lead.performerType)?.icon}{' '}
+                                  {PERFORMER_TYPES.find(p => p.value === lead.performerType)?.label}
                                 </span>
                               )}
                               {lead.eventType && (
-                                <span style={{fontSize:'0.72rem',color:'#6b6860'}}>{lead.eventType}</span>
+                                <span
+                                  style={{
+                                    background: 'rgba(201,168,76,0.1)',
+                                    border: '1px solid rgba(201,168,76,0.25)',
+                                    color: '#c9a84c',
+                                    fontSize: '0.6rem',
+                                    letterSpacing: '0.15em',
+                                    textTransform: 'uppercase',
+                                    padding: '0.25rem 0.6rem',
+                                    borderRadius: '2px',
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  {String(lead.eventType).toUpperCase()}
+                                </span>
                               )}
                             </div>
                           </div>
                         </div>
+                        <div
+                          style={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            fontSize: '0.75rem',
+                            color: 'rgba(240,237,232,0.4)',
+                            marginTop: '0.75rem',
+                          }}
+                        >
+                          <span className="flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
+                            {lead.location}
+                          </span>
+                          {lead.eventDate && (
+                            <span className="flex items-center gap-1">
+                              <Calendar className="w-3 h-3" />
+                              {new Date(lead.eventDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </span>
+                          )}
+                          {('viewCount' in lead) && (lead as any).viewCount > 0 && (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', color: 'rgba(240,237,232,0.4)', fontSize: '0.75rem' }}>
+                              <Eye style={{ width: '0.7rem', height: '0.7rem' }} />
+                              {(lead as any).viewCount} viewed
+                            </span>
+                          )}
+                          {('unlockCount' in lead) && (lead as any).unlockCount > 0 && (
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.2rem',
+                                fontWeight: 600,
+                                fontSize: '0.75rem',
+                                color: (lead as any).unlockCount >= 5 ? '#ef4444' : (lead as any).unlockCount >= 3 ? '#f97316' : '#c9a84c',
+                              }}
+                            >
+                              <Users className="w-3 h-3" />
+                              {(lead as any).unlockCount === 1 ? '1 pro has this' : `${(lead as any).unlockCount} pros have this`}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div style={{ padding: '0 1rem 1rem 1rem' }}>
                         {getLeadDescriptionForDisplay(lead) && (
-                          <p style={{fontSize:'0.82rem',color:'#4a4a5e',display:'-webkit-box',WebkitLineClamp:3,WebkitBoxOrient:'vertical',overflow:'hidden',marginBottom:'0.5rem',lineHeight:1.6}}>
+                          <p style={{fontSize:'0.82rem',color:'rgba(240,237,232,0.75)',display:'-webkit-box',WebkitLineClamp:3,WebkitBoxOrient:'vertical',overflow:'hidden',marginBottom:'0.5rem',lineHeight:1.6}}>
                             {getLeadDescriptionForDisplay(lead)}
                           </p>
                         )}
                         {!lead.isUnlocked && (
-                          <p style={{fontSize:'0.72rem',color:'#9ca3af',marginBottom:'0.5rem',fontStyle:'italic'}}>
+                          <p style={{fontSize:'0.72rem',color:'rgba(240,237,232,0.45)',marginBottom:'0.5rem',fontStyle:'italic'}}>
                             Full contact info revealed after unlock
                           </p>
                         )}
                         {!lead.isUnlocked && getPreviewTags(lead).length > 0 && (
                           <div style={{display:'flex',flexWrap:'wrap',alignItems:'center',gap:'0.35rem',marginBottom:'0.5rem'}}>
                             {getPreviewTags(lead).map((tag) => (
-                              <span key={tag} style={{fontSize:'0.68rem',fontWeight:600,color:'#6b6860',background:'#f0ede6',border:'1px solid #e8e4dc',padding:'0.1rem 0.5rem',borderRadius:'4px',letterSpacing:'0.04em',textTransform:'uppercase'}}>
+                              <span
+                                key={tag}
+                                style={{
+                                  background: 'rgba(201,168,76,0.1)',
+                                  border: '1px solid rgba(201,168,76,0.25)',
+                                  color: '#c9a84c',
+                                  fontSize: '0.6rem',
+                                  letterSpacing: '0.15em',
+                                  textTransform: 'uppercase',
+                                  padding: '0.25rem 0.6rem',
+                                  borderRadius: '2px',
+                                  fontWeight: 600,
+                                }}
+                              >
                                 {tag}
                               </span>
                             ))}
@@ -1181,14 +1270,14 @@ export default function ArtistDashboard() {
 
                         {/* Win Probability Bar */}
                         {(lead as any).winProbability !== undefined && (lead as any).winProbability !== null && (
-                          <div style={{marginBottom:'0.5rem'}}>
-                            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'0.2rem'}}>
-                              <span style={{fontSize:'0.7rem',color:'#6b6860',textTransform:'uppercase',letterSpacing:'0.05em'}}>Win probability</span>
-                              <span style={{fontSize:'0.75rem',fontWeight:700,color:(lead as any).winProbability>=70?'#22c55e':(lead as any).winProbability>=45?'#f97316':'#6b6860'}}>{Math.round((lead as any).winProbability)}%</span>
+                          <div style={{ marginBottom: '0.5rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
+                              <span style={{ fontSize: '0.7rem', color: 'rgba(240,237,232,0.5)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Win probability</span>
+                              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: (lead as any).winProbability >= 70 ? '#22c55e' : (lead as any).winProbability >= 45 ? '#f97316' : 'rgba(240,237,232,0.5)' }}>{Math.round((lead as any).winProbability)}%</span>
                             </div>
-                            <div style={{height:'3px',background:'#e8e4dc',borderRadius:'999px',overflow:'hidden'}}>
+                            <div style={{ height: '3px', background: 'rgba(255,255,255,0.1)', borderRadius: '999px', overflow: 'hidden' }}>
                               <div
-                                style={{height:'100%',borderRadius:'999px',transition:'width 0.3s',background:(lead as any).winProbability>=70?'#22c55e':(lead as any).winProbability>=45?'#f97316':'rgba(255,255,255,0.15)',width:`${Math.min(100,Math.round((lead as any).winProbability))}%`}}
+                                style={{ height: '100%', borderRadius: '999px', transition: 'width 0.3s', background: (lead as any).winProbability >= 70 ? '#22c55e' : (lead as any).winProbability >= 45 ? '#f97316' : 'rgba(255,255,255,0.15)', width: `${Math.min(100, Math.round((lead as any).winProbability))}%` }}
                               />
                             </div>
                           </div>
@@ -1210,7 +1299,7 @@ export default function ArtistDashboard() {
                               </span>
                             )}
                             {showFacebookProfileLeadCta(lead) && (
-                              <span style={{display:'inline-flex',alignItems:'center',gap:'0.25rem',fontSize:'0.68rem',fontWeight:600,color:'#6b6860',background:'#f0ede6',border:'1px solid #e8e4dc',padding:'0.15rem 0.5rem',borderRadius:'4px'}}>
+                              <span style={{display:'inline-flex',alignItems:'center',gap:'0.25rem',background:'rgba(201,168,76,0.1)',border:'1px solid rgba(201,168,76,0.25)',color:'#c9a84c',fontSize:'0.6rem',letterSpacing:'0.15em',textTransform:'uppercase',padding:'0.25rem 0.6rem',borderRadius:'2px',fontWeight:600}}>
                                 Direct profile link included
                               </span>
                             )}
@@ -1244,12 +1333,12 @@ export default function ArtistDashboard() {
                               )}
                             </button>
                           ) : (
-                            <div className="flex flex-col items-end gap-1 text-xs text-green-700">
+                            <div className="flex flex-col items-end gap-1 text-xs" style={{ color: '#4ade80' }}>
                               <span className="font-medium flex items-center gap-1">
                                 <Check className="w-3 h-3" />
                                 Contact available
                               </span>
-                              <div className="flex flex-col items-end gap-1 text-[11px] text-slate-600">
+                              <div className="flex flex-col items-end gap-1 text-[11px]" style={{ color: 'rgba(240,237,232,0.65)' }}>
                                 {lead.contactName && (
                                   <span className="flex items-center gap-1">
                                     <User className="w-3 h-3" />
@@ -1336,7 +1425,7 @@ export default function ArtistDashboard() {
               {/* Lead Detail Panel */}
               <div className="lg:sticky lg:top-28 lg:self-start space-y-4">
                 {selectedLeadData ? (
-                  <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                  <div style={{ background: '#111111', border: '1px solid rgba(201,168,76,0.2)', borderRadius: '4px', overflow: 'hidden' }}>
                     <div className="p-5 text-white" style={{background:"linear-gradient(135deg,#1c1c2e,#2d2d42)"}}>
                       <h2 className="font-bold text-lg leading-tight mb-1">{selectedLeadData.title}</h2>
                       {selectedLeadData.eventType && (
@@ -1355,24 +1444,24 @@ export default function ArtistDashboard() {
                       )}
                     </div>
 
-                    <div className="p-5 space-y-4">
+                    <div className="p-5 space-y-4" style={{ color: '#f0ede8' }}>
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <DollarSign className="w-4 h-4 text-emerald-600" />
+                        <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(201,168,76,0.12)' }}>
+                          <DollarSign className="w-4 h-4 text-[#c9a84c]" />
                         </div>
                         <div>
-                          <p className="text-xs text-slate-500">Client budget</p>
-                          <p className="font-bold text-slate-900 text-lg">{formatBudget(selectedLeadData.budget)}</p>
+                          <p className="text-xs" style={{ color: 'rgba(240,237,232,0.5)' }}>Client budget</p>
+                          <p className="font-semibold text-lg" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#c9a84c' }}>{formatBudget(selectedLeadData.budget)}</p>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <MapPin className="w-4 h-4 text-blue-600" />
+                        <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(201,168,76,0.12)' }}>
+                          <MapPin className="w-4 h-4 text-[#c9a84c]" />
                         </div>
                         <div>
-                          <p className="text-xs text-slate-500">Location</p>
-                          <p className="font-medium text-slate-900">{selectedLeadData.location}</p>
+                          <p className="text-xs" style={{ color: 'rgba(240,237,232,0.4)', fontSize: '0.75rem' }}>Location</p>
+                          <p className="font-medium" style={{ color: '#f0ede8' }}>{selectedLeadData.location}</p>
                         </div>
                       </div>
 
@@ -1388,7 +1477,8 @@ export default function ArtistDashboard() {
                           <button
                             type="button"
                             onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, "_blank", "noopener,noreferrer")}
-                            className="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                            className="inline-flex items-center gap-2 rounded-md border px-3 py-2 text-xs font-medium hover:opacity-90"
+                            style={{ borderColor: 'rgba(201,168,76,0.25)', background: '#1a1a1a', color: '#f0ede8' }}
                           >
                             <Search className="w-3.5 h-3.5" />
                             Search on Google
@@ -1399,12 +1489,12 @@ export default function ArtistDashboard() {
 
                       {selectedLeadData.eventDate && (
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{background:"#fef9ec"}}>
+                          <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{background:"rgba(201,168,76,0.12)"}}>
                             <Calendar className="w-4 h-4" style={{color:"#c9a84c"}} />
                           </div>
                           <div>
-                            <p className="text-xs text-slate-500">Event Date</p>
-                            <p className="font-medium text-slate-900">
+                            <p className="text-xs" style={{ color: 'rgba(240,237,232,0.4)', fontSize: '0.75rem' }}>Event Date</p>
+                            <p className="font-medium" style={{ color: '#f0ede8' }}>
                               {new Date(selectedLeadData.eventDate).toLocaleDateString("en-US", {
                                 weekday: "short", month: "long", day: "numeric", year: "numeric"
                               })}
@@ -1414,9 +1504,9 @@ export default function ArtistDashboard() {
                       )}
 
                       {getLeadDescriptionForDisplay(selectedLeadData) && (
-                        <div className="pt-2 border-t border-slate-100">
-                          <p className="text-xs text-slate-500 mb-1.5">Details</p>
-                          <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
+                        <div className="pt-2" style={{ borderTop: '1px solid rgba(201,168,76,0.12)' }}>
+                          <p className="text-xs mb-1.5" style={{ color: 'rgba(240,237,232,0.5)' }}>Details</p>
+                          <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: 'rgba(240,237,232,0.85)' }}>
                             {getLeadDescriptionForDisplay(selectedLeadData)}
                           </p>
                         </div>
@@ -1424,22 +1514,22 @@ export default function ArtistDashboard() {
 
                       {/* ── Gig Intelligence Panel ── */}
                       {((selectedLeadData as any).winProbability !== undefined && (selectedLeadData as any).winProbability !== null) && (
-                        <div className="pt-3 border-t border-slate-100">
-                          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+                        <div className="pt-3" style={{ borderTop: '1px solid rgba(201,168,76,0.12)' }}>
+                          <p className="text-xs font-semibold uppercase tracking-wide mb-3 flex items-center gap-1.5" style={{ color: 'rgba(240,237,232,0.5)' }}>
                             <BarChart2 className="w-3.5 h-3.5" /> Gig Intelligence
                           </p>
 
                           {/* Win Probability */}
-                          <div className="bg-slate-50 rounded-lg p-3 mb-2">
+                          <div className="rounded-lg p-3 mb-2" style={{ background: '#1a1a1a' }}>
                             <div className="flex items-center justify-between mb-1.5">
-                              <span className="text-xs text-slate-600 font-medium">Win Probability</span>
+                              <span className="text-xs font-medium" style={{ color: 'rgba(240,237,232,0.65)' }}>Win Probability</span>
                               <span className={`text-sm font-bold ${
                                 (selectedLeadData as any).winProbability >= 70 ? 'text-green-600' :
                                 (selectedLeadData as any).winProbability >= 45 ? 'text-orange-500' :
                                 'text-slate-500'
                               }`}>{Math.round((selectedLeadData as any).winProbability)}%</span>
                             </div>
-                            <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                            <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
                               <div
                                 className={`h-full rounded-full ${
                                   (selectedLeadData as any).winProbability >= 70 ? 'bg-green-500' :
@@ -1454,8 +1544,8 @@ export default function ArtistDashboard() {
                           {/* Competition + Buyer Type row */}
                           <div className="grid grid-cols-2 gap-2 mb-2">
                             {(selectedLeadData as any).competitionLevel && (
-                              <div className="bg-slate-50 rounded-lg p-2.5">
-                                <p className="text-xs text-slate-400 mb-0.5">Competition</p>
+                              <div className="rounded-lg p-2.5" style={{ background: '#1a1a1a' }}>
+                                <p className="text-xs mb-0.5" style={{ color: 'rgba(240,237,232,0.45)' }}>Competition</p>
                                 <p className={`text-xs font-semibold capitalize ${
                                   (selectedLeadData as any).competitionLevel === 'low' ? 'text-green-600' :
                                   (selectedLeadData as any).competitionLevel === 'medium' ? 'text-orange-500' :
@@ -1464,9 +1554,9 @@ export default function ArtistDashboard() {
                               </div>
                             )}
                             {(selectedLeadData as any).buyerType && (selectedLeadData as any).buyerType !== 'unknown' && (
-                              <div className="bg-slate-50 rounded-lg p-2.5">
-                                <p className="text-xs text-slate-400 mb-0.5">Buyer Type</p>
-                                <p className="text-xs font-semibold text-slate-700 capitalize">{((selectedLeadData as any).buyerType as string).replace(/_/g, ' ')}</p>
+                              <div className="rounded-lg p-2.5" style={{ background: '#1a1a1a' }}>
+                                <p className="text-xs mb-0.5" style={{ color: 'rgba(240,237,232,0.45)' }}>Buyer Type</p>
+                                <p className="text-xs font-semibold capitalize" style={{ color: '#f0ede8' }}>{((selectedLeadData as any).buyerType as string).replace(/_/g, ' ')}</p>
                               </div>
                             )}
                           </div>
@@ -1490,21 +1580,21 @@ export default function ArtistDashboard() {
                           {/* Evidence snippets */}
                           {((selectedLeadData as any).intentEvidence || (selectedLeadData as any).contactEvidence || (selectedLeadData as any).eventEvidence) && (
                             <div className="space-y-1.5">
-                              <p className="text-xs text-slate-400 font-medium">Why this lead scored high:</p>
+                              <p className="text-xs font-medium" style={{ color: 'rgba(240,237,232,0.45)' }}>Why this lead scored high:</p>
                               {(selectedLeadData as any).intentEvidence && (
-                                <div className="flex items-start gap-1.5 text-xs text-slate-600">
+                                <div className="flex items-start gap-1.5 text-xs" style={{ color: 'rgba(240,237,232,0.7)' }}>
                                   <Check className="w-3 h-3 text-green-500 mt-0.5 flex-shrink-0" />
                                   <span>{(selectedLeadData as any).intentEvidence}</span>
                                 </div>
                               )}
                               {(selectedLeadData as any).contactEvidence && (
-                                <div className="flex items-start gap-1.5 text-xs text-slate-600">
+                                <div className="flex items-start gap-1.5 text-xs" style={{ color: 'rgba(240,237,232,0.7)' }}>
                                   <Check className="w-3 h-3 text-green-500 mt-0.5 flex-shrink-0" />
                                   <span>{(selectedLeadData as any).contactEvidence}</span>
                                 </div>
                               )}
                               {(selectedLeadData as any).eventEvidence && (
-                                <div className="flex items-start gap-1.5 text-xs text-slate-600">
+                                <div className="flex items-start gap-1.5 text-xs" style={{ color: 'rgba(240,237,232,0.7)' }}>
                                   <Check className="w-3 h-3 text-green-500 mt-0.5 flex-shrink-0" />
                                   <span>{(selectedLeadData as any).eventEvidence}</span>
                                 </div>
@@ -1515,9 +1605,9 @@ export default function ArtistDashboard() {
                       )}
 
                       {selectedLeadData.isUnlocked ? (
-                        <div className="pt-2 border-t border-slate-100 space-y-3">
+                        <div className="pt-2 space-y-3" style={{ borderTop: '1px solid rgba(201,168,76,0.12)' }}>
                           <div>
-                            <p className="text-xs text-slate-500 mb-1.5">Lead Status</p>
+                            <p className="text-xs mb-1.5" style={{ color: 'rgba(240,237,232,0.5)' }}>Lead Status</p>
                             <select
                               value={(String((selectedLeadData as any).status || "new") as LeadProgressStatus)}
                               onChange={(e) => {
@@ -1525,7 +1615,7 @@ export default function ArtistDashboard() {
                                 updateLeadStatus({ leadId: selectedLeadData.id, status: nextStatus });
                               }}
                               disabled={statusUpdatePending}
-                              style={{borderColor:"#e8e4dc",color:"#1c1c2e"}} className="w-full h-9 rounded-md border bg-white px-3 text-sm disabled:opacity-60"
+                              style={{borderColor:'rgba(201,168,76,0.25)',color:'#f0ede8',background:'#1a1a1a'}} className="w-full h-9 rounded-md border px-3 text-sm disabled:opacity-60"
                             >
                               <option value="new">New</option>
                               <option value="contacted">Contacted</option>
@@ -1534,20 +1624,20 @@ export default function ArtistDashboard() {
                             </select>
                           </div>
 
-                          <p className="text-xs text-slate-500 mb-2 flex items-center gap-1">
-                            <Unlock className="w-3 h-3 text-green-600" />
+                          <p className="text-xs mb-2 flex items-center gap-1" style={{ color: '#4ade80' }}>
+                            <Unlock className="w-3 h-3" style={{ color: '#4ade80' }} />
                             Contact Information
                           </p>
-                          <div className="bg-green-50 rounded-lg p-3 space-y-2">
+                          <div className="rounded-lg p-3 space-y-2" style={{ background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.25)' }}>
                             {selectedLeadData.contactName && (
                               <div className="flex items-center gap-2 text-sm">
-                                <User className="w-3.5 h-3.5 text-green-600" />
-                                <span className="font-medium text-slate-900">{selectedLeadData.contactName}</span>
+                                <User className="w-3.5 h-3.5" style={{ color: '#4ade80' }} />
+                                <span className="font-medium" style={{ color: '#f0ede8' }}>{selectedLeadData.contactName}</span>
                               </div>
                             )}
                             {selectedLeadData.contactEmail && (
                               <div className="flex items-center gap-2 text-sm">
-                                <Mail className="w-3.5 h-3.5 text-green-600" />
+                                <Mail className="w-3.5 h-3.5" style={{ color: '#4ade80' }} />
                                 <a
                                   href={buildOutreachMailto(
                                     selectedLeadData.contactEmail,
@@ -1564,7 +1654,7 @@ export default function ArtistDashboard() {
                             )}
                             {selectedLeadData.contactPhone && (
                               <div className="flex items-center gap-2 text-sm">
-                                <Phone className="w-3.5 h-3.5 text-green-600" />
+                                <Phone className="w-3.5 h-3.5" style={{ color: '#4ade80' }} />
                                 <a href={`tel:${selectedLeadData.contactPhone}`} style={{color:'#b8963e'}} className="hover:underline">
                                   {selectedLeadData.contactPhone}
                                 </a>
@@ -1589,8 +1679,8 @@ export default function ArtistDashboard() {
                               );
                             })()}
                             {(selectedLeadData.contactEmail || selectedLeadData.contactPhone) && (
-                              <div className="pt-2 mt-2 border-t border-green-200">
-                                <p className="text-[11px] font-semibold text-green-700 mb-2">Quick Actions</p>
+                              <div className="pt-2 mt-2" style={{ borderTop: '1px solid rgba(74,222,128,0.25)' }}>
+                                <p className="text-[11px] font-semibold mb-2" style={{ color: '#4ade80' }}>Quick Actions</p>
                                 <div className="flex flex-wrap gap-2">
                                   {selectedLeadData.contactEmail && (
                                     <a
@@ -1622,7 +1712,7 @@ export default function ArtistDashboard() {
                           </div>
 
                           {/* Tier-specific post-unlock messaging */}
-                          <p className="text-[11px] text-slate-500">
+                          <p className="text-[11px]" style={{ color: 'rgba(240,237,232,0.45)' }}>
                             {(() => {
                               const tier = (selectedLeadData as any).leadTier as string | undefined;
                               if (tier === "starter_friendly") {
@@ -1640,9 +1730,9 @@ export default function ArtistDashboard() {
 
                           {/* AI Pitch Draft */}
                           {pitchLeadId === selectedLeadData.id && pitchText ? (
-                            <div className="rounded-lg p-3" style={{background:"#fef9ec",border:"1px solid rgba(201,168,76,0.3)"}}>
+                            <div className="rounded-lg p-3" style={{background:"rgba(201,168,76,0.08)",border:"1px solid rgba(201,168,76,0.25)"}}>
                               <div className="flex items-center justify-between mb-2">
-                                <p style={{color:"#b8963e"}} className="text-xs font-semibold flex items-center gap-1">
+                                <p style={{color:"#c9a84c"}} className="text-xs font-semibold flex items-center gap-1">
                                   <Sparkles className="w-3.5 h-3.5" /> AI Pitch Draft
                                 </p>
                                 <button
@@ -1656,7 +1746,7 @@ export default function ArtistDashboard() {
                                   {pitchCopied ? <><Check className="w-3 h-3" /> Copied!</> : <><Copy className="w-3 h-3" /> Copy</>}
                                 </button>
                               </div>
-                              <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-line">{pitchText}</p>
+                              <p className="text-xs leading-relaxed whitespace-pre-line" style={{ color: 'rgba(240,237,232,0.85)' }}>{pitchText}</p>
                               <button
                                 onClick={() => handleGeneratePitch(selectedLeadData.id)}
                                 style={{color:"#b8963e"}} className="mt-2 text-xs"
@@ -1681,43 +1771,43 @@ export default function ArtistDashboard() {
                           )}
                         </div>
                       ) : (
-                        <div className="pt-2 border-t border-slate-100">
+                        <div className="pt-2" style={{ borderTop: '1px solid rgba(201,168,76,0.12)' }}>
                           {(() => {
                             const priceCents = getLeadDisplayPriceCents(selectedLeadData as any);
                             return availableCredits >= priceCents;
                           })() && (
-                            <div className="bg-amber-50 border border-amber-200 rounded-lg p-2.5 mb-3 flex items-center gap-2 text-sm">
-                              <Gift className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                              <span className="text-amber-800 font-medium">
+                            <div className="rounded-lg p-2.5 mb-3 flex items-center gap-2 text-sm" style={{ background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.3)' }}>
+                              <Gift className="w-4 h-4 flex-shrink-0" style={{ color: '#c9a84c' }} />
+                              <span className="font-medium" style={{ color: '#f0ede8' }}>
                                 You have ${(availableCredits / 100).toFixed(2)} in lead credit — this lead unlocks free.
                               </span>
                             </div>
                           )}
-                          <div className="bg-slate-50 rounded-lg p-3 mb-3">
-                            <div className="flex items-center gap-2 text-sm text-slate-500 mb-2">
+                          <div className="rounded-lg p-3 mb-3" style={{ background: '#1a1a1a', border: '1px solid rgba(201,168,76,0.15)' }}>
+                            <div className="flex items-center gap-2 text-sm mb-2" style={{ color: 'rgba(240,237,232,0.5)' }}>
                               <Lock className="w-3.5 h-3.5" />
                               <span>Contact info locked</span>
                             </div>
                             <div className="flex flex-wrap items-center gap-1.5 mb-2">
                               {(selectedLeadData as any).hasContactEmail && (
-                                <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-600 bg-white border border-slate-200 px-2 py-0.5 rounded-full">
+                                <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full" style={{ color: '#c9a84c', background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.25)' }}>
                                   <Mail className="w-3 h-3" />
                                   Email available
                                 </span>
                               )}
                               {(selectedLeadData as any).hasContactPhone && (
-                                <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-600 bg-white border border-slate-200 px-2 py-0.5 rounded-full">
+                                <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full" style={{ color: '#c9a84c', background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.25)' }}>
                                   <Phone className="w-3 h-3" />
                                   Phone available
                                 </span>
                               )}
                               {showFacebookProfileLeadCta(selectedLeadData) && (
-                                <span className="inline-flex items-center gap-1 text-xs font-medium text-sky-700 bg-sky-50 border border-sky-200 px-2 py-0.5 rounded-full">
+                                <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full" style={{ color: '#c9a84c', background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.25)' }}>
                                   Facebook Lead — contact via profile link
                                 </span>
                               )}
                             </div>
-                            <p className="text-xs text-slate-400">Unlock to reveal contact details</p>
+                            <p className="text-xs" style={{ color: 'rgba(240,237,232,0.45)' }}>Unlock to reveal contact details</p>
                           </div>
                           <button
                             type="button"
@@ -1743,7 +1833,7 @@ export default function ArtistDashboard() {
                               </>
                             )}
                           </button>
-                          <p className="text-xs text-slate-400 text-center mt-2">
+                          <p className="text-xs text-center mt-2" style={{ color: 'rgba(240,237,232,0.45)' }}>
                             One-time payment · Instant access · No subscription
                           </p>
                         </div>
@@ -1751,12 +1841,12 @@ export default function ArtistDashboard() {
                     </div>
                   </div>
                 ) : (
-                  <div className="bg-white rounded-xl border border-slate-200 p-8 text-center">
-                    <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <Music className="w-6 h-6 text-slate-400" />
+                  <div className="card-luxury p-8 text-center" style={{ borderRadius: '4px' }}>
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3" style={{ background: 'rgba(201,168,76,0.12)' }}>
+                      <Music className="w-6 h-6" style={{ color: '#c9a84c' }} />
                     </div>
-                    <p className="text-slate-600 font-medium">Select a gig to view details</p>
-                    <p className="text-slate-400 text-sm mt-1">Click any lead on the left to see full info</p>
+                    <p className="font-medium" style={{ color: '#f0ede8' }}>Select a gig to view details</p>
+                    <p className="text-sm mt-1" style={{ color: 'rgba(240,237,232,0.5)' }}>Click any lead on the left to see full info</p>
                   </div>
                 )}
               </div>
@@ -1767,12 +1857,12 @@ export default function ArtistDashboard() {
         {/* UNLOCKED TAB */}
         {activeTab === "unlocked" && (
           <div>
-            <h2 className="text-xl font-bold text-slate-900 mb-5">My Unlocked Leads</h2>
+            <h2 className="text-xl font-bold mb-5" style={{ color: '#f0ede8' }}>My Unlocked Leads</h2>
             {(myUnlocks ?? []).length === 0 ? (
-              <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
-                <Unlock className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                <p className="text-slate-600 font-medium">No unlocked leads yet</p>
-                <p className="text-slate-400 text-sm mt-1 mb-6">
+              <div className="card-luxury p-12 text-center" style={{ borderRadius: '4px' }}>
+                <Unlock className="w-12 h-12 mx-auto mb-4" style={{ color: 'rgba(240,237,232,0.35)' }} />
+                <p className="font-medium" style={{ color: '#f0ede8' }}>No unlocked leads yet</p>
+                <p className="text-sm mt-1 mb-6" style={{ color: 'rgba(240,237,232,0.5)' }}>
                   Browse gigs and unlock contact info — Discovery leads $3, Standard $7, Premium $15.
                 </p>
                 <Button onClick={() => setActiveTab("leads")} style={{background:"#c9a84c",color:"#1c1c2e",fontWeight:700}} className="">
@@ -1782,16 +1872,16 @@ export default function ArtistDashboard() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {(myUnlocks ?? []).map((unlock) => (
-                  <Card key={unlock.unlockId} className="border-slate-200">
+                  <Card key={unlock.unlockId} className="card-luxury border-none" style={{ color: '#f0ede8' }}>
                     <CardContent className="p-5">
                       <div className="flex items-start justify-between mb-3">
                         <div>
-                          <h3 className="font-semibold text-slate-900">{unlock.title}</h3>
-                          <p className="text-sm text-slate-500">{unlock.eventType}</p>
+                          <h3 className="font-semibold" style={{ color: '#f0ede8' }}>{unlock.title}</h3>
+                          <p className="text-sm" style={{ color: 'rgba(240,237,232,0.45)', fontSize: '0.75rem' }}>{unlock.eventType}</p>
                         </div>
-                        <span className="text-lg font-bold text-emerald-600">{formatBudget(unlock.budget)}</span>
+                        <span className="text-lg font-bold" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#c9a84c' }}>{formatBudget(unlock.budget)}</span>
                       </div>
-                      <div className="flex items-center gap-1 text-sm text-slate-500 mb-3">
+                      <div className="flex items-center gap-1 text-sm mb-3" style={{ color: 'rgba(240,237,232,0.4)', fontSize: '0.75rem' }}>
                         <MapPin className="w-3.5 h-3.5" />
                         {unlock.location}
                         {unlock.eventDate && (
@@ -1802,23 +1892,23 @@ export default function ArtistDashboard() {
                           </>
                         )}
                       </div>
-                      <div className="bg-green-50 rounded-lg p-3 space-y-1.5">
+                      <div className="rounded-lg p-3 space-y-1.5" style={{ background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.22)' }}>
                         {unlock.contactName && (
                           <div className="flex items-center gap-2 text-sm">
-                            <User className="w-3.5 h-3.5 text-green-600" />
-                            <span className="font-medium">{unlock.contactName}</span>
+                            <User className="w-3.5 h-3.5" style={{ color: '#4ade80' }} />
+                            <span className="font-medium" style={{ color: '#f0ede8' }}>{unlock.contactName}</span>
                           </div>
                         )}
                         {unlock.contactEmail && (
                           <div className="flex items-center gap-2 text-sm">
-                            <Mail className="w-3.5 h-3.5 text-green-600" />
+                            <Mail className="w-3.5 h-3.5" style={{ color: '#4ade80' }} />
                             <a
                               href={buildOutreachMailto(
                                 unlock.contactEmail,
                                 unlock.title,
                                 unlock.location,
                                 unlock.contactName,
-                                unlock.performerType
+                                (unlock as { performerType?: string }).performerType
                               )}
                               style={{color:"#b8963e"}} className="hover:underline"
                             >
@@ -1828,7 +1918,7 @@ export default function ArtistDashboard() {
                         )}
                         {unlock.contactPhone && (
                           <div className="flex items-center gap-2 text-sm">
-                            <Phone className="w-3.5 h-3.5 text-green-600" />
+                            <Phone className="w-3.5 h-3.5" style={{ color: '#4ade80' }} />
                             <a href={`tel:${unlock.contactPhone}`} style={{color:'#b8963e'}} className="hover:underline">{unlock.contactPhone}</a>
                           </div>
                         )}
@@ -1886,8 +1976,8 @@ export default function ArtistDashboard() {
         {/* REFERRALS TAB */}
         {activeTab === "referrals" && (
           <div className="max-w-2xl">
-            <h2 className="text-xl font-bold text-slate-900 mb-2">Referral Program</h2>
-            <p className="text-slate-500 text-sm mb-6">Share your link. Earn $7 in lead credit for every artist who joins.</p>
+            <h2 className="text-xl font-bold mb-2" style={{ color: '#f0ede8' }}>Referral Program</h2>
+            <p className="text-sm mb-6" style={{ color: 'rgba(240,237,232,0.55)' }}>Share your link. Earn $7 in lead credit for every artist who joins.</p>
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-4 mb-6">
@@ -1965,8 +2055,8 @@ export default function ArtistDashboard() {
         {/* SUBSCRIPTION / PREMIUM TAB */}
         {activeTab === "packs" && (
           <div className="max-w-2xl">
-            <h2 className="text-xl font-bold text-slate-900 mb-1">Pro & Unlock Packs</h2>
-            <p className="text-slate-500 text-sm mb-6">
+            <h2 className="text-xl font-bold mb-1" style={{ color: '#f0ede8' }}>Pro & Unlock Packs</h2>
+            <p className="text-sm mb-6" style={{ color: 'rgba(240,237,232,0.55)' }}>
               Pro: $49/month — 15 leads included, any tier, your choice. No commission. No booking fees. Ever. New leads added daily. Or buy one-time packs. Discovery leads $3, Standard $7, Premium $15.
               Credits are dollar-based and can be used toward any lead price.
             </p>
