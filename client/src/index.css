@@ -1,6 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap');
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap');
 @import "tw-animate-css";
+
+:root { --gold: #c9a84c; --gold-light: #e8c97a; }
+
+body { background: #080808; color: #f0ede8; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+
+.btn-gold { background: linear-gradient(135deg,#c9a84c,#e8c97a); color: #080808; font-weight: 600; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.75rem 2rem; border: none; border-radius: 2px; cursor: pointer; transition: all 0.2s ease; }
+.btn-gold:hover { background: linear-gradient(135deg,#e8c97a,#c9a84c); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(201,168,76,0.3); }
+
+.btn-ghost { background: transparent; color: #f0ede8; font-weight: 500; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.75rem 2rem; border: 1px solid rgba(240,237,232,0.25); border-radius: 2px; cursor: pointer; transition: all 0.2s ease; }
+.btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
+
+.card-luxury { background: #111111; border: 1px solid rgba(201,168,76,0.15); border-radius: 4px; transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease; }
+.card-luxury:hover { border-color: rgba(201,168,76,0.4); transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,0,0,0.5); }
+
+.section-label { font-size: 0.65rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--gold); font-weight: 500; }
+.divider-gold { width: 40px; height: 1px; background: var(--gold); margin: 1rem auto; }
+.hero-overlay { background: linear-gradient(to bottom, rgba(8,8,8,0.4) 0%, rgba(8,8,8,0.55) 50%, rgba(8,8,8,0.85) 100%); }
+.trust-bar { background: #0d0d0d; border-top: 1px solid rgba(201,168,76,0.1); border-bottom: 1px solid rgba(201,168,76,0.1); }
+.lead-card-header { background: linear-gradient(135deg,rgba(201,168,76,0.08),rgba(201,168,76,0.03)); border-bottom: 1px solid rgba(201,168,76,0.15); }
+.glow-gold { box-shadow: 0 0 40px rgba(201,168,76,0.12), 0 0 80px rgba(201,168,76,0.06); }
 
 @custom-variant dark (&:is(.dark *));
 

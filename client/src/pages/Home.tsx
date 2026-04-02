@@ -70,11 +70,11 @@ function FeaturedLeads() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
           {leads.map((lead, idx) => (
-            <div key={lead.id} style={{ background: '#ffffff', border: '1px solid rgba(201,168,76,0.15)', borderRadius: '4px', overflow: 'hidden', transition: 'all 0.3s' }}
+            <div key={lead.id} className="card-luxury" style={{ background: '#ffffff', border: '1px solid rgba(201,168,76,0.15)', borderRadius: '4px', overflow: 'hidden', transition: 'all 0.3s' }}
               onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(201,168,76,0.4)'; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(201,168,76,0.15)'; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)'; }}>
               {/* Card header */}
-              <div style={{ background: 'linear-gradient(135deg,rgba(201,168,76,0.08),rgba(201,168,76,0.03))', borderBottom: '1px solid rgba(201,168,76,0.15)', padding: '1.25rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div className="lead-card-header" style={{ padding: '1.25rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '2rem', fontWeight: 700, color: '#c9a84c' }}>{formatBudget(lead.budget)}</span>
                 {lead.performerType && (
                   <span style={{ fontSize: '0.6rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(240,237,232,0.5)', background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.2)', padding: '0.3rem 0.7rem', borderRadius: '2px' }}>
@@ -110,7 +110,7 @@ function FeaturedLeads() {
               {/* CTA */}
               <div style={{ padding: '0 1.5rem 1.5rem' }}>
                 <Link href="/signup">
-                  <button style={{ width: '100%', background: 'linear-gradient(135deg,#c9a84c,#e8c97a)', color: '#1c1c2e', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '0.7rem', padding: '0.85rem', borderRadius: '2px', border: 'none', cursor: 'pointer', transition: 'all 0.3s' }}>
+                  <button type="button" className="btn-gold" style={{ width: '100%' }}>
                     Unlock Lead · Discovery $3 · Standard $7 · Premium $15
                   </button>
                 </Link>
@@ -168,7 +168,21 @@ export default function Home() {
       </Helmet>
 
       {/* ── NAV ── */}
-      <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, background: 'rgba(8,8,8,0.92)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(201,168,76,0.12)', padding: '0 2rem', height: '68px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <nav
+        style={{
+          background: 'rgba(8,8,8,0.92)',
+          backdropFilter: 'blur(20px)',
+          borderBottom: '1px solid rgba(201,168,76,0.12)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 100,
+          padding: '0 2rem',
+          height: '68px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
           <svg width="22" height="18" viewBox="0 0 22 18" fill="none">
             <rect x="0" y="6" width="3" height="6" rx="1.5" fill="#C9A84C"/>
@@ -177,7 +191,7 @@ export default function Home() {
             <rect x="15" y="3" width="3" height="12" rx="1.5" fill="#C9A84C"/>
             <rect x="20" y="7" width="2" height="5" rx="1" fill="#C9A84C"/>
           </svg>
-          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '1.2rem', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.02em' }}>
+          <span style={{ fontFamily: 'Inter,sans-serif', fontSize: '1.2rem', fontWeight: 800, letterSpacing: '0.05em' }}>
             Gig<span style={{ color: '#C9A84C' }}>XO</span>
           </span>
         </div>
@@ -199,56 +213,42 @@ export default function Home() {
 
       {/* ── HERO ── */}
       <section style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-        <img
-          src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663413300520/wNHKljbmWlEOWjMe.jpg"
-          alt="Luxury yacht party Fort Lauderdale DJ"
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 60%' }}
-        />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom,rgba(8,8,8,0.4) 0%,rgba(8,8,8,0.3) 40%,rgba(8,8,8,0.92) 100%)' }} />
-
-        <div style={{ position: 'relative', zIndex: 2, textAlign: 'center', maxWidth: '900px', padding: '0 2rem', paddingTop: '68px' }}>
-          <p style={{ fontSize: '0.65rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#c9a84c', fontWeight: 500, marginBottom: '1.5rem' }}>Fort Lauderdale · 17th Street Marina · South Florida</p>
-          <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 'clamp(3rem,8vw,7rem)', fontWeight: 300, lineHeight: 1.05, color: '#f0ede8', marginBottom: '0.25rem', letterSpacing: '-0.02em' }}>
-            South Florida's
+        <img src="/images/hero_v2_golden.jpg" alt="Luxury yacht party Fort Lauderdale" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+        <div className="hero-overlay" style={{ position: 'absolute', inset: 0 }} />
+        <div style={{ position: 'relative', zIndex: 2, textAlign: 'center', maxWidth: '900px', padding: '0 2rem' }}>
+          <p className="section-label" style={{ marginBottom: '1.5rem' }}>Fort Lauderdale · South Florida</p>
+          <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 'clamp(3rem,8vw,6rem)', fontWeight: 300, lineHeight: 1.05, margin: '0 0 2rem' }}>
+            <span style={{ display: 'block' }}>South Florida's</span>
+            <span style={{ display: 'block', color: 'var(--gold)' }}>Gig Lead Marketplace</span>
           </h1>
-          <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 'clamp(3rem,8vw,7rem)', fontWeight: 700, lineHeight: 1.05, color: '#c9a84c', marginBottom: '1.5rem', letterSpacing: '-0.02em' }}>
-            Gig Lead Marketplace
-          </h1>
-          <p style={{ fontSize: '1.1rem', color: 'rgba(240,237,232,0.75)', maxWidth: '580px', margin: '0 auto 2.5rem', lineHeight: 1.7, fontWeight: 300 }}>
-            The only platform connecting DJs and live artists with verified private events, yacht charters, festivals, and clubs across Fort Lauderdale, Miami, and Palm Beach. No commission. No middleman. Ever.
+          <p style={{ fontSize: '1.1rem', color: 'rgba(240,237,232,0.75)', maxWidth: '560px', margin: '0 auto 2.5rem', lineHeight: 1.7, fontWeight: 300 }}>
+            The only platform connecting DJs and live artists with verified private event leads — no commissions, ever.
           </p>
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/signup">
-              <button style={{ background: 'linear-gradient(135deg,#c9a84c,#e8c97a)', color: '#1c1c2e', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '0.75rem', padding: '1rem 2.5rem', borderRadius: '2px', border: 'none', cursor: 'pointer' }}>
-                Browse Gig Leads
-              </button>
-            </Link>
-            <Link href="/signup">
-              <button style={{ background: 'transparent', color: '#f0ede8', fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', fontSize: '0.7rem', padding: '1rem 2.5rem', borderRadius: '2px', border: '1px solid rgba(240,237,232,0.25)', cursor: 'pointer' }}>
-                Sign Up Free
-              </button>
-            </Link>
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '4rem' }}>
+            <button className="btn-gold" onClick={() => navigate('/gigs')}>
+              Browse Gig Leads
+            </button>
+            <button className="btn-ghost" onClick={() => navigate('/signup')}>
+              Sign Up Free
+            </button>
           </div>
-
-          {/* Stats */}
-          <div style={{ display: 'flex', gap: '3rem', justifyContent: 'center', flexWrap: 'wrap', marginTop: '4rem', paddingTop: '2rem', borderTop: '1px solid rgba(201,168,76,0.15)' }}>
-            {[{value:'50+',label:'Artists Booking'},{value:'$0',label:'Commission Ever'},{value:'$3',label:'Leads Start At'},{value:'Daily',label:'New Leads Added'}].map(s => (
+          <div style={{ display: 'flex', gap: '3rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+            {[{ value: '50+', label: 'Artists Booking' }, { value: '$0', label: 'Commission Ever' }, { value: '3', label: 'Lead Tiers' }, { value: '24h', label: 'Fresh Leads' }].map((s) => (
               <div key={s.label} style={{ textAlign: 'center' }}>
-                <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '1.8rem', fontWeight: 600, color: '#c9a84c' }}>{s.value}</div>
-                <div style={{ fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(240,237,232,0.5)', marginTop: '0.25rem' }}>{s.label}</div>
+                <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '1.8rem', color: 'var(--gold)' }}>{s.value}</div>
+                <div style={{ fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(240,237,232,0.5)', marginTop: '0.35rem' }}>{s.label}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── TRUST BAR ── */}
-      <div style={{ background: '#ffffff', borderTop: '1px solid rgba(201,168,76,0.1)', borderBottom: '1px solid rgba(201,168,76,0.1)', padding: '1.25rem 2rem' }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-          <span style={{ fontSize: '0.65rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#c9a84c', fontWeight: 500, whiteSpace: 'nowrap' }}>Leads From</span>
-          <div style={{ width: '1px', height: '16px', background: 'rgba(201,168,76,0.3)' }} />
-          {['Bahia Mar Marina','Pier Sixty-Six','Port Everglades','Las Olas Riverfront','Coconut Grove','South Beach','Palm Beach','Private Estates'].map((v,i) => (
-            <span key={i} style={{ fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(240,237,232,0.4)', whiteSpace: 'nowrap' }}>{v}</span>
+      <div className="trust-bar" style={{ padding: '1.25rem 2rem' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', alignItems: 'center', gap: '1.5rem', overflowX: 'auto' }}>
+          <span className="section-label" style={{ whiteSpace: 'nowrap' }}>Leads From</span>
+          <div style={{ width: '1px', height: '16px', background: 'rgba(201,168,76,0.3)', flexShrink: 0 }} />
+          {['Bahia Mar Marina', 'Pier Sixty-Six', 'Port Everglades', 'Las Olas Riverfront', 'W Fort Lauderdale', 'Marriott Harbor Beach', 'Hard Rock Hollywood'].map((v, i) => (
+            <span key={i} style={{ fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(240,237,232,0.45)', whiteSpace: 'nowrap' }}>{v}</span>
           ))}
         </div>
       </div>

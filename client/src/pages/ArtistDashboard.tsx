@@ -1059,10 +1059,11 @@ export default function ArtistDashboard() {
                     <div
                       key={lead.id}
                       id={`lead-card-${lead.id}`}
+                      className="card-luxury"
                       onClick={() => setSelectedLead(lead.id)}
                       style={{background: selectedLead===lead.id ? '#fffbf0' : '#ffffff',border: selectedLead===lead.id ? '2px solid #c9a84c' : '1px solid #e8e4dc',borderRadius:'12px',cursor:'pointer',transition:'all 0.15s',boxShadow: selectedLead===lead.id ? '0 4px 20px rgba(201,168,76,0.15)' : '0 1px 4px rgba(0,0,0,0.06)'}}
                     >
-                      <div style={{padding:'1rem'}}>
+                      <div className="lead-card-header" style={{ padding: '1rem' }}>
                         <div className="flex items-start justify-between gap-3 mb-2">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -1156,7 +1157,8 @@ export default function ArtistDashboard() {
                             </div>
                           </div>
                         </div>
-
+                      </div>
+                      <div style={{ padding: '0 1rem 1rem 1rem' }}>
                         {getLeadDescriptionForDisplay(lead) && (
                           <p style={{fontSize:'0.82rem',color:'#4a4a5e',display:'-webkit-box',WebkitLineClamp:3,WebkitBoxOrient:'vertical',overflow:'hidden',marginBottom:'0.5rem',lineHeight:1.6}}>
                             {getLeadDescriptionForDisplay(lead)}
@@ -1215,17 +1217,17 @@ export default function ArtistDashboard() {
                           </div>
                         )}
 
-                        <div className="flex items-center justify-between">
-                          <span />
+                        <div className="w-full">
                           {!lead.isUnlocked ? (
-                            <Button
-                              size="sm"
+                            <button
+                              type="button"
+                              className="btn-gold"
+                              style={{ width: '100%' }}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleUnlock(lead.id);
                               }}
                               disabled={isProcessing && unlockingLeadId === lead.id}
-                              style={{background:'#c9a84c',color:'#1c1c2e',fontSize:'0.78rem',fontWeight:800,height:'2rem',padding:'0 1rem',border:'none',borderRadius:'8px',cursor:'pointer',letterSpacing:'0.04em',display:'inline-flex',alignItems:'center',gap:'0.25rem',boxShadow:'0 2px 8px rgba(201,168,76,0.3)'}} className=""
                             >
                               {isProcessing && unlockingLeadId === lead.id ? (
                                 <Loader2 className="w-3 h-3 animate-spin" />
@@ -1240,7 +1242,7 @@ export default function ArtistDashboard() {
                                   })()}
                                 </>
                               )}
-                            </Button>
+                            </button>
                           ) : (
                             <div className="flex flex-col items-end gap-1 text-xs text-green-700">
                               <span className="font-medium flex items-center gap-1">
@@ -1717,11 +1719,12 @@ export default function ArtistDashboard() {
                             </div>
                             <p className="text-xs text-slate-400">Unlock to reveal contact details</p>
                           </div>
-                          <Button
+                          <button
+                            type="button"
+                            className="btn-gold"
+                            style={{ width: '100%' }}
                             onClick={() => handleUnlock(selectedLeadData.id)}
                             disabled={isProcessing && unlockingLeadId === selectedLeadData.id}
-                            style={{background:"#c9a84c",color:"#1c1c2e",fontWeight:700,width:"100%"}} className=""
-                            size="lg"
                           >
                             {isProcessing && unlockingLeadId === selectedLeadData.id ? (
                               <>
@@ -1739,7 +1742,7 @@ export default function ArtistDashboard() {
                                 })()}
                               </>
                             )}
-                          </Button>
+                          </button>
                           <p className="text-xs text-slate-400 text-center mt-2">
                             One-time payment · Instant access · No subscription
                           </p>

@@ -368,16 +368,23 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
             ))}
         </div>
       {/* Hero Section */}
-        <div style={{ position: 'relative', minHeight: '60vh', display: 'flex', alignItems: 'flex-end', overflow: 'hidden' }}>
-          <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663413300520/VgMvuWUjUfNnmMme.jpg"
-            alt={seoH1} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 40%' }} />
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom,rgba(8,8,8,0.2) 0%,rgba(8,8,8,0.85) 100%)' }} />
-          <div style={{ position: 'relative', zIndex: 2, padding: '0 3rem 4rem', maxWidth: 860 }}>
-            <p style={{ fontSize: '0.65rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#c9a84c', fontWeight: 500, marginBottom: '1rem' }}>South Florida · Fort Lauderdale · Miami</p>
-            <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 'clamp(2.5rem,6vw,5rem)', fontWeight: 700, color: '#f0ede8', lineHeight: 1.1, marginBottom: '1rem' }}>{seoH1}</h1>
-            <p style={{ fontSize: '1rem', color: 'rgba(240,237,232,0.7)', maxWidth: 520, lineHeight: 1.7 }}>{subheading}</p>
+        <section style={{ position: 'relative', minHeight: '70vh', display: 'flex', alignItems: 'flex-end', overflow: 'hidden' }}>
+          <img
+            src="/images/hero_v2_night.jpg"
+            alt={`${cityName} DJ`}
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }}
+          />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(8,8,8,0.2) 0%, rgba(8,8,8,0.75) 70%, rgba(8,8,8,1) 100%)' }} />
+          <div style={{ position: 'relative', zIndex: 2, padding: '0 4rem 4rem', maxWidth: 860 }}>
+            <p className="section-label" style={{ marginBottom: '1rem' }}>
+              {cityName} · South Florida
+            </p>
+            <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 'clamp(2.5rem,6vw,4.5rem)', fontWeight: 300, lineHeight: 1.1, margin: '0 0 1rem' }}>{seoH1}</h1>
+            <p style={{ fontSize: '1rem', color: 'rgba(240,237,232,0.7)', maxWidth: 520, lineHeight: 1.7 }}>
+              Connect with verified private event leads in {cityName} — no middlemen, no commissions.
+            </p>
           </div>
-        </div>
+        </section>
 
         {/* Keyword-rich imagery for SEO (decorative / context) */}
         <div className="max-w-6xl mx-auto px-4 -mt-6 pb-4">
@@ -655,7 +662,8 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
                   <p className="text-green-700 text-sm">We'll connect you with professionals soon.</p>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <div style={{ background: '#111', border: '1px solid rgba(201,168,76,0.2)', borderRadius: '4px', padding: '2rem', maxWidth: '560px' }}>
+                  <form onSubmit={handleSubmit} className="space-y-4">
                   {/* Calculator-specific fields */}
                   {calculatorVariant === "yachtCost" && (
                     <>
@@ -827,14 +835,16 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
                     />
                   </div>
 
-                  <Button
+                  <button
                     type="submit"
-                    className="w-full bg-purple-600 hover:bg-purple-700"
+                    className="btn-gold"
+                    style={{ width: '100%' }}
                     disabled={submitEventRequest.isPending}
                   >
                     {submitEventRequest.isPending ? "Submitting..." : pageConfig.leadCTA ?? "Get Matched"}
-                  </Button>
-                </form>
+                  </button>
+                  </form>
+                </div>
               )}
             </Card>
           </div>
