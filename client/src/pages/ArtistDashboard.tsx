@@ -1060,7 +1060,7 @@ export default function ArtistDashboard() {
                       key={lead.id}
                       id={`lead-card-${lead.id}`}
                       onClick={() => setSelectedLead(lead.id)}
-                      style={{background: selectedLead===lead.id ? '#161610' : '#111111',border: selectedLead===lead.id ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.15)',borderRadius:'4px',cursor:'pointer',transition:'all 0.15s',boxShadow: selectedLead===lead.id ? '0 0 0 1px rgba(201,168,76,0.3),0 8px 32px rgba(0,0,0,0.4)' : 'none'}}
+                      style={{background: selectedLead===lead.id ? '#fffbf0' : '#ffffff',border: selectedLead===lead.id ? '2px solid #c9a84c' : '1px solid #e8e4dc',borderRadius:'12px',cursor:'pointer',transition:'all 0.15s',boxShadow: selectedLead===lead.id ? '0 4px 20px rgba(201,168,76,0.15)' : '0 1px 4px rgba(0,0,0,0.06)'}}
                     >
                       <div style={{padding:'1rem'}}>
                         <div className="flex items-start justify-between gap-3 mb-2">
@@ -1078,11 +1078,10 @@ export default function ArtistDashboard() {
                                 </span>
                               )}
                               {(lead as any).leadTemperature === 'cold' && (
-                                <span style={{flexShrink:0,fontSize:'0.68rem',fontWeight:600,color:'#666660',background:'rgba(255,255,255,0.05)',padding:'0.15rem 0.5rem',borderRadius:'999px'}}>
-                                  COLD
+                                <span style={{flexShrstyle={{fontSize:'0.68rem',fontWeight:600,color:'#9ca3af',background:'#f0ede6',padding:'0.15rem 0.5rem',borderRadius:'999px'}}>                                 COLD
                                 </span>
                               )}
-                              <h3 style={{fontWeight:700,color:'#f0ece0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:'0.95rem'}}>{lead.title}</h3>
+                              <h3 style={{fontWeight:700,color:'#1c1c2e',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:'0.95rem'}}>{lead.title}</h3>
                               {/* New badge — show for leads created in the last 48 hours */}
                               {lead.createdAt && (Date.now() - new Date(lead.createdAt).getTime()) < 48 * 60 * 60 * 1000 && (
                                 <span style={{flexShrink:0,fontSize:'0.68rem',fontWeight:800,color:'#080808',background:'#c9a84c',padding:'0.15rem 0.5rem',borderRadius:'999px',letterSpacing:'0.05em'}}>
@@ -1111,7 +1110,7 @@ export default function ArtistDashboard() {
                                 </span>
                               )}
                             </div>
-                            <div style={{display:'flex',flexWrap:'wrap',alignItems:'center',gap:'0.5rem',fontSize:'0.75rem',color:'#888880',marginTop:'0.25rem'}}>
+                            <div style={{display:'flex',flexWrap:'wrap',alignItems:'center',gap:'0.5rem',fontSize:'0.75rem',color:'#6b6860',marginTop:'0.25rem'}}>
                               <span className="flex items-center gap-1">
                                 <MapPin className="w-3 h-3" />
                                 {lead.location}
@@ -1124,7 +1123,7 @@ export default function ArtistDashboard() {
                               )}
                               {/* Social proof */}
                               {('viewCount' in lead) && (lead as any).viewCount > 0 && (
-                                <span style={{display:'inline-flex',alignItems:'center',gap:'0.2rem',color:'#555550'}}>
+                                <span style={{display:'inline-flex',alignItems:'center',gap:'0.2rem',color:'#9ca3af'}}>
                                   <Eye style={{width:'0.7rem',height:'0.7rem'}} />
                                   {(lead as any).viewCount} viewed
                                 </span>
@@ -1158,19 +1157,19 @@ export default function ArtistDashboard() {
                         </div>
 
                         {getLeadDescriptionForDisplay(lead) && (
-                          <p style={{fontSize:'0.78rem',color:'#888880',display:'-webkit-box',WebkitLineClamp:3,WebkitBoxOrient:'vertical',overflow:'hidden',marginBottom:'0.5rem',lineHeight:1.5}}>
+                          <p style={{fontSize:'0.82rem',color:'#4a4a5e',display:'-webkit-box',WebkitLineClamp:3,WebkitBoxOrient:'vertical',overflow:'hidden',marginBottom:'0.5rem',lineHeight:1.6}}>
                             {getLeadDescriptionForDisplay(lead)}
                           </p>
                         )}
                         {!lead.isUnlocked && (
-                          <p style={{fontSize:'0.7rem',color:'#555550',marginBottom:'0.5rem',fontStyle:'italic'}}>
+                          <p style={{fontSize:'0.72rem',color:'#9ca3af',marginBottom:'0.5rem',fontStyle:'italic'}}>
                             Full contact info revealed after unlock
                           </p>
                         )}
                         {!lead.isUnlocked && getPreviewTags(lead).length > 0 && (
                           <div style={{display:'flex',flexWrap:'wrap',alignItems:'center',gap:'0.35rem',marginBottom:'0.5rem'}}>
                             {getPreviewTags(lead).map((tag) => (
-                              <span key={tag} style={{fontSize:'0.68rem',fontWeight:600,color:'#888880',background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.08)',padding:'0.1rem 0.5rem',borderRadius:'3px',letterSpacing:'0.04em',textTransform:'uppercase'}}>
+                              <span key={tag} style={{fontSize:'0.68rem',fontWeight:600,color:'#6b6860',background:'#f0ede6',border:'1px solid #e8e4dc',padding:'0.1rem 0.5rem',borderRadius:'4px',letterSpacing:'0.04em',textTransform:'uppercase'}}>
                                 {tag}
                               </span>
                             ))}
@@ -1184,7 +1183,7 @@ export default function ArtistDashboard() {
                               <span style={{fontSize:'0.7rem',color:'#555550',textTransform:'uppercase',letterSpacing:'0.05em'}}>Win probability</span>
                               <span style={{fontSize:'0.75rem',fontWeight:700,color:(lead as any).winProbability>=70?'#22c55e':(lead as any).winProbability>=45?'#f97316':'#555550'}}>{Math.round((lead as any).winProbability)}%</span>
                             </div>
-                            <div style={{height:'3px',background:'rgba(255,255,255,0.06)',borderRadius:'999px',overflow:'hidden'}}>
+                            <div style={{height:'3px',background:'#e8e4dc',borderRadius:'999px',overflow:'hidden'}}>
                               <div
                                 style={{height:'100%',borderRadius:'999px',transition:'width 0.3s',background:(lead as any).winProbability>=70?'#22c55e':(lead as any).winProbability>=45?'#f97316':'rgba(255,255,255,0.15)',width:`${Math.min(100,Math.round((lead as any).winProbability))}%`}}
                               />
@@ -1208,7 +1207,7 @@ export default function ArtistDashboard() {
                               </span>
                             )}
                             {showFacebookProfileLeadCta(lead) && (
-                              <span style={{display:'inline-flex',alignItems:'center',gap:'0.25rem',fontSize:'0.68rem',fontWeight:600,color:'#888880',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',padding:'0.15rem 0.5rem',borderRadius:'3px'}}>
+                              <span style={{display:'inline-flex',alignItems:'center',gap:'0.25rem',fontSize:'0.68rem',fontWeight:600,color:'#6b6860',background:'#f0ede6',border:'1px solid #e8e4dc',padding:'0.15rem 0.5rem',borderRadius:'4px'}}>
                                 Direct profile link included
                               </span>
                             )}
@@ -1225,7 +1224,7 @@ export default function ArtistDashboard() {
                                 handleUnlock(lead.id);
                               }}
                               disabled={isProcessing && unlockingLeadId === lead.id}
-                              style={{background:'#c9a84c',color:'#080808',fontSize:'0.75rem',fontWeight:800,height:'1.75rem',padding:'0 0.75rem',border:'none',borderRadius:'3px',cursor:'pointer',letterSpacing:'0.04em',display:'inline-flex',alignItems:'center',gap:'0.25rem'}} className=""
+                              style={{background:'#c9a84c',color:'#1c1c2e',fontSize:'0.78rem',fontWeight:800,height:'2rem',padding:'0 1rem',border:'none',borderRadius:'8px',cursor:'pointer',letterSpacing:'0.04em',display:'inline-flex',alignItems:'center',gap:'0.25rem',boxShadow:'0 2px 8px rgba(201,168,76,0.3)'}} className=""
                             >
                               {isProcessing && unlockingLeadId === lead.id ? (
                                 <Loader2 className="w-3 h-3 animate-spin" />

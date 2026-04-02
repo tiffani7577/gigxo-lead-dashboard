@@ -43,99 +43,46 @@
 }
 
 /* ─────────────────────────────────────────────────────────────
-   GigXO Premium Theme
-   Philosophy: Warm cream/off-white body (trust + readability)
-   + deep navy text (authority) + amber-gold CTA (action/spend)
-   Research: Airbnb, Booking.com, Stripe — highest converting
-   SaaS/marketplace color combos use light backgrounds with
-   one strong warm accent for purchase actions.
+   GigXO Premium Light Theme
+   Science: Airbnb, Booking.com, Stripe all use light warm
+   backgrounds — longer sessions, higher conversion, more trust.
+   ONE gold CTA = clear purchase trigger. Navy = authority.
    ───────────────────────────────────────────────────────────── */
 :root {
-  --radius: 0.5rem;
+  --radius: 0.625rem;
 
-  /* Core palette */
-  --background:            #faf8f4;   /* warm cream — trust, clean, premium */
-  --foreground:            #1a1a2e;   /* deep navy — authority, readability */
-  --card:                  #ffffff;   /* pure white cards — clarity */
-  --card-foreground:       #1a1a2e;
-  --popover:               #ffffff;
-  --popover-foreground:    #1a1a2e;
-
-  /* Primary = amber gold — the ONE action color */
-  --primary:               #d4a017;   /* warm amber gold — spend trigger */
-  --primary-foreground:    #ffffff;
-
-  /* Secondary = deep navy */
-  --secondary:             #1a1a2e;
-  --secondary-foreground:  #faf8f4;
-
-  /* Muted = warm gray */
-  --muted:                 #f0ede6;
-  --muted-foreground:      #6b6860;
-
-  /* Accent = soft gold tint */
-  --accent:                #fef3c7;
-  --accent-foreground:     #92400e;
-
-  --destructive:           oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
-
-  --border:                #e8e4dc;
-  --input:                 #f0ede6;
-  --ring:                  #d4a017;
-
-  /* Charts */
-  --chart-1: #d4a017;
-  --chart-2: #1a1a2e;
-  --chart-3: #92400e;
-  --chart-4: #6b6860;
-  --chart-5: #f0ede6;
-
-  /* Sidebar — slightly warmer than body */
-  --sidebar:                       #f5f2ec;
-  --sidebar-foreground:            #1a1a2e;
-  --sidebar-primary:               #d4a017;
-  --sidebar-primary-foreground:    #ffffff;
-  --sidebar-accent:                #fef3c7;
-  --sidebar-accent-foreground:     #92400e;
-  --sidebar-border:                #e8e4dc;
-  --sidebar-ring:                  #d4a017;
-}
-
-/* Keep dark mode identical for any dark-mode users */
-.dark {
-  --background:            #0f0f14;
-  --foreground:            #f5f2ec;
-  --card:                  #1a1a24;
-  --card-foreground:       #f5f2ec;
-  --popover:               #1a1a24;
-  --popover-foreground:    #f5f2ec;
-  --primary:               #d4a017;
-  --primary-foreground:    #0f0f14;
-  --secondary:             #252535;
-  --secondary-foreground:  #f5f2ec;
-  --muted:                 #252535;
-  --muted-foreground:      #8a8880;
-  --accent:                #d4a017;
-  --accent-foreground:     #0f0f14;
-  --destructive:           oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border:                rgba(212,160,23,0.15);
-  --input:                 #252535;
-  --ring:                  #d4a017;
-  --chart-1: #d4a017;
-  --chart-2: #f5f2ec;
-  --chart-3: #92400e;
-  --chart-4: #8a8880;
-  --chart-5: #252535;
-  --sidebar:               #0d0d12;
-  --sidebar-foreground:    #f5f2ec;
-  --sidebar-primary:       #d4a017;
-  --sidebar-primary-foreground: #0f0f14;
-  --sidebar-accent:        #252535;
-  --sidebar-accent-foreground: #d4a017;
-  --sidebar-border:        rgba(212,160,23,0.12);
-  --sidebar-ring:          #d4a017;
+  --background:                  #f9f7f4;
+  --foreground:                  #1c1c2e;
+  --card:                        #ffffff;
+  --card-foreground:             #1c1c2e;
+  --popover:                     #ffffff;
+  --popover-foreground:          #1c1c2e;
+  --primary:                     #c9a84c;
+  --primary-foreground:          #1c1c2e;
+  --secondary:                   #1c1c2e;
+  --secondary-foreground:        #f9f7f4;
+  --muted:                       #f0ede6;
+  --muted-foreground:            #6b6860;
+  --accent:                      #fef9ec;
+  --accent-foreground:           #92400e;
+  --destructive:                 #dc2626;
+  --destructive-foreground:      #ffffff;
+  --border:                      #e8e4dc;
+  --input:                       #e8e4dc;
+  --ring:                        #c9a84c;
+  --chart-1:                     #c9a84c;
+  --chart-2:                     #1c1c2e;
+  --chart-3:                     #6b6860;
+  --chart-4:                     #f0ede6;
+  --chart-5:                     #fef9ec;
+  --sidebar:                     #ffffff;
+  --sidebar-foreground:          #1c1c2e;
+  --sidebar-primary:             #c9a84c;
+  --sidebar-primary-foreground:  #1c1c2e;
+  --sidebar-accent:              #fef9ec;
+  --sidebar-accent-foreground:   #1c1c2e;
+  --sidebar-border:              #e8e4dc;
+  --sidebar-ring:                #c9a84c;
 }
 
 @layer base {
@@ -145,6 +92,7 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', 'DM Sans', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
@@ -157,6 +105,9 @@
   input[type="radio"]:not(:disabled) {
     @apply cursor-pointer;
   }
+  h1, h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+  }
 }
 
 @layer components {
@@ -167,105 +118,122 @@
     padding-left: 1rem;
     padding-right: 1rem;
   }
-
   .flex {
     min-height: 0;
     min-width: 0;
   }
-
   @media (min-width: 640px) {
-    .container {
-      padding-left: 1.5rem;
-      padding-right: 1.5rem;
-    }
+    .container { padding-left: 1.5rem; padding-right: 1.5rem; }
   }
-
   @media (min-width: 1024px) {
-    .container {
-      padding-left: 2rem;
-      padding-right: 2rem;
-      max-width: 1280px;
-    }
+    .container { padding-left: 2rem; padding-right: 2rem; max-width: 1280px; }
   }
 }
 
 /* ─────────────────────────────────────────────────────────────
-   GigXO Dashboard Overrides
-   Converts hardcoded Tailwind dark/purple classes to our
-   warm cream + navy + amber-gold palette.
+   GLOBAL OVERRIDES — force light theme on ALL hardcoded classes
    ───────────────────────────────────────────────────────────── */
 
-/* Background overrides — warm cream palette */
-.bg-white         { background-color: #ffffff !important; }
-.bg-slate-50      { background-color: #faf8f4 !important; }
-.bg-slate-100     { background-color: #f0ede6 !important; }
-.bg-slate-200     { background-color: #e8e4dc !important; }
-.bg-slate-800     { background-color: #1a1a2e !important; }
-.bg-slate-900     { background-color: #0f0f1a !important; }
-.bg-slate-950     { background-color: #0a0a12 !important; }
+/* ── Page & card backgrounds ── */
+.bg-white            { background-color: #ffffff !important; color: #1c1c2e !important; }
+.bg-gray-50          { background-color: #f9f7f4 !important; }
+.bg-gray-100         { background-color: #f0ede6 !important; }
+.bg-gray-200         { background-color: #e8e4dc !important; }
+.bg-slate-50         { background-color: #f9f7f4 !important; }
+.bg-slate-100        { background-color: #f0ede6 !important; }
+.bg-slate-200        { background-color: #e8e4dc !important; }
 
-/* Text overrides — navy scale */
-.text-slate-900   { color: #1a1a2e !important; }
-.text-slate-800   { color: #2d2d42 !important; }
-.text-slate-700   { color: #3d3d55 !important; }
-.text-slate-600   { color: #5a5a72 !important; }
-.text-slate-500   { color: #6b6880 !important; }
-.text-slate-400   { color: #8a8898 !important; }
-.text-slate-300   { color: #b0aec0 !important; }
-
-/* Border overrides */
-.border-slate-200 { border-color: #e8e4dc !important; }
-.border-slate-300 { border-color: #d8d4cc !important; }
-.border-slate-600 { border-color: #3d3d55 !important; }
-.border-slate-700 { border-color: #2d2d42 !important; }
-
-/* Purple → Amber Gold */
-.bg-purple-600              { background-color: #d4a017 !important; }
-.bg-purple-700              { background-color: #b8880f !important; }
-.hover\:bg-purple-700:hover { background-color: #b8880f !important; }
-.text-purple-400            { color: #d4a017 !important; }
-.text-purple-500            { color: #d4a017 !important; }
-.text-purple-600            { color: #d4a017 !important; }
-.text-purple-700            { color: #92400e !important; }
-.bg-purple-100              { background-color: #fef3c7 !important; }
-.bg-purple-50               { background-color: #fffbeb !important; }
-.border-purple-300          { border-color: #fcd34d !important; }
-.border-purple-500          { border-color: #d4a017 !important; }
-.focus\:border-purple-500:focus { border-color: #d4a017 !important; }
-.shadow-purple-600\/20      { box-shadow: 0 4px 20px rgba(212,160,23,0.25) !important; }
-.bg-purple-900              { background-color: #1a1a2e !important; }
-.bg-purple-950              { background-color: #0f0f1a !important; }
-.from-purple-950            { --tw-gradient-from: #0f0f1a !important; }
-[class*="from-purple"]      { --tw-gradient-from: #d4a017 !important; }
-[class*="to-purple"]        { --tw-gradient-to: #b8880f !important; }
-
-/* Input backgrounds */
-.bg-slate-700\/50  { background-color: #f0ede6 !important; }
-.bg-slate-700      { background-color: #f0ede6 !important; }
-.bg-slate-800\/60  { background-color: #ffffff !important; }
-
-/* Hover states */
-.hover\:bg-slate-50:hover  { background-color: #f0ede6 !important; }
-.hover\:bg-slate-100:hover { background-color: #e8e4dc !important; }
-.hover\:bg-slate-700:hover { background-color: #e8e4dc !important; }
-
-/* Indigo/blue filter chips → navy */
-.border-indigo-400  { border-color: #1a1a2e !important; }
-.bg-indigo-50       { background-color: #faf8f4 !important; }
-.text-indigo-700    { color: #1a1a2e !important; }
-
-/* Announcement bar — amber gold gradient */
-.bg-gradient-to-r.from-purple-600 { background: linear-gradient(to right, #d4a017, #b8880f) !important; }
-
-/* Active tab underline */
-.text-purple-600.border-purple-600 { color: #d4a017 !important; border-color: #d4a017 !important; }
-
-/* Green unlocked badge — keep it green, it's positive */
-/* Red/destructive — keep as-is */
-
-/* ─── Google Fonts — Inter + Playfair Display ─── */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap');
-
-h1, h2 {
-  font-family: 'Playfair Display', Georgia, serif;
+/* ── Dark backgrounds → white ── */
+.bg-gray-900, .bg-gray-800, .bg-gray-950,
+.bg-slate-900, .bg-slate-800, .bg-slate-950,
+.bg-zinc-900, .bg-zinc-800, .bg-zinc-950,
+.bg-neutral-900, .bg-neutral-800,
+.bg-black {
+  background-color: #ffffff !important;
+  color: #1c1c2e !important;
 }
+
+/* ── Purple → Gold ── */
+.bg-purple-600, .bg-purple-700, .bg-purple-500,
+.bg-violet-600, .bg-violet-700 {
+  background-color: #c9a84c !important;
+  color: #1c1c2e !important;
+}
+.hover\:bg-purple-700:hover, .hover\:bg-purple-600:hover {
+  background-color: #b8963e !important;
+}
+.bg-purple-100, .bg-purple-50 {
+  background-color: #fef9ec !important;
+}
+.bg-purple-900, .bg-purple-950 {
+  background-color: #1c1c2e !important;
+}
+.text-purple-400, .text-purple-500, .text-purple-600 {
+  color: #c9a84c !important;
+}
+.text-purple-700 { color: #92400e !important; }
+.border-purple-300 { border-color: #fcd34d !important; }
+.border-purple-500, .border-purple-600 { border-color: #c9a84c !important; }
+.focus\:border-purple-500:focus { border-color: #c9a84c !important; }
+.from-purple-950, .from-purple-900 { --tw-gradient-from: #1c1c2e !important; }
+[class*="from-purple"] { --tw-gradient-from: #c9a84c !important; }
+[class*="to-purple"]   { --tw-gradient-to: #b8963e !important; }
+
+/* ── Slate text → navy ── */
+.text-slate-900, .text-gray-900, .text-zinc-900 { color: #1c1c2e !important; }
+.text-slate-800, .text-gray-800, .text-zinc-800 { color: #2d2d42 !important; }
+.text-slate-700, .text-gray-700, .text-zinc-700 { color: #3d3d55 !important; }
+.text-slate-600, .text-gray-600, .text-zinc-600 { color: #5a5a72 !important; }
+.text-slate-500, .text-gray-500, .text-zinc-500 { color: #6b6860 !important; }
+.text-slate-400, .text-gray-400, .text-zinc-400 { color: #8a8898 !important; }
+.text-slate-300, .text-gray-300, .text-zinc-300 { color: #b0aec0 !important; }
+
+/* ── Borders ── */
+.border-slate-200, .border-gray-200 { border-color: #e8e4dc !important; }
+.border-slate-300, .border-gray-300 { border-color: #d8d4cc !important; }
+.border-slate-600, .border-gray-600 { border-color: #3d3d55 !important; }
+.border-slate-700, .border-gray-700 { border-color: #2d2d42 !important; }
+
+/* ── Inputs ── */
+.bg-slate-700, .bg-slate-700\/50, .bg-slate-800\/60,
+.bg-gray-700, .bg-gray-800 {
+  background-color: #ffffff !important;
+  color: #1c1c2e !important;
+  border-color: #e8e4dc !important;
+}
+
+/* ── Hover states ── */
+.hover\:bg-slate-50:hover, .hover\:bg-gray-50:hover   { background-color: #f0ede6 !important; }
+.hover\:bg-slate-100:hover, .hover\:bg-gray-100:hover { background-color: #e8e4dc !important; }
+.hover\:bg-slate-700:hover, .hover\:bg-gray-700:hover { background-color: #e8e4dc !important; }
+
+/* ── Indigo/blue filter chips → navy ── */
+.border-indigo-400 { border-color: #1c1c2e !important; }
+.bg-indigo-50      { background-color: #f9f7f4 !important; }
+.text-indigo-700   { color: #1c1c2e !important; }
+
+/* ── Blue verification banners → warm gold ── */
+.bg-blue-50, .bg-sky-50 { background-color: #fef9ec !important; }
+.text-blue-700, .text-sky-700 { color: #92400e !important; }
+.border-blue-200, .border-sky-200 { border-color: #c9a84c !important; }
+
+/* ── Active tab underline ── */
+.text-purple-600.border-purple-600,
+.border-b-2.border-purple-600 {
+  color: #c9a84c !important;
+  border-color: #c9a84c !important;
+}
+
+/* ── Announcement bar ── */
+.bg-gradient-to-r.from-purple-600 {
+  background: linear-gradient(to right, #1c1c2e, #2d2d42) !important;
+  color: #c9a84c !important;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #f0ede6; }
+::-webkit-scrollbar-thumb { background: #c9a84c; border-radius: 3px; }
+
+/* ── Google Fonts ── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap');
