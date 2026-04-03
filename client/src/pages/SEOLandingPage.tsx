@@ -113,17 +113,16 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
   // Parse slug to get service and city
   const parsed = parseSlug(slug);
   const config = parsed ? generatePageConfig(parsed.serviceId, parsed.cityId) : null;
-  // Only use config when slug resolved; do not fall back for unknown slugs (avoids wrong page + missing fields)
-  const pageConfig = config ?? null;
+  // Precompute all SEO configs once for internal linking (also used as fallback for manual-only slugs)
+  const allConfigs = generateAllPageConfigs();
+  // Fall back to allConfigs for manual-only slugs (e.g. band-miami, corporate-event-band-miami)
+  const pageConfig = config ?? allConfigs[slug] ?? null;
 
   const isHirePage = pageConfig?.pageType === "hire";
   const isVenuePage = pageConfig?.pageType === "venue";
   const isHireLikePage = isHirePage || isVenuePage;
   const isBoatContextPage = slug.startsWith("yacht-dj-") || slug.includes("marina") || slug.includes("yacht");
   const isYachtHirePage = isHirePage && slug.startsWith("yacht-dj-");
-
-  // Precompute all SEO configs once for internal linking
-  const allConfigs = generateAllPageConfigs();
 
   // Smarter default event type for yacht/venue pages based on slug + config
   const inferredEventType: FormData["eventType"] =

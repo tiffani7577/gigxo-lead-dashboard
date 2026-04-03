@@ -433,12 +433,110 @@ const MANUAL_OVERRIDES: Record<string, Partial<PageConfig>> = {
       "A great wedding DJ keeps your entire night on track—from ceremony audio to the final dance. This page highlights wedding-focused DJs in Miami who can handle timelines, announcements and mixed-guest dance floors. Share a few details about your venue, guest count and music style and we’ll connect you with the right short list.",
     pageType: "hire",
   },
-  // Live band example (kept as calculator/info page by default)
+  // Live band pages — rich content to compete with GigSalad/The Bash
   "live-band-miami": {
-    seoTitle: "Live Bands in Miami for Weddings & Private Events | Gigxo",
-    seoDescription: "Book live bands in Miami for weddings, corporate events, and private parties. Verified musicians with real event history. Get direct quotes with no booking fees.",
-    subheading: "Professional live music for your event",
-    content: "Live bands bring an energy and elegance that DJs can't match. Miami's top live bands perform everything from classic standards to modern hits, perfect for weddings and upscale events.",
+    seoTitle: "Live Bands for Hire in Miami — Weddings, Parties & Corporate Events | Gigxo",
+    seoDescription:
+      "Hire verified live bands in Miami for weddings, private parties, and corporate events. Cover bands, jazz ensembles, Latin bands, and more. Get direct quotes from $1,500 — no booking fees, no middleman.",
+    heading: "Live Bands for Hire in Miami",
+    subheading: "Verified Miami live bands for weddings, corporate events, and private parties",
+    content:
+      "Miami's live music scene is one of the most diverse in the country — from high-energy cover bands and Latin ensembles to jazz quartets and acoustic duos. Whether you need a 10-piece band for a waterfront wedding at Vizcaya or a compact jazz trio for a Brickell cocktail hour, the right talent is available and bookable without a middleman.\n\nMost Miami live bands quote between $1,500 and $7,000+ depending on the number of musicians, event length, and production requirements. A standard 4–5 piece cover band for a 4-hour wedding reception typically runs $3,000–$5,000. Smaller acoustic acts and duos start around $800–$1,500. Premium 8–12 piece bands with choreography and full production can reach $10,000+.\n\nOn Gigxo, event clients submit their details and verified bands respond directly — no platform commission on the booking, no middleman markup. You get transparent pricing and direct communication with the musicians.",
+    pageType: "hire",
+    leadCTA: "Get My Free Quote from Verified Bands",
+    faq: [
+      {
+        question: "How much does it cost to hire a live band in Miami?",
+        answer:
+          "Live band prices in Miami typically range from $1,500 for a small trio or duo to $7,000+ for a full 8-piece wedding or corporate band. The average quote on platforms like The Bash is around $1,500. Premium multi-piece bands with production run $5,000–$10,000+. Factors include number of musicians, event length, genre, and whether you need sound equipment included.",
+      },
+      {
+        question: "What types of live bands are available for hire in Miami?",
+        answer:
+          "Miami has an exceptionally diverse live music market. You can find Top 40 cover bands, Latin bands (salsa, merengue, cumbia), jazz quartets and trios, R&B and soul bands, acoustic duos, string quartets, Afrobeats and reggae acts, and hybrid DJ-band combos. South Florida's multicultural scene means you can find specialists for almost any genre or cultural tradition.",
+      },
+      {
+        question: "How far in advance should I book a live band in Miami?",
+        answer:
+          "For weddings and large corporate events, book 3–6 months in advance. Miami's peak season runs October through April — popular bands fill up quickly during this window. For smaller private parties and birthday events, 4–6 weeks notice is usually sufficient. Submit your request early to lock in availability.",
+      },
+      {
+        question: "Can live bands perform outdoors in Miami?",
+        answer:
+          "Yes, but outdoor performances require weatherproofing for equipment, adequate power supply, and sometimes venue permits. Miami's summer heat and afternoon rain are real factors — always confirm outdoor capability and ask about backup plans. Most professional Miami bands have experience with outdoor waterfront and rooftop setups.",
+      },
+      {
+        question: "Do Miami live bands also provide a DJ between sets?",
+        answer:
+          "Many Miami bands offer a DJ or curated playlist during breaks to keep energy levels up. This combo — live band plus DJ — is especially popular for weddings and corporate galas. Ask about this option when you submit your quote request.",
+      },
+      {
+        question: "What's the difference between a cover band and a wedding band in Miami?",
+        answer:
+          "Cover bands perform popular songs across genres and are great for parties, corporate events, and birthdays. Wedding bands specialize in ceremony and reception flow, MC duties, first dance coordination, and reading diverse crowds. Many South Florida bands do both — review their event history before booking.",
+      },
+    ],
+  },
+  "band-for-private-party-miami": {
+    seoTitle: "Bands for Private Parties in Miami — Hire Live Music for Your Event | Gigxo",
+    seoDescription:
+      "Find live bands for private parties in Miami. Birthday parties, house parties, villa events, and waterfront gatherings. Verified talent, direct contact, no booking fees. Quotes from $800.",
+    heading: "Live Bands for Private Parties in Miami",
+    subheading: "Hire live music for your Miami private party — birthdays, villa events, and more",
+    content:
+      "A live band transforms a private party from a gathering into an event. Miami's private event scene — from Coconut Grove villa parties to Star Island celebrations and Brickell rooftop birthdays — demands performers who can read a crowd, adapt their setlist, and deliver energy without a rigid setlist.\n\nFor private parties, most clients hire 3–5 piece cover bands or acoustic duos depending on the venue size and vibe. Smaller acoustic acts and duos start around $800–$1,500 for a 2–3 hour performance. A full 4–5 piece party band for a 4-hour birthday event typically runs $2,500–$4,500. Latin bands and specialty acts may quote differently based on instrumentation.\n\nSubmit your event details on Gigxo and get direct quotes from verified Miami bands — no platform commission on the booking.",
+    pageType: "hire",
+    leadCTA: "Get My Free Quote for My Party",
+    faq: [
+      {
+        question: "How much does a band cost for a private party in Miami?",
+        answer:
+          "Private party band pricing in Miami varies widely. Acoustic duos and small trios start around $800–$1,500 for a 2–3 hour set. A 4–5 piece cover band for a 4-hour birthday party typically runs $2,500–$4,500. Specialty acts (Latin bands, jazz ensembles, DJ-band hybrids) may quote differently. Always get an itemized quote covering hours, setup, equipment, and overtime rates.",
+      },
+      {
+        question: "What size band do I need for a private party in Miami?",
+        answer:
+          "For intimate gatherings of 20–50 guests, a duo or trio works well and fits most indoor spaces. For parties of 50–150 guests, a 4–5 piece band is the sweet spot — enough presence without overwhelming the room. Larger events of 150+ guests benefit from a 6–10 piece band with full PA. Your venue size and layout matter more than guest count alone.",
+      },
+      {
+        question: "Can I hire a band for a house party or villa event in Miami?",
+        answer:
+          "Yes. Many Miami musicians specialize in residential and villa events. Key considerations are load-in access, noise ordinances (especially in residential neighborhoods), power availability, and outdoor vs. indoor setup. Mention these details when you submit your quote request so bands can advise on feasibility.",
+      },
+      {
+        question: "How do I find a live band for a private party in Miami without a booking agency?",
+        answer:
+          "On Gigxo, you submit your event details and verified bands contact you directly — no agency middleman, no commission on the booking. You get transparent pricing and direct communication with the musicians. Leads start from $7 for artists, and event clients submit their request for free.",
+      },
+    ],
+  },
+  "private-event-band-miami": {
+    seoTitle: "Private Event Bands for Hire in Miami — Verified Live Music | Gigxo",
+    seoDescription:
+      "Hire live bands for private events in Miami. Weddings, corporate galas, birthday parties, and exclusive gatherings. Verified musicians, direct contact, no booking fees. Get quotes from $1,500.",
+    heading: "Private Event Bands in Miami",
+    subheading: "Live music for Miami's most exclusive private events",
+    content:
+      "Miami's private event circuit — from Fisher Island galas to Coral Gables estate parties — demands musicians who are professional, punctual, and capable of performing across genres for diverse, high-expectation crowds. Whether you need a jazz quartet for a cocktail hour, a high-energy cover band for a birthday celebration, or a Latin ensemble for a cultural event, Gigxo connects you directly with verified talent.\n\nPrivate event bands in Miami typically quote $1,500–$8,000+ depending on the number of musicians, event length, and production requirements. Submit your event details and receive direct quotes from bands who specialize in private events — no booking agency markup.",
+    pageType: "hire",
+    leadCTA: "Get My Free Quote from Verified Bands",
+    faq: [
+      {
+        question: "What's the average cost of a band for a private event in Miami?",
+        answer:
+          "Private event bands in Miami typically run $1,500–$5,000 for a standard 3–4 hour performance with a 4–5 piece band. High-end production bands for exclusive galas can reach $8,000–$15,000+. Acoustic duos and trios for more intimate settings start around $800–$1,500.",
+      },
+      {
+        question: "What genres do Miami private event bands cover?",
+        answer:
+          "Miami's multicultural market means you can find bands covering virtually any genre: Top 40, R&B, Latin (salsa, merengue, cumbia, bachata), jazz, classic rock, Motown, Afrobeats, reggae, and classical ensembles. Many bands offer multi-genre setlists to keep diverse crowds engaged throughout the event.",
+      },
+      {
+        question: "How do I book a band for a private event without paying agency fees?",
+        answer:
+          "Submit your event details on Gigxo and receive direct quotes from verified bands. There's no booking agency commission — you negotiate directly with the musicians and pay them directly. Gigxo charges a small per-lead fee to artists, not a percentage of your booking.",
+      },
+    ],
   },
   "yacht-dj-miami": {
     seoTitle: "Miami Yacht DJs for Hire — On-Water Setups & Charter Parties | Gigxo",
@@ -524,12 +622,202 @@ const MANUAL_OVERRIDES: Record<string, Partial<PageConfig>> = {
     pageType: "hire",
   },
   "band-miami": {
-    seoTitle: "Miami Live Bands for Hire — Weddings, Corporate & Private Events | Gigxo",
-    seoDescription: "Book verified live bands in Miami for weddings, corporate events, and private parties. Compare real profiles and get direct quotes — no booking fees, no middleman.",
-    heading: "Hire Bands in Miami",
-    subheading: "Live bands and musicians in Miami",
-    content: "Miami's top live bands for weddings, corporate events and private parties. Browse and request a quote.",
+    seoTitle: "Miami Bands for Hire — Live Music for Weddings, Parties & Corporate Events | Gigxo",
+    seoDescription:
+      "Book verified live bands in Miami for weddings, corporate events, and private parties. Cover bands, Latin ensembles, jazz trios, and more. Direct contact, no booking fees. Quotes from $1,500.",
+    heading: "Hire a Band in Miami",
+    subheading: "Verified live bands for every Miami event — weddings, parties, and corporate",
+    content:
+      "Miami is home to one of the most vibrant live music markets in the US. From high-energy Top 40 cover bands and Latin ensembles to jazz quartets and acoustic duos, there's a band for every event type and budget.\n\nMost Miami bands quote between $1,500 and $7,000+ depending on the size of the group, event length, and whether sound equipment is included. A 4–5 piece cover band for a 4-hour event typically runs $3,000–$5,000. Smaller acts start around $800.\n\nGigxo connects event clients directly with verified Miami bands — no booking agency, no commission on the booking. Submit your event details and receive direct quotes from musicians who specialize in your event type.",
     pageType: "hire",
+    leadCTA: "Get My Free Quote from Verified Bands",
+    faq: [
+      {
+        question: "How much does it cost to hire a band in Miami?",
+        answer:
+          "Band hire in Miami ranges from $800 for a small acoustic duo to $7,000+ for a full 8-piece band. The average quote for a live band in Miami is around $1,500 (The Bash, 2026 data). Wedding bands and corporate event bands typically run $3,000–$6,000 for a 4-hour performance with a 4–5 piece group.",
+      },
+      {
+        question: "What types of bands can I hire in Miami?",
+        answer:
+          "Miami offers an exceptionally diverse range: Top 40 cover bands, Latin bands (salsa, merengue, cumbia), jazz ensembles, R&B and soul bands, acoustic duos, string quartets, Afrobeats acts, reggae bands, and hybrid DJ-band combos. The multicultural South Florida market means you can find specialists for almost any genre.",
+      },
+      {
+        question: "How far in advance should I book a band in Miami?",
+        answer:
+          "Book 3–6 months ahead for weddings and large corporate events, especially during peak season (October–April). For smaller parties and birthdays, 4–6 weeks notice is usually enough. Popular bands fill up fast during the winter season.",
+      },
+      {
+        question: "Do Miami bands provide their own sound equipment?",
+        answer:
+          "Most professional Miami bands include a PA system in their quote. Confirm what's included: speakers, monitors, microphones, and mixing. For larger venues (200+ guests), you may need a venue-grade PA that the band can plug into. Always clarify equipment details before signing a contract.",
+      },
+      {
+        question: "Can I hire a band and a DJ for the same event in Miami?",
+        answer:
+          "Yes — the DJ-band hybrid is very popular in Miami for weddings and corporate events. The band performs live sets while the DJ handles transitions, cocktail hour, and after-party. Many Miami acts offer this as a combined package. Ask about it when you submit your quote request.",
+      },
+    ],
+  },
+  "corporate-event-band-miami": {
+    seoTitle: "Corporate Event Bands for Hire in Miami — Live Music for Business Events | Gigxo",
+    seoDescription:
+      "Hire professional live bands for corporate events in Miami. Galas, product launches, conferences, and holiday parties. Verified talent, direct contact, no booking fees. Quotes from $2,000.",
+    heading: "Corporate Event Bands in Miami",
+    subheading: "Professional live music for Miami corporate events, galas, and conferences",
+    content:
+      "Corporate events in Miami demand performers who are professional, adaptable, and capable of entertaining diverse audiences — from cocktail hour background music to high-energy post-dinner entertainment. Miami's corporate event band market spans jazz trios for networking receptions, Latin bands for multicultural galas, and full cover bands for holiday parties and product launches.\n\nCorporate event bands in Miami typically quote $2,000–$6,000+ for a standard 3–4 hour performance. Jazz trios and acoustic acts for cocktail hours start around $1,200–$2,500. Full production cover bands for large galas run $4,000–$8,000+. Most quotes include setup, performance, and basic sound equipment.\n\nGigxo connects corporate event planners directly with verified Miami bands — no agency middleman, no commission on the booking. Submit your event details and receive direct quotes from bands who specialize in corporate entertainment.",
+    pageType: "hire",
+    leadCTA: "Get My Free Corporate Event Quote",
+    faq: [
+      {
+        question: "How much does a band cost for a corporate event in Miami?",
+        answer:
+          "Corporate event bands in Miami typically run $2,000–$6,000 for a 3–4 hour performance with a 4–5 piece band. Jazz trios and acoustic acts for cocktail hours start around $1,200–$2,500. Large production bands for galas and award ceremonies can reach $8,000–$15,000+. Bay Kings Band lists corporate event packages starting from $2,020.",
+      },
+      {
+        question: "What type of band works best for a corporate event in Miami?",
+        answer:
+          "For cocktail hours and networking receptions, jazz trios, acoustic duos, or string quartets create an elegant background. For dinner entertainment, a 4–5 piece band covering jazz, R&B, and light pop works well. For post-dinner dancing and high-energy entertainment, a full cover band or Latin band keeps diverse corporate crowds engaged.",
+      },
+      {
+        question: "Can live bands perform at hotel ballrooms and conference centers in Miami?",
+        answer:
+          "Yes. Most professional Miami corporate bands have experience with hotel ballrooms, convention centers, and rooftop venues. They're familiar with load-in logistics, union requirements at certain venues, and sound restrictions. Always disclose your venue when requesting quotes so bands can factor in any specific requirements.",
+      },
+      {
+        question: "How do I book a band for a corporate event without going through an agency?",
+        answer:
+          "Submit your event details on Gigxo and receive direct quotes from verified corporate event bands. No agency commission — you negotiate directly with the musicians. This typically saves 15–30% compared to traditional booking agencies that charge a percentage of the talent fee.",
+      },
+      {
+        question: "Do corporate event bands in Miami provide their own sound and lighting?",
+        answer:
+          "Most professional corporate bands include a PA system in their quote. For larger events (200+ guests), venue-grade sound may be required — ask whether the band can integrate with the venue's existing system. Lighting is often quoted separately; confirm what's included upfront.",
+      },
+    ],
+  },
+  "wedding-band-miami": {
+    seoTitle: "Wedding Bands for Hire in Miami — Live Music for Your Reception | Gigxo",
+    seoDescription:
+      "Hire verified wedding bands in Miami for your ceremony and reception. Cover bands, Latin ensembles, jazz quartets, and more. Direct contact, no booking fees. Packages from $1,500.",
+    heading: "Wedding Bands in Miami",
+    subheading: "Live music for Miami weddings — ceremony, cocktail hour, and reception",
+    content:
+      "A live band at your Miami wedding creates an atmosphere that no playlist can replicate. From an acoustic duo during the ceremony at Vizcaya to a high-energy 8-piece band for the reception at the Fontainebleau, Miami's wedding band market covers every style and budget.\n\nMiami wedding band pricing typically runs $1,500–$7,000+ depending on the number of musicians, hours of performance, and whether ceremony coverage is included. A standard 4–5 piece wedding band for a 4-hour reception runs $3,000–$5,000. Premium bands with choreography and full production reach $7,000–$12,000+. Acoustic ceremony acts start around $800–$1,500.\n\nOn Gigxo, couples submit their wedding details and verified bands respond directly — no booking agency commission, no middleman markup on the talent fee.",
+    pageType: "hire",
+    leadCTA: "Get My Free Wedding Band Quotes",
+    faq: [
+      {
+        question: "How much does a wedding band cost in Miami?",
+        answer:
+          "Miami wedding band packages typically run $1,500–$7,000+ for ceremony and reception coverage. WeddingWire data shows an average cost of $2,190 with a range of $603–$6,750. LIV Entertainment lists premium 5-piece wedding bands starting at $7,000. Budget-friendly acoustic acts and duos start around $800–$1,500 for ceremony coverage.",
+      },
+      {
+        question: "Should I hire a DJ or a live band for my Miami wedding?",
+        answer:
+          "DJs offer more song variety, consistent sound quality, and lower cost ($800–$2,500 vs $3,000–$7,000+ for bands). Live bands offer a unique atmosphere, visual entertainment, and an energy that recordings can't replicate. Many Miami couples choose a live band for the reception and a DJ or acoustic act for the ceremony. Both options are available through Gigxo.",
+      },
+      {
+        question: "What genres do Miami wedding bands cover?",
+        answer:
+          "Miami wedding bands cover a wide range: Top 40 hits, classic rock, Motown, R&B, Latin (salsa, merengue, cumbia), jazz standards, and contemporary pop. Many bands offer multi-genre setlists to accommodate diverse guest lists. South Florida's multicultural market means you can also find specialists in Persian, Hebrew, Russian, and other cultural music traditions.",
+      },
+      {
+        question: "How far in advance should I book a wedding band in Miami?",
+        answer:
+          "Book 6–12 months in advance for peak season dates (October–April, especially Saturdays). Popular Miami wedding bands fill their calendars quickly during the winter season. For off-peak dates and weekdays, 3–4 months notice is usually sufficient.",
+      },
+      {
+        question: "Can Miami wedding bands perform at outdoor venues?",
+        answer:
+          "Yes, but outdoor performances require weatherproofing for equipment, adequate power supply, and sometimes permits. Miami's summer heat and afternoon rain are real considerations. Always confirm outdoor capability and ask about backup plans when requesting quotes. Most professional Miami wedding bands have experience with outdoor waterfront venues.",
+      },
+    ],
+  },
+  "live-music-miami": {
+    seoTitle: "Live Music for Hire in Miami — Bands, Musicians & Performers | Gigxo",
+    seoDescription:
+      "Find live music for your Miami event. Bands, soloists, jazz ensembles, Latin acts, and more. Verified performers, direct contact, no booking fees. Get quotes from $800.",
+    heading: "Live Music for Hire in Miami",
+    subheading: "Bands, soloists, and ensembles for every Miami event",
+    content:
+      "Miami's live music market is one of the most diverse in the US. Whether you're planning a waterfront wedding, a corporate gala in Brickell, a private villa party in Coconut Grove, or a birthday celebration in South Beach, there's a live music option for your event and budget.\n\nFrom solo acoustic guitarists and jazz trios to full 10-piece cover bands and Latin ensembles, Gigxo connects event clients directly with verified Miami musicians — no booking agency, no commission on the booking. Submit your event details and receive direct quotes from performers who specialize in your event type.",
+    pageType: "hire",
+    leadCTA: "Get My Free Live Music Quote",
+    faq: [
+      {
+        question: "How much does live music cost for an event in Miami?",
+        answer:
+          "Live music pricing in Miami ranges from $500 for a solo acoustic act to $10,000+ for a full production band. Solo guitarists and acoustic duos typically run $500–$1,500. Jazz trios and quartets run $1,200–$3,000. Full cover bands and Latin ensembles run $2,500–$7,000+. The average live band quote in Miami is around $1,500 according to The Bash.",
+      },
+      {
+        question: "What types of live music are available for events in Miami?",
+        answer:
+          "Miami offers an exceptionally diverse range: solo acoustic guitarists, jazz trios and quartets, Latin bands (salsa, merengue, cumbia, bachata), Top 40 cover bands, R&B and soul bands, string quartets, Afrobeats acts, reggae bands, classical ensembles, and hybrid DJ-band combos. The multicultural South Florida market means you can find specialists for almost any genre or cultural tradition.",
+      },
+      {
+        question: "How do I find live music for my Miami event without paying agency fees?",
+        answer:
+          "Submit your event details on Gigxo and receive direct quotes from verified Miami musicians. No booking agency commission — you negotiate directly with the performers. Gigxo charges a small per-lead fee to artists, not a percentage of your booking.",
+      },
+    ],
+  },
+  "live-bands-corporate-event-miami": {
+    seoTitle: "Live Bands for Corporate Events in Miami — Hire Entertainment | Gigxo",
+    seoDescription:
+      "Find live bands for corporate events in Miami. Galas, conferences, holiday parties, and product launches. Verified talent, direct contact, no booking fees. Quotes from $2,000.",
+    heading: "Live Bands for Corporate Events in Miami",
+    subheading: "Professional live entertainment for Miami corporate events",
+    content:
+      "Corporate events in Miami require performers who are polished, professional, and capable of entertaining diverse audiences. From jazz trios for networking receptions to high-energy cover bands for holiday parties, Miami's corporate entertainment market has options for every event type and budget.\n\nCorporate event bands in Miami typically quote $2,000–$6,000+ for a 3–4 hour performance. Jazz and acoustic acts for cocktail hours start around $1,200. Full production bands for large galas run $4,000–$8,000+.\n\nSubmit your event details on Gigxo and receive direct quotes from verified bands — no agency commission, no middleman markup.",
+    pageType: "hire",
+    leadCTA: "Get My Free Corporate Event Quote",
+    faq: [
+      {
+        question: "What kind of band should I hire for a corporate event in Miami?",
+        answer:
+          "For cocktail hours: jazz trios, acoustic duos, or string quartets. For dinner entertainment: 4–5 piece bands covering jazz, R&B, and light pop. For post-dinner dancing: high-energy cover bands or Latin bands. The right choice depends on your guest demographics, venue, and event flow.",
+      },
+      {
+        question: "How much does a band cost for a corporate event in Miami?",
+        answer:
+          "Corporate event bands in Miami run $2,000–$6,000 for a standard 3–4 hour performance. Jazz trios start around $1,200. Large production bands for galas can reach $8,000–$15,000+. Always get an itemized quote covering hours, equipment, setup/strike time, and overtime rates.",
+      },
+      {
+        question: "How do I book corporate entertainment without going through an agency?",
+        answer:
+          "Submit your event details on Gigxo and receive direct quotes from verified corporate event bands. No agency commission — you save 15–30% compared to traditional booking agencies. You negotiate directly with the musicians and pay them directly.",
+      },
+    ],
+  },
+  "miami-wedding-music-band": {
+    seoTitle: "Miami Wedding Music Bands — Live Entertainment for Your Reception | Gigxo",
+    seoDescription:
+      "Find live wedding music bands in Miami. Cover bands, Latin ensembles, jazz quartets, and acoustic acts for ceremonies and receptions. Direct contact, no booking fees.",
+    heading: "Wedding Music Bands in Miami",
+    subheading: "Live wedding music for Miami ceremonies, cocktail hours, and receptions",
+    content:
+      "The right wedding band sets the tone for your entire reception. Miami's wedding music scene spans intimate acoustic duos for beachside ceremonies to full 10-piece bands for grand ballroom receptions. Whatever your vision — classic elegance, high-energy dancing, Latin flair, or a mix of everything — there's a Miami wedding band that fits.\n\nWedding music bands in Miami typically quote $1,500–$7,000+ depending on the number of musicians and hours of coverage. Submit your wedding details on Gigxo and receive direct quotes from verified wedding bands — no booking agency commission.",
+    pageType: "hire",
+    leadCTA: "Get My Free Wedding Music Quote",
+    faq: [
+      {
+        question: "How much does wedding music cost in Miami?",
+        answer:
+          "Wedding music in Miami ranges from $500 for a solo acoustic act for the ceremony to $7,000+ for a full wedding band covering ceremony, cocktail hour, and reception. A typical 4–5 piece wedding band for a 4-hour reception runs $3,000–$5,000. The average wedding band cost in Miami is around $2,190 according to WeddingWire.",
+      },
+      {
+        question: "What's the most popular type of wedding band in Miami?",
+        answer:
+          "Top 40 cover bands and Latin-influenced bands are the most popular choices for Miami weddings, reflecting the city's multicultural demographics. Many couples also choose jazz ensembles for ceremony and cocktail hour, then switch to a high-energy cover band for the reception.",
+      },
+      {
+        question: "Can I hire a band for just the ceremony in Miami?",
+        answer:
+          "Yes. Many Miami musicians offer ceremony-only packages — typically a solo acoustic act, duo, or string quartet for 30–60 minutes. These typically run $500–$1,500 depending on the number of musicians and travel. Submit your ceremony details for a direct quote.",
+      },
+    ],
   },
   "dj-gigs-miami": {
     seoTitle: "Miami DJ Gigs — Verified Private Event Leads for DJs | Gigxo",
@@ -625,7 +913,6 @@ export function generatePageConfig(serviceId: string, cityId: string): PageConfi
  */
 export function generateAllPageConfigs(): Record<string, PageConfig> {
   const configs: Record<string, PageConfig> = {};
-
   for (const service of SERVICES) {
     for (const city of CITIES) {
       const slug = `${service.id}-${city.id}`;
@@ -641,7 +928,28 @@ export function generateAllPageConfigs(): Record<string, PageConfig> {
       }
     }
   }
-
+  // Also include manual-only overrides that don't match a service+city pattern
+  for (const [slug, override] of Object.entries(MANUAL_OVERRIDES)) {
+    if (!configs[slug] && override.seoTitle) {
+      configs[slug] = {
+        title: override.heading ?? override.seoTitle ?? slug,
+        seoTitle: override.seoTitle ?? override.heading ?? slug,
+        seoDescription: override.seoDescription ?? "",
+        seoH1: override.seoH1 ?? override.heading ?? "",
+        heading: override.heading ?? "",
+        subheading: override.subheading ?? "",
+        defaultEventType: override.defaultEventType ?? "party",
+        defaultCity: override.defaultCity ?? "Miami, FL",
+        content: override.content ?? "",
+        priority: override.priority ?? 0.7,
+        changefreq: override.changefreq ?? "weekly",
+        pageType: override.pageType ?? "hire",
+        leadCTA: override.leadCTA,
+        faq: override.faq ?? [],
+        ...override,
+      } as PageConfig;
+    }
+  }
   return configs;
 }
 
