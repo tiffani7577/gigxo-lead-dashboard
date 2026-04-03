@@ -230,9 +230,9 @@ const PRICING_PAGE_SLUGS = new Set([
 // Manual overrides for specific pages (custom titles, descriptions, etc.)
 const MANUAL_OVERRIDES: Record<string, Partial<PageConfig>> = {
   "dj-miami": {
-    seoTitle: "Hire DJs in Miami | Club, Wedding & Event DJs",
+    seoTitle: "Miami DJs for Hire — Weddings, Clubs & Yacht Parties | Gigxo",
     seoDescription:
-      "Browse professional DJs in Miami for clubs, weddings, corporate events and yacht parties. Listen to sets, check availability and request a quote.",
+      "Find verified Miami DJs for weddings, yacht charters, clubs and private events. Compare real profiles, see availability, and get direct contact — no commission, ever. Leads from $7.",
     heading: "Hire DJs in Miami",
     subheading: "Club, wedding and event-ready DJs across Miami & South Florida",
     content:
@@ -240,15 +240,15 @@ const MANUAL_OVERRIDES: Record<string, Partial<PageConfig>> = {
     pageType: "hire",
   },
   "dj-cost-miami": {
-    seoTitle: "How Much Does a DJ Cost in Miami? | 2025 Price Ranges & Quotes",
+    seoTitle: "DJ Cost in Miami: Real Price Ranges for 2026 | Gigxo",
     seoDescription:
-      "DJ cost in Miami typically runs about $500–$2,500+ for private events: house parties and birthdays often start around $500–$1,200, while weddings and corporate galas commonly land $900–$2,500+ depending on hours, gear, and date. Compare verified DJs and get tailored quotes on Gigxo.",
+      "Miami DJ prices run $500–$2,500+ depending on event type, hours, and gear. Weddings typically land $900–$2,500+; private parties from $500. See what drives pricing and get itemized quotes from verified DJs — no middleman markup.",
     heading: "How Much Does a DJ Cost in Miami?",
     subheading: "Realistic Miami DJ price ranges—then match with verified talent",
     content:
       "Miami DJ pricing depends on event length, sound and lighting needs, travel, season (peak winter/spring is pricier), and whether you need MC or ceremony support. Use the short form to share your date, neighborhood, and vibe—we’ll connect you with DJs whose rates fit your budget.",
     pageType: "calculator",
-    leadCTA: "Get free quotes from verified DJs",
+    leadCTA: "Get My Free Quote from Verified DJs",
     faq: [
       {
         question: "How much does a DJ cost in Miami for a wedding?",
@@ -283,15 +283,15 @@ const MANUAL_OVERRIDES: Record<string, Partial<PageConfig>> = {
     ],
   },
   "wedding-dj-cost-miami": {
-    seoTitle: "Wedding DJ Cost Miami | Packages, Price Ranges & Free Quotes",
+    seoTitle: "Wedding DJ Cost in Miami: What to Expect in 2026 | Gigxo",
     seoDescription:
-      "Wedding DJ cost in Miami usually ranges from about $900–$2,500+ for reception coverage, with ceremony audio and lighting as common add-ons. See what drives pricing and get free quotes from verified wedding DJs on Gigxo.",
+      "Miami wedding DJ packages typically run $900–$2,500+ for ceremony and reception coverage. See exactly what's included, what drives pricing up, and compare quotes from verified wedding DJs with no booking fees.",
     heading: "How Much Does a Wedding DJ Cost in Miami?",
     subheading: "Typical Miami wedding DJ packages and what you’re paying for",
     content:
       "Your wedding DJ quote reflects timeline coordination, sound for ceremony and reception, MC skills, dance-floor energy, and equipment quality. Share your venue, guest count, and must-have moments—we’ll help you compare vetted wedding DJs at clear price points.",
     pageType: "calculator",
-    leadCTA: "Get free quotes from verified DJs",
+    leadCTA: "Get My Free Wedding DJ Quotes",
     faq: [
       {
         question: "How much does a wedding DJ cost in Miami on average?",
@@ -326,15 +326,15 @@ const MANUAL_OVERRIDES: Record<string, Partial<PageConfig>> = {
     ],
   },
   "dj-cost-fort-lauderdale": {
-    seoTitle: "How Much Does a DJ Cost in Fort Lauderdale? | Prices & Quotes",
+    seoTitle: "DJ Cost in Fort Lauderdale: 2026 Price Guide | Gigxo",
     seoDescription:
-      "DJ cost in Fort Lauderdale often falls around $500–$2,200+ for private events: parties and corporate mixers may start near $500–$1,100, while weddings and yacht-adjacent gigs commonly run $900–$2,200+ based on hours and production. Request tailored quotes from verified DJs on Gigxo.",
+      "Fort Lauderdale DJ rates run $500–$2,200+ for private events. Yacht parties and waterfront weddings typically start at $900+. Compare itemized quotes from verified DJs — direct contact, zero commission.",
     heading: "How Much Does a DJ Cost in Fort Lauderdale?",
     subheading: "Fort Lauderdale DJ rates—from intracoastal parties to wedding receptions",
     content:
       "Fort Lauderdale events span beach hotels, marinas, and downtown rooftops; load-in, parking, and weather backup can affect quotes. Tell us your neighborhood and hours so we can match you with DJs who price fairly for Broward County gigs.",
     pageType: "calculator",
-    leadCTA: "Get free quotes from verified DJs",
+    leadCTA: "Get My Free Quote from Verified DJs",
     faq: [
       {
         question: "How much does a DJ cost in Fort Lauderdale for a wedding?",
@@ -369,15 +369,15 @@ const MANUAL_OVERRIDES: Record<string, Partial<PageConfig>> = {
     ],
   },
   "dj-cost-boca-raton": {
-    seoTitle: "How Much Does a DJ Cost in Boca Raton? | DJ Prices & Free Quotes",
+    seoTitle: "DJ Cost in Boca Raton: Country Club to Private Party Pricing | Gigxo",
     seoDescription:
-      "DJ cost in Boca Raton is often about $550–$2,300+ for private events: upscale weddings and country-club receptions frequently run $1,000–$2,300+, while smaller parties may start closer to $550–$1,200. See typical ranges and get quotes from verified DJs on Gigxo.",
+      "Boca Raton DJ prices range from $550–$2,300+ depending on venue and event type. Country club and upscale weddings typically run $1,000–$2,300+. Get transparent, itemized quotes from verified DJs with no booking fees.",
     heading: "How Much Does a DJ Cost in Boca Raton?",
     subheading: "Boca Raton and Palm Beach County DJ pricing—clubs, homes, and venues",
     content:
       "Boca events often mean higher-end venues, longer cocktail flows, and detailed timelines. DJs price for production expectations and guest experience, not just hours behind the decks. Share your venue and schedule to get quotes that match Palm Beach standards.",
     pageType: "calculator",
-    leadCTA: "Get free quotes from verified DJs",
+    leadCTA: "Get My Free Quote from Verified DJs",
     faq: [
       {
         question: "How much does a DJ cost in Boca Raton for a country club or hotel wedding?",
@@ -413,9 +413,9 @@ const MANUAL_OVERRIDES: Record<string, Partial<PageConfig>> = {
   },
   // General DJ hire page for Fort Lauderdale
   "dj-fort-lauderdale": {
-    seoTitle: "Hire DJs in Fort Lauderdale | Yacht, Wedding & Event DJs",
+    seoTitle: "Fort Lauderdale DJs for Hire — Yachts, Weddings & Events | Gigxo",
     seoDescription:
-      "Browse professional DJs in Fort Lauderdale for yacht parties, weddings and events. Listen to mixes, see locations and request a quick quote.",
+      "Find verified Fort Lauderdale DJs for yacht parties, waterfront weddings, and corporate events. Get direct contact with talent — no commission, no middleman. Leads from $7.",
     heading: "Hire DJs in Fort Lauderdale",
     subheading: "Fort Lauderdale DJs for yachts, marinas and city events",
     content:
@@ -424,9 +424,9 @@ const MANUAL_OVERRIDES: Record<string, Partial<PageConfig>> = {
   },
   // Wedding DJ hire page for Miami
   "wedding-dj-miami": {
-    seoTitle: "Wedding DJ Miami | Hire Professional Wedding DJs",
+    seoTitle: "Miami Wedding DJs for Hire — Ceremony to Last Dance | Gigxo",
     seoDescription:
-      "Hire experienced wedding DJs in Miami for ceremonies, cocktail hours and receptions. Compare profiles, listen to mixes and request a custom quote.",
+      "Hire Miami wedding DJs who handle ceremony audio, cocktail hours, and reception from start to finish. Compare verified profiles and get direct quotes — no booking commission.",
     heading: "Hire Wedding DJs in Miami",
     subheading: "Curated wedding DJs for ceremonies, cocktail hours and receptions",
     content:
@@ -435,15 +435,15 @@ const MANUAL_OVERRIDES: Record<string, Partial<PageConfig>> = {
   },
   // Live band example (kept as calculator/info page by default)
   "live-band-miami": {
-    seoTitle: "Live Bands Miami | Professional Musicians for Weddings & Events",
-    seoDescription: "Book live bands in Miami for weddings and events. Professional musicians and performers.",
+    seoTitle: "Live Bands in Miami for Weddings & Private Events | Gigxo",
+    seoDescription: "Book live bands in Miami for weddings, corporate events, and private parties. Verified musicians with real event history. Get direct quotes with no booking fees.",
     subheading: "Professional live music for your event",
     content: "Live bands bring an energy and elegance that DJs can't match. Miami's top live bands perform everything from classic standards to modern hits, perfect for weddings and upscale events.",
   },
   "yacht-dj-miami": {
-    seoTitle: "Yacht DJs in Miami | Hire Boat-Ready DJs",
+    seoTitle: "Miami Yacht DJs for Hire — On-Water Setups & Charter Parties | Gigxo",
     seoDescription:
-      "Browse yacht-ready DJs in Miami for boat parties and charters. See compact, on-water friendly setups and request a quick quote.",
+      "Hire Miami yacht DJs who know compact setups, deck logistics, and on-water performance. Verified talent for boat parties and charters — direct contact, no commission.",
     heading: "Hire Yacht DJs in Miami",
     subheading: "Miami & Fort Lauderdale yacht-ready DJs for on-water events",
     content:
@@ -451,9 +451,9 @@ const MANUAL_OVERRIDES: Record<string, Partial<PageConfig>> = {
     pageType: "hire",
   },
   "yacht-dj-cost-miami": {
-    seoTitle: "Yacht DJ Cost Miami | Luxury Yacht Party DJs",
+    seoTitle: "Yacht DJ Cost in Miami: What Charters Actually Pay | Gigxo",
     seoDescription:
-      "Plan a yacht party in Miami or Fort Lauderdale with a professional DJ. Estimate pricing by duration and guest count, then request a custom quote.",
+      "Miami yacht DJ bookings typically run $800–$2,500 depending on duration, date, and production. Estimate your cost by charter length and guest count, then get direct quotes from verified on-water talent.",
     heading: "Yacht DJ Cost in Miami",
     subheading: "Plan a luxury yacht party soundtrack for Miami & Fort Lauderdale charters",
     content:
@@ -479,9 +479,9 @@ const MANUAL_OVERRIDES: Record<string, Partial<PageConfig>> = {
   },
   // Yacht DJ hire page for Fort Lauderdale
   "yacht-dj-fort-lauderdale": {
-    seoTitle: "Yacht DJs in Fort Lauderdale | Hire Boat-Ready DJs",
+    seoTitle: "Fort Lauderdale Yacht DJs — Intracoastal & Marina Parties | Gigxo",
     seoDescription:
-      "Hire yacht-ready DJs in Fort Lauderdale for boat parties and intracoastal cruises. Discover compact, on-water friendly setups and request a quote.",
+      "Hire yacht-ready DJs in Fort Lauderdale for intracoastal cruises, marina events, and boat charters. Compact setups, verified talent, direct contact — no commission.",
     heading: "Hire Yacht DJs in Fort Lauderdale",
     subheading: "Fort Lauderdale yacht DJs for marinas, cruises and intracoastal events",
     content:
@@ -489,9 +489,9 @@ const MANUAL_OVERRIDES: Record<string, Partial<PageConfig>> = {
     pageType: "hire",
   },
   "boat-entertainment-package-miami": {
-    seoTitle: "Boat Entertainment Packages Miami | DJ + Sax & More",
+    seoTitle: "Miami Boat Entertainment Packages — DJ, Sax & Live Music | Gigxo",
     seoDescription:
-      "Build a custom boat entertainment package in Miami with DJ, saxophone, percussion, and compact yacht-ready setups. Get an instant estimate and request a quote.",
+      "Build a custom Miami boat entertainment package: DJ, live sax, percussion, or full production for yacht charters. Get an instant estimate and direct quotes from verified on-water performers.",
     heading: "Boat Entertainment Packages in Miami",
     subheading: "Design a yacht-ready DJ + musician package for Miami & Fort Lauderdale waters",
     content:
@@ -516,32 +516,32 @@ const MANUAL_OVERRIDES: Record<string, Partial<PageConfig>> = {
     ],
   },
   "dj-orlando": {
-    seoTitle: "Hire DJs in Orlando | Event & Wedding DJs",
-    seoDescription: "Browse professional DJs in Orlando for weddings, events and parties. Request a quote.",
+    seoTitle: "Orlando DJs for Hire — Weddings, Events & Private Parties | Gigxo",
+    seoDescription: "Find verified DJs in Orlando for weddings, corporate events, and private parties. Direct contact with talent, no booking commission. Get quotes from $7.",
     heading: "Hire DJs in Orlando",
     subheading: "Event and wedding DJs across Orlando and Central Florida",
     content: "Find vetted DJs in Orlando for weddings, corporate events and parties. Compare profiles and request a quote.",
     pageType: "hire",
   },
   "band-miami": {
-    seoTitle: "Hire Bands in Miami | Live Bands for Events",
-    seoDescription: "Book live bands in Miami for weddings, corporate events and parties.",
+    seoTitle: "Miami Live Bands for Hire — Weddings, Corporate & Private Events | Gigxo",
+    seoDescription: "Book verified live bands in Miami for weddings, corporate events, and private parties. Compare real profiles and get direct quotes — no booking fees, no middleman.",
     heading: "Hire Bands in Miami",
     subheading: "Live bands and musicians in Miami",
     content: "Miami's top live bands for weddings, corporate events and private parties. Browse and request a quote.",
     pageType: "hire",
   },
   "dj-gigs-miami": {
-    seoTitle: "DJ Gigs in Miami | Gig Opportunities for DJs",
-    seoDescription: "Find DJ gig opportunities in Miami. New gigs posted regularly.",
+    seoTitle: "Miami DJ Gigs — Verified Private Event Leads for DJs | Gigxo",
+    seoDescription: "Browse real DJ gig opportunities in Miami. Verified private event leads posted daily — weddings, yacht parties, corporate events. Unlock direct contact from $7, no commission.",
     heading: "DJ Gigs in Miami",
     subheading: "Gig opportunities for DJs in South Florida",
     content: "Gigxo surfaces real DJ gig opportunities in Miami and South Florida. New leads appear daily.",
     pageType: "hire",
   },
   "venues-hiring-djs-miami": {
-    seoTitle: "Venues Hiring DJs in Miami | Event Entertainment",
-    seoDescription: "Venues and events in Miami looking for DJs. Connect with bookers.",
+    seoTitle: "Miami Venues Hiring DJs — Connect with Event Bookers | Gigxo",
+    seoDescription: "Discover Miami venues and events actively looking for DJs. Unlock direct contact with bookers — no middleman, no commission. New leads added daily.",
     heading: "Venues Hiring DJs in Miami",
     subheading: "Miami venues and events looking for DJ entertainment",
     content: "Discover Miami venues and events actively looking for DJs. Unlock leads and connect with decision-makers.",
@@ -572,9 +572,9 @@ export function generatePageConfig(serviceId: string, cityId: string): PageConfi
   // Generate default config (all required fields always set)
   const defaultConfig: PageConfig = {
     title: `Hire ${service.plural} in ${city.name} | Gigxo`,
-    seoTitle: `${service.name} in ${city.name}, ${city.state} | Hire ${service.plural} on Gigxo`,
-    seoDescription: `Book ${service.plural.toLowerCase()} in ${city.name}, ${city.state} for weddings, parties, and corporate events. Browse vetted talent and request a free quote on Gigxo.`,
-    seoH1: `${service.name} Services in ${city.name}`,
+    seoTitle: `${city.name} ${service.plural} for Hire — Verified Talent, No Commission | Gigxo`,
+    seoDescription: `Find verified ${service.plural.toLowerCase()} in ${city.name}, ${city.state} for weddings, private events, and corporate bookings. Get direct contact with talent — no booking fees, no middleman. Leads from $7.`,
+    seoH1: `${service.plural} for Hire in ${city.name}`,
     heading: `Hire ${service.plural} in ${city.name}`,
     subheading: `Professional ${service.plural.toLowerCase()} for every occasion`,
     defaultEventType: service.eventTypes[0] || "party",

@@ -443,35 +443,35 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
               <h2 className="text-2xl font-bold mb-6">{isHireLikePage ? "How Booking Works" : "How It Works"}</h2>
               <div className="space-y-4">
                 <div className="flex gap-4">
-                  <div className="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold">
+                  <div className="flex-shrink-0 w-8 h-8 text-white rounded-full flex items-center justify-center font-bold" style={{background:'#c9a84c'}}>
                     1
                   </div>
                   <div>
-                    <h3 className="font-semibold">Browse performers</h3>
+                    <h3 className="font-semibold">Tell us about your event</h3>
                     <p className="text-gray-600">
-                      Explore verified profiles, listen to music, and see which performers fit your event.
+                      Share your date, location, and what you&apos;re looking for. Takes under 60 seconds.
                     </p>
                   </div>
                 </div>
                 <div className="flex gap-4">
-                  <div className="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold">
+                  <div className="flex-shrink-0 w-8 h-8 text-white rounded-full flex items-center justify-center font-bold" style={{background:'#c9a84c'}}>
                     2
                   </div>
                   <div>
-                    <h3 className="font-semibold">Share a few details</h3>
+                    <h3 className="font-semibold">We match you with verified talent</h3>
                     <p className="text-gray-600">
-                      Use the quick quote form so we understand timing, location, and the vibe you&apos;re going for.
+                      We surface the best-fit performers for your city and event type — all vetted, all real.
                     </p>
                   </div>
                 </div>
                 <div className="flex gap-4">
-                  <div className="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold">
+                  <div className="flex-shrink-0 w-8 h-8 text-white rounded-full flex items-center justify-center font-bold" style={{background:'#c9a84c'}}>
                     3
                   </div>
                   <div>
-                    <h3 className="font-semibold">We match and confirm</h3>
+                    <h3 className="font-semibold">Book direct, pay nothing extra</h3>
                     <p className="text-gray-600">
-                      We match you with the best options for your city, then help you lock in the booking.
+                      Connect directly with your performer. No booking fees, no commission — ever.
                     </p>
                   </div>
                 </div>
@@ -841,7 +841,7 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
                     style={{ width: '100%' }}
                     disabled={submitEventRequest.isPending}
                   >
-                    {submitEventRequest.isPending ? "Submitting..." : pageConfig.leadCTA ?? "Get Matched"}
+                    {submitEventRequest.isPending ? "Sending your request..." : pageConfig.leadCTA ?? "Get My Free Quote"}
                   </button>
                   </form>
                 </div>

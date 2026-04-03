@@ -218,22 +218,22 @@ export default function Home() {
         <div style={{ position: 'relative', zIndex: 2, textAlign: 'center', maxWidth: '900px', padding: '0 2rem' }}>
           <p className="section-label" style={{ marginBottom: '1.5rem' }}>Fort Lauderdale · South Florida</p>
           <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 'clamp(3rem,8vw,6rem)', fontWeight: 300, lineHeight: 1.05, margin: '0 0 2rem' }}>
-            <span style={{ display: 'block' }}>South Florida's</span>
-            <span style={{ display: 'block', color: 'var(--gold)' }}>Gig Lead Marketplace</span>
+            <span style={{ display: 'block' }}>Real Gig Leads.</span>
+            <span style={{ display: 'block', color: 'var(--gold)' }}>Zero Commission.</span>
           </h1>
           <p style={{ fontSize: '1.1rem', color: 'rgba(240,237,232,0.75)', maxWidth: '560px', margin: '0 auto 2.5rem', lineHeight: 1.7, fontWeight: 300 }}>
-            The only platform connecting DJs and live artists with verified private event leads — no commissions, ever.
+            Verified private event leads for DJs and live artists across South Florida. Unlock direct contact from $7 — no middleman, no booking fees, ever.
           </p>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '4rem' }}>
             <button className="btn-gold" onClick={() => navigate('/gigs')}>
-              Browse Gig Leads
+              See Today's Leads
             </button>
             <button className="btn-ghost" onClick={() => navigate('/signup')}>
-              Sign Up Free
+              Join Free
             </button>
           </div>
           <div style={{ display: 'flex', gap: '3rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            {[{ value: '50+', label: 'Artists Booking' }, { value: '$0', label: 'Commission Ever' }, { value: '3', label: 'Lead Tiers' }, { value: '24h', label: 'Fresh Leads' }].map((s) => (
+            {[{ value: '50+', label: 'Artists Earning' }, { value: '$0', label: 'Commission Ever' }, { value: 'From $7', label: 'Per Lead Unlock' }, { value: 'Daily', label: 'New Leads Added' }].map((s) => (
               <div key={s.label} style={{ textAlign: 'center' }}>
                 <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '1.8rem', color: 'var(--gold)' }}>{s.value}</div>
                 <div style={{ fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(240,237,232,0.5)', marginTop: '0.35rem' }}>{s.label}</div>
@@ -273,7 +273,7 @@ export default function Home() {
           </div>
           <Link href="/signup">
             <button style={{ background: 'linear-gradient(135deg,#c9a84c,#e8c97a)', color: '#1c1c2e', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '0.75rem', padding: '0.85rem 2rem', borderRadius: '2px', border: 'none', cursor: 'pointer' }}>
-              View Available Leads
+              Unlock a Lead Today
             </button>
           </Link>
         </div>
@@ -345,16 +345,16 @@ export default function Home() {
         <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663413300520/DGyYNygOEkAmMcmQ.jpg" alt="Miami skyline from yacht"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.15 }} />
         <div style={{ position: 'relative', zIndex: 2, maxWidth: '600px', margin: '0 auto' }}>
-          <p style={{ fontSize: '0.65rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#c9a84c', fontWeight: 500, marginBottom: '1.5rem' }}>Ready to Book?</p>
+          <p style={{ fontSize: '0.65rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#c9a84c', fontWeight: 500, marginBottom: '1.5rem' }}>Start Booking</p>
           <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 'clamp(2.5rem,5vw,4.5rem)', fontWeight: 300, color: '#f0ede8', lineHeight: 1.1, marginBottom: '1.5rem' }}>
-            Find Your Next<br /><em style={{ color: '#c9a84c' }}>Gig Today</em>
+            Your Next Gig<br /><em style={{ color: '#c9a84c' }}>Is Already Here</em>
           </h2>
           <p style={{ color: 'rgba(240,237,232,0.55)', fontSize: '0.95rem', lineHeight: 1.7, marginBottom: '2.5rem' }}>
-            Join 50+ artists already booking through Gigxo. Discovery leads $3, Standard $7, Premium $15. Pro: $49/month — no commission or booking fees, new leads daily.
+            50+ artists are already booking through Gigxo. Join free, browse leads instantly, and unlock direct contact from $7. No commission. No booking fees. Ever.
           </p>
           <Link href="/signup">
             <button style={{ background: 'linear-gradient(135deg,#c9a84c,#e8c97a)', color: '#1c1c2e', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '0.8rem', padding: '1rem 2.5rem', borderRadius: '2px', border: 'none', cursor: 'pointer' }}>
-              Sign Up Free →
+              Get Access Free
             </button>
           </Link>
         </div>
