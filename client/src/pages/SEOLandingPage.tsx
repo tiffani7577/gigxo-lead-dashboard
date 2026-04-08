@@ -7,7 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { trpc } from "@/lib/trpc";
 import { Link, useLocation } from "wouter";
 import { generateAllPageConfigs, generatePageConfig, parseSlug } from "@/lib/seoConfig";
-import { canonicalUrlForPathname, DEFAULT_OG_IMAGE } from "@/lib/meta-tags";
+import { DEFAULT_OG_IMAGE } from "@/lib/meta-tags";
+
+/** Production canonical origin — always https://www.gigxo.com (never http, never bare domain). */
+const SEO_PUBLIC_ORIGIN = "https://www.gigxo.com";
 import { MapPin, Music, ChevronRight } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import NotFound from "@/pages/NotFound";
@@ -108,7 +111,8 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
       return segs[segs.length - 1] || "";
     })() ||
     "dj-miami";
-  const pageCanonicalUrl = canonicalUrlForPathname(pathOnly === "" ? "/" : pathOnly);
+  /** Self-referencing canonical: pathname from the current URL (e.g. /dj-miami, /av-work/orlando). No trailing slash. */
+  const gigxoCanonicalUrl = pathOnly === "/" ? SEO_PUBLIC_ORIGIN : `${SEO_PUBLIC_ORIGIN}${pathOnly}`;
 
   // Parse slug to get service and city
   const parsed = parseSlug(slug);
@@ -313,7 +317,7 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
           "@type": "Offer",
           priceCurrency: "USD",
           availability: "https://schema.org/InStock",
-          url: pageCanonicalUrl,
+          url: gigxoCanonicalUrl,
           name: isYachtHirePage ? "Yacht DJ hire in Miami" : heading,
         },
       }),
@@ -327,13 +331,13 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
             "@type": "ListItem",
             position: 1,
             name: "Home",
-            item: canonicalUrlForPathname("/"),
+            item: SEO_PUBLIC_ORIGIN,
           },
           {
             "@type": "ListItem",
             position: 2,
             name: seoH1,
-            item: pageCanonicalUrl,
+            item: gigxoCanonicalUrl,
           },
         ],
       }),
@@ -348,10 +352,11 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
         <Helmet>
           <title>{seoTitle}</title>
           <meta name="description" content={seoDescription} />
-          <link rel="canonical" href={pageCanonicalUrl} />
+          <meta name="robots" content="index, follow" />
+          <link rel="canonical" href={gigxoCanonicalUrl} />
           <meta property="og:title" content={seoTitle} />
           <meta property="og:description" content={seoDescription} />
-          <meta property="og:url" content={pageCanonicalUrl} />
+          <meta property="og:url" content={gigxoCanonicalUrl} />
           <meta property="og:image" content={ogImageUrl} />
           <meta name="twitter:card" content="summary_large_image" />
           <meta name="twitter:title" content={seoTitle} />
