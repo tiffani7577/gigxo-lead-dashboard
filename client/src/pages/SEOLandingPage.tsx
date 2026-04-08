@@ -8,13 +8,13 @@ import { trpc } from "@/lib/trpc";
 import { Link, useLocation } from "wouter";
 import { generateAllPageConfigs, generatePageConfig, parseSlug } from "@/lib/seoConfig";
 import { DEFAULT_OG_IMAGE } from "@/lib/meta-tags";
-
-/** Production canonical origin — always https://www.gigxo.com (never http, never bare domain). */
-const SEO_PUBLIC_ORIGIN = "https://www.gigxo.com";
 import { MapPin, Music, ChevronRight } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import NotFound from "@/pages/NotFound";
 import { SiteFooter } from "@/components/SiteFooter";
+
+/** Production canonical origin — always https://www.gigxo.com (never http, never bare domain). */
+const SEO_PUBLIC_ORIGIN = "https://www.gigxo.com";
 
 interface FormData {
   eventType: "wedding" | "party" | "birthday" | "corporate" | "other";
