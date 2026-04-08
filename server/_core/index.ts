@@ -53,22 +53,28 @@ async function startServer() {
   app.set("trust proxy", true);
   const server = createServer(app);
 
+  // Single-hop canonical host for gigxo.com: always https + www (Railway: use x-forwarded-proto, not req.secure)
   app.use((req, res, next) => {
-    const forwarded = req.headers["x-forwarded-host"];
-    const host = (Array.isArray(forwarded)
-      ? forwarded[0]
-      : forwarded || req.headers.host || "")
+    const forwardedHost = req.headers["x-forwarded-host"];
+    const hostHeader = (Array.isArray(forwardedHost)
+      ? forwardedHost[0]
+      : forwardedHost || req.headers.host || "")
       .split(",")[0]
-      .trim()
-      .replace(/:\d+$/, "")
-      .toLowerCase()
-      .replace(/\.$/, "");
+      .trim();
+    const hostNoPort = hostHeader.replace(/:\d+$/, "").toLowerCase().replace(/\.$/, "");
+    const isGigxo = hostNoPort === "gigxo.com" || hostNoPort === "www.gigxo.com";
+    if (!isGigxo) {
+      return next();
+    }
 
-    if (host === "gigxo.com") {
-      const raw = req.originalUrl || "/";
-      const pathAndQuery = raw.startsWith("/") ? raw : `/${raw}`;
-      const location = `https://www.gigxo.com${pathAndQuery}`;
-      return res.redirect(301, location);
+    const proto = String(req.headers["x-forwarded-proto"] || "").split(",")[0].trim();
+    const isHttps = proto === "https";
+    const hasWww = hostNoPort.startsWith("www.");
+    const raw = req.originalUrl || req.url || "/";
+    const pathAndQuery = raw.startsWith("/") ? raw : `/${raw}`;
+
+    if (!isHttps || !hasWww) {
+      return res.redirect(301, `https://www.gigxo.com${pathAndQuery}`);
     }
     next();
   });
