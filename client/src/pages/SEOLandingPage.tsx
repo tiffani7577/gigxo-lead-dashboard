@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
 import { Link, useLocation } from "wouter";
-import { generateAllPageConfigs, generatePageConfig, parseSlug } from "@/lib/seoConfig";
+import { generateAllPageConfigs, generatePageConfig, parseSlug } from "@shared/seo/seoConfig";
 import { DEFAULT_OG_IMAGE } from "@/lib/meta-tags";
 import { MapPin, Music, ChevronRight } from "lucide-react";
 import { Helmet } from "react-helmet-async";

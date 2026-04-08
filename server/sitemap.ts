@@ -1,11 +1,11 @@
 /**
  * Dynamic sitemap generator for Gigxo SEO
  * Serves /sitemap.xml with all public pages + artist profiles + dynamic SEO pages
- * Services and cities match client/src/lib/seoConfig.ts (14 services × 20 cities).
+ * Services and cities match shared/seo/seoConfig.ts (16 services × 20 cities).
  */
 import type { Express } from "express";
 
-// Synced with client/src/lib/seoConfig.ts — 14 services
+// Synced with shared/seo/seoConfig.ts — 16 services
 const SERVICES = [
   { id: "dj", priority: "0.90" },
   { id: "wedding-dj", priority: "0.90" },
@@ -23,7 +23,7 @@ const SERVICES = [
   { id: "av-work", priority: "0.90" },
 ];
 
-// Synced with client/src/lib/seoConfig.ts — 20 cities
+// Synced with shared/seo/seoConfig.ts — 20 cities
 const CITIES = [
   "miami",
   "fort-lauderdale",

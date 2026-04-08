@@ -5,6 +5,46 @@ import { nanoid } from "nanoid";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import viteConfig from "../../vite.config";
+import { generateAllPageConfigs, type PageConfig } from "@shared/seo/seoConfig";
+
+const SEO_LANDING_PAGES = new Map<string, PageConfig>(Object.entries(generateAllPageConfigs()));
+
+function escapeHtmlAttr(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function seoSlugFromPath(pathname: string): string {
+  let s = pathname.startsWith("/") ? pathname.slice(1) : pathname;
+  while (s.endsWith("/") && s.length > 1) {
+    s = s.slice(0, -1);
+  }
+  return s;
+}
+
+function injectSeoIntoIndexHtml(html: string, config: PageConfig, reqPath: string): string {
+  const title = escapeHtmlAttr(config.seoTitle);
+  const desc = escapeHtmlAttr(config.seoDescription);
+  const h1Text = escapeHtmlAttr((config.seoH1?.trim() || config.heading).trim());
+  const canonicalPath = reqPath.startsWith("/") ? reqPath : `/${reqPath}`;
+
+  let out = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${title}</title>`);
+  out = out.replace(
+    /<meta\s+[^>]*name="description"[^>]*content="[^"]*"[^>]*>/i,
+    `<meta name="description" content="${desc}" />`
+  );
+
+  const headInject = `    <link rel="canonical" href="https://www.gigxo.com${canonicalPath}" />\n    <meta name="robots" content="index, follow" />`;
+  out = out.replace(/(\s*)<\/head>/i, `$1${headInject}\n$1</head>`);
+
+  const h1Block = `  <h1 style="position:absolute;width:1px;height:1px;overflow:hidden">${h1Text}</h1>`;
+  out = out.replace(/(\s*)<\/body>/i, `$1${h1Block}\n$1</body>`);
+
+  return out;
+}
 
 export async function setupVite(app: Express, server: Server) {
   const serverOptions = {
@@ -71,10 +111,33 @@ export function serveStatic(app: Express) {
     );
   }
 
+  const indexPath = path.join(distPath, "index.html");
+  let cachedIndexHtml: string;
+  try {
+    cachedIndexHtml = fs.readFileSync(indexPath, "utf-8");
+  } catch {
+    cachedIndexHtml = "";
+    console.error("[server] Failed to read index.html for caching:", indexPath);
+  }
+
   app.use(express.static(distPath));
 
   // fall through to index.html if the file doesn't exist
-  app.use("*", (_req, res) => {
-    res.sendFile(path.resolve(distPath, "index.html"));
+  app.use("*", (req, res) => {
+    if (!cachedIndexHtml) {
+      res.sendFile(path.resolve(distPath, "index.html"));
+      return;
+    }
+
+    const slug = seoSlugFromPath(req.path);
+    const pageConfig = slug ? SEO_LANDING_PAGES.get(slug) : undefined;
+
+    if (pageConfig) {
+      const html = injectSeoIntoIndexHtml(cachedIndexHtml, pageConfig, req.path);
+      res.status(200).set({ "Content-Type": "text/html; charset=utf-8" }).send(html);
+      return;
+    }
+
+    res.status(200).set({ "Content-Type": "text/html; charset=utf-8" }).send(cachedIndexHtml);
   });
 }
