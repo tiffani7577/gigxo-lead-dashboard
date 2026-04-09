@@ -199,6 +199,9 @@ export default function Home() {
           <Link href="/artists">
             <span style={{ color: 'rgba(240,237,232,0.6)', fontSize: '0.7rem', letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer', textDecoration: 'none' }}>Browse Artists</span>
           </Link>
+          <Link href="/blog">
+            <span style={{ color: 'rgba(240,237,232,0.6)', fontSize: '0.7rem', letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer', textDecoration: 'none' }}>Blog</span>
+          </Link>
           <Link href="/pricing">
             <span style={{ color: 'rgba(240,237,232,0.6)', fontSize: '0.7rem', letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer', textDecoration: 'none' }}>Pricing</span>
           </Link>
