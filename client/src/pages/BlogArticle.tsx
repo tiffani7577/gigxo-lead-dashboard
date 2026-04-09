@@ -147,31 +147,114 @@ export default function BlogArticle() {
         <p style={{ fontSize: "0.9rem", color: "#8a857a", marginBottom: "2.5rem" }}>April 8, 2026</p>
 
         <p style={{ fontSize: "1.0625rem", lineHeight: 1.75, marginBottom: "1.5rem" }}>
-          The gates weren&apos;t open yet. From the parking lot you could already hear line checks bouncing off the Atlantic &mdash; snare hits and bass that didn&apos;t care about the weather report. I spent setup day at Tortuga Music Festival 2026 walking the same grass fifty thousand people would flatten that weekend, and the weird part is how quiet the crowd energy is when it&apos;s still just vendors, techs, and caffeine.
+          It&apos;s 7am on Fort Lauderdale Beach and I am soaked through my shoes.
+        </p>
+        <p style={{ fontSize: "1.0625rem", lineHeight: 1.75, marginBottom: "1.5rem" }}>
+          The rain is coming down hard — not a Florida drizzle, a full sideways downpour — and I&apos;m staring at a wooden ramp bolted to the back of the MainStage. It&apos;s maybe 16 feet long, rises about five feet off the ground, and the panels are slick with rainwater. My coworker pulls me aside before we start.
+        </p>
+        <p style={{ fontSize: "1.0625rem", lineHeight: 1.75, marginBottom: "1.5rem" }}>
+          &quot;Be careful on that ramp,&quot; she says. &quot;I fell through one like it a few years ago. Really bad foot injury.&quot;
+        </p>
+        <p style={{ fontSize: "1.0625rem", lineHeight: 1.75, marginBottom: "1.5rem" }}>
+          I nod. Then we grab the case — easily 500, sometimes closer to 1,000 pounds of production equipment — get a running start, and push it up anyway. Sometimes you need four people. Sometimes the crane just has to take it because there&apos;s no other option. For the first two hours of Tortuga 2026 setup day, that was the job. Soaked, running, pushing, repeat.
+        </p>
+        <p style={{ fontSize: "1.0625rem", lineHeight: 1.75, marginBottom: "1.5rem" }}>
+          This is what a major music festival looks like before 50,000 people show up.
         </p>
 
         <h2 style={{ fontFamily: "Georgia, serif", fontSize: "1.35rem", fontWeight: 700, color: "#1c1c2e", marginTop: "2.25rem", marginBottom: "1rem" }}>
-          What production looks like when nobody&apos;s cheering
+          THE STAGE IS RIGHT ON THE OCEAN
         </h2>
         <p style={{ fontSize: "1.0625rem", lineHeight: 1.75, marginBottom: "1.5rem" }}>
-          The main stage footprint is deceptively simple from a distance. Up close it&apos;s a city: fly bays, cable runs labeled in tape that will be meaningless by Sunday, cases stacked like Tetris. Stage managers call cues into radios with the calm of people who have done this in every kind of squall. Artists&apos; backline hadn&apos;t fully arrived, but the house PA was already firing &mdash; a reminder that festivals are really logistics festivals, with music at the end.
+          Nothing prepares you for the MainStage at Tortuga. It sits directly on the sand — not near the beach, not overlooking the beach — on it, practically touching the water. A clear plastic barrier lines the ocean&apos;s edge along the front, separating the Atlantic from the festival grounds.
+        </p>
+        <p style={{ fontSize: "1.0625rem", lineHeight: 1.75, marginBottom: "1.5rem" }}>
+          Out front, the stage extends into the crowd with a thrust — a narrow peninsula about 20 feet deep that juts out at center stage. When an artist walks out on it, they&apos;re surrounded on three sides by the audience. That&apos;s not an accident. That&apos;s design.
+        </p>
+        <p style={{ fontSize: "1.0625rem", lineHeight: 1.75, marginBottom: "1.5rem" }}>
+          The LED screen anchoring the back of the stage is enormous. We&apos;re talking 100 feet or more. Aligning it takes most of the day and a crew that knows exactly what they&apos;re doing. And then there&apos;s the rigging — the kind of overhead infrastructure that takes hours just to load in, requires specialized equipment, and has to be perfect before anything else can happen.
         </p>
 
         <h2 style={{ fontFamily: "Georgia, serif", fontSize: "1.35rem", fontWeight: 700, color: "#1c1c2e", marginTop: "2.25rem", marginBottom: "1rem" }}>
-          The rain doesn&apos;t send anyone home on day zero
+          FOUR TRUCKS. ONE ARTIST.
         </h2>
         <p style={{ fontSize: "1.0625rem", lineHeight: 1.75, marginBottom: "1.5rem" }}>
-          Mid-afternoon the sky bruised and someone joked that Tortuga always keeps a little saltwater in the forecast. Tarps came out; forklifts kept moving. The difference between a fan weekend and a build day is that when the drizzle hits early, nobody posts about it &mdash; they just re-route power and keep climbing trusses. That&apos;s the version of the beach the T-shirts don&apos;t show.
+          At some point during load-in, someone on the crew made a comment about all the trucks lined up behind the stage. One of the senior audio engineers — a guy who clearly had done this a hundred times — just laughed.
+        </p>
+        <p style={{ fontSize: "1.0625rem", lineHeight: 1.75, marginBottom: "1.5rem" }}>
+          &quot;All four of those are mine,&quot; he said. &quot;For Post Malone. Chu mean.&quot;
+        </p>
+        <p style={{ fontSize: "1.0625rem", lineHeight: 1.75, marginBottom: "1.5rem" }}>
+          Four trucks. One set. That&apos;s the scale of what Tortuga brings to Fort Lauderdale every year.
         </p>
 
         <h2 style={{ fontFamily: "Georgia, serif", fontSize: "1.35rem", fontWeight: 700, color: "#1c1c2e", marginTop: "2.25rem", marginBottom: "1rem" }}>
-          What fifty thousand people won&apos;t see
+          MORNING CHAOS, AFTERNOON MAGIC
         </h2>
         <p style={{ fontSize: "1.0625rem", lineHeight: 1.75, marginBottom: "1.5rem" }}>
-          They won&apos;t see the security briefing where everyone agrees which gates swell first. They won&apos;t hear the first full song run at half volume while a dog wanders the empty VIP lawn. They won&apos;t watch a truck driver back a semi into a slot you&apos;d swear was three inches too narrow. Those moments belong to the crew &mdash; and to anyone stubborn enough to show up before the wristbands.
+          The first half of setup day was genuinely brutal. Rain, heavy equipment, slippery surfaces, the kind of physical work that doesn&apos;t get talked about when people post their festival highlight reels. The crew is a mix of South Florida locals and touring production nationals who travel the festival circuit — people who do this weekend after weekend across the country, and people who know this beach like their backyard.
         </p>
-        <p style={{ fontSize: "1.0625rem", lineHeight: 1.75, marginBottom: "0" }}>
-          By dusk the lights did a full blind: columns of color over bare sand, the ocean dark behind the rigs. For a minute it felt like the festival was already happening, just without the chorus of human noise. Then someone killed the rig, yelled a time stamp into the dark, and the real countdown to doors carried on. I left with wet sneakers and a receipt in my head: next time you sing along at Tortuga, a thousand small decisions already carried you there.
+        <p style={{ fontSize: "1.0625rem", lineHeight: 1.75, marginBottom: "1.5rem" }}>
+          By midday the storm broke.
+        </p>
+        <p style={{ fontSize: "1.0625rem", lineHeight: 1.75, marginBottom: "1.5rem" }}>
+          And Fort Lauderdale did what Fort Lauderdale does — it transformed almost instantly. Blue skies. Warm air. The horizon filled in with sailboats, cruise ships, and jet skis moving across the Atlantic. Earlier in the morning, massive ships had been anchored out in the distance in the fog and rain, looking like something out of another century. Eerie and cinematic in the best way.
+        </p>
+        <p style={{ fontSize: "1.0625rem", lineHeight: 1.75, marginBottom: "1.5rem" }}>
+          By afternoon, it was paradise.
+        </p>
+
+        <h2 style={{ fontFamily: "Georgia, serif", fontSize: "1.35rem", fontWeight: 700, color: "#1c1c2e", marginTop: "2.25rem", marginBottom: "1rem" }}>
+          THE SECOND STAGE AND THE BEACH LAYOUT
+        </h2>
+        <p style={{ fontSize: "1.0625rem", lineHeight: 1.75, marginBottom: "1.5rem" }}>
+          Beyond the main stage, Tortuga sprawls down the beach in a way that gives the whole festival a different energy than your typical landlocked event. The second stage glows in the distance — about a quarter mile down the shoreline — visible from the main area like a lighthouse. Giant tents are going up in between, colorful and lit, creating their own atmosphere along the sand.
+        </p>
+        <p style={{ fontSize: "1.0625rem", lineHeight: 1.75, marginBottom: "1.5rem" }}>
+          It&apos;s a big footprint. Plan your day accordingly. And plan your exit — because if last year was any indicator, the streets around Fort Lauderdale Beach after the final set are not for the faint of heart. Forty-five minutes to get off the beach block is not an exaggeration. It&apos;s basically a Tortuga tradition at this point.
+        </p>
+
+        <h2 style={{ fontFamily: "Georgia, serif", fontSize: "1.35rem", fontWeight: 700, color: "#1c1c2e", marginTop: "2.25rem", marginBottom: "1rem" }}>
+          THE ENERGY THIS YEAR
+        </h2>
+        <p style={{ fontSize: "1.0625rem", lineHeight: 1.75, marginBottom: "1.5rem" }}>
+          Without getting into specifics, the vibe on set this year felt noticeably more collaborative than previous years. The crew worked hard, moved fast, and looked out for each other — even when the conditions were rough. That matters more than people realize. When the leads set a good tone, the whole production runs better. And today, despite the rain and the chaos and the physical grind of it all, people were genuinely taking care of each other on that ramp.
+        </p>
+
+        <h2 style={{ fontFamily: "Georgia, serif", fontSize: "1.35rem", fontWeight: 700, color: "#1c1c2e", marginTop: "2.25rem", marginBottom: "1rem" }}>
+          WHAT THIS WEEKEND IS GOING TO LOOK LIKE
+        </h2>
+        <p style={{ fontSize: "1.0625rem", lineHeight: 1.75, marginBottom: "1.5rem" }}>
+          Rain or shine — and based on today, probably both — Tortuga 2026 is going to be something. The production scale is there. The location is still one of the most unique festival settings in the country. And the city of Fort Lauderdale does this better every year.
+        </p>
+        <p style={{ fontSize: "1.0625rem", lineHeight: 1.75, marginBottom: "1.5rem" }}>
+          If you&apos;re going this weekend, get there early. Wear shoes you don&apos;t mind ruining. Find the second stage. And when Post Malone walks out on that thrust into the crowd — remember that four trucks worth of equipment made that moment possible, and a crew of people got soaked in the rain making sure it was perfect.
+        </p>
+
+        <h2 style={{ fontFamily: "Georgia, serif", fontSize: "1.35rem", fontWeight: 700, color: "#1c1c2e", marginTop: "2.25rem", marginBottom: "1rem" }}>
+          FOR SOUTH FLORIDA PERFORMERS AND CREW
+        </h2>
+        <p style={{ fontSize: "1.0625rem", lineHeight: 1.75, marginBottom: "1.5rem" }}>
+          Events like Tortuga are a reminder of just how much live production happens in this region every single year. Fort Lauderdale, Miami, West Palm — the South Florida market runs year-round with festivals, corporate events, private bookings, and everything in between.
+        </p>
+        <p style={{ fontSize: "1.0625rem", lineHeight: 1.75, marginBottom: "1.5rem" }}>
+          If you&apos;re a DJ, band, AV tech, or live performer looking for your next booking, Gigxo connects South Florida performers directly with real clients — no commission, no middleman. Leads start at $7.{" "}
+          <Link href="/" style={{ color: "#a07830", fontWeight: 600 }}>
+            gigxo.com
+          </Link>
+        </p>
+
+        <h2 style={{ fontFamily: "Georgia, serif", fontSize: "1.35rem", fontWeight: 700, color: "#1c1c2e", marginTop: "2.25rem", marginBottom: "1rem" }}>
+          COME BACK AFTER THE WEEKEND
+        </h2>
+        <p style={{ fontSize: "1.0625rem", lineHeight: 1.75, marginBottom: "1.5rem" }}>
+          Full Tortuga 2026 recap dropping Monday. More on the performances, the production, and what it actually looked like when 50,000 people finally showed up.
+        </p>
+        <p style={{ fontSize: "1.0625rem", lineHeight: 1.75, marginBottom: "1.5rem" }}>
+          Tortuga Music Festival 2026 runs April 11–13 on Fort Lauderdale Beach. Main stage doors open at noon daily.
+        </p>
+        <p style={{ fontSize: "1.0625rem", lineHeight: 1.75, marginBottom: "0", color: "#6b6860" }}>
+          Leila Cruz covers live events and the South Florida music scene for Gigxo.
         </p>
       </article>
 
