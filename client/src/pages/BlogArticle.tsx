@@ -245,6 +245,19 @@ export default function BlogArticle() {
         </p>
 
         <h2 style={{ fontFamily: "Georgia, serif", fontSize: "1.35rem", fontWeight: 700, color: "#1c1c2e", marginTop: "2.25rem", marginBottom: "1rem" }}>
+          GETTING THERE AND GETTING AROUND
+        </h2>
+        <p style={{ fontSize: "1.0625rem", lineHeight: 1.75, marginBottom: "1.5rem" }}>
+          Do not drive to the beach. Seriously. Park further out and take the golf cart shuttles — they run people back and forth from the surrounding areas to the beach and it is genuinely the move. Trying to navigate beach-side parking on festival weekend is a trap. The golf carts are faster, cheaper on your sanity, and you won&apos;t spend your post-show adrenaline sitting in a parking lot for an hour.
+        </p>
+        <p style={{ fontSize: "1.0625rem", lineHeight: 1.75, marginBottom: "1.5rem" }}>
+          Last year the streets around Fort Lauderdale Beach after the final set were backed up for 45 minutes just to move a few blocks. The people who had parked further out and shuttled in? Gone in ten minutes.
+        </p>
+        <p style={{ fontSize: "1.0625rem", lineHeight: 1.75, marginBottom: "1.5rem" }}>
+          Plan the exit before you plan the outfit.
+        </p>
+
+        <h2 style={{ fontFamily: "Georgia, serif", fontSize: "1.35rem", fontWeight: 700, color: "#1c1c2e", marginTop: "2.25rem", marginBottom: "1rem" }}>
           COME BACK AFTER THE WEEKEND
         </h2>
         <p style={{ fontSize: "1.0625rem", lineHeight: 1.75, marginBottom: "1.5rem" }}>
