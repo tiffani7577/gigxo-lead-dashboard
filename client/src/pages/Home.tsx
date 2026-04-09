@@ -243,6 +243,81 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Featured article */}
+      <section
+        style={{
+          padding: "1.35rem 2rem",
+          background: "rgba(10,10,10,0.96)",
+          borderBottom: "1px solid rgba(201,168,76,0.14)",
+        }}
+      >
+        <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "1rem",
+              padding: "1.25rem 1.5rem",
+              borderRadius: "4px",
+              border: "1px solid rgba(201,168,76,0.22)",
+              background: "rgba(201,168,76,0.06)",
+            }}
+          >
+            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}>
+              <div>
+                <p
+                  style={{
+                    fontSize: "0.62rem",
+                    letterSpacing: "0.22em",
+                    textTransform: "uppercase",
+                    color: "#c9a84c",
+                    fontWeight: 700,
+                    marginBottom: "0.45rem",
+                  }}
+                >
+                  Featured article
+                </p>
+                <h2
+                  style={{
+                    fontFamily: "Cormorant Garamond, serif",
+                    fontSize: "clamp(1.2rem, 2.5vw, 1.55rem)",
+                    fontWeight: 600,
+                    color: "#f0ede8",
+                    lineHeight: 1.25,
+                    margin: 0,
+                  }}
+                >
+                  I Was Inside Tortuga 2026 Before Anyone Else
+                </h2>
+                <p style={{ margin: "0.5rem 0 0", fontSize: "0.88rem", color: "rgba(240,237,232,0.55)", maxWidth: "36rem", lineHeight: 1.55 }}>
+                  Setup day at Tortuga Music Festival — production, weather, and what the crowd never sees.
+                </p>
+              </div>
+              <Link href="/blog/tortuga-2026">
+                <button
+                  type="button"
+                  style={{
+                    flexShrink: 0,
+                    padding: "0.55rem 1.35rem",
+                    background: "linear-gradient(135deg,#c9a84c,#e8c97a)",
+                    color: "#1c1c2e",
+                    border: "none",
+                    borderRadius: "2px",
+                    fontSize: "0.72rem",
+                    fontWeight: 700,
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                    cursor: "pointer",
+                  }}
+                >
+                  Read More
+                </button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <div className="trust-bar" style={{ padding: '1.25rem 2rem' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', alignItems: 'center', gap: '1.5rem', overflowX: 'auto' }}>
           <span className="section-label" style={{ whiteSpace: 'nowrap' }}>Leads From</span>

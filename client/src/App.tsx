@@ -41,6 +41,7 @@ import Pricing from "./pages/Pricing";
 import SEOLandingPage from "./pages/SEOLandingPage";
 import AVStaffing from "./pages/AVStaffing";
 import AVWorkerSignup from "./pages/AVWorkerSignup";
+import BlogArticle from "./pages/BlogArticle";
 
 function Router() {
   return (
@@ -84,6 +85,7 @@ function Router() {
       <Route path="/av-staffing" component={AVStaffing} />
       <Route path="/av-work" component={AVWorkerSignup} />
       <Route path="/av-work/:city" component={SEOLandingPage} />
+      <Route path="/blog/tortuga-2026" component={BlogArticle} />
       {/* SEO Landing Pages - Dynamic route for all service+city combinations */}
       <Route path="/:slug" component={SEOLandingPage} />
       <Route path="/404" component={NotFound} />

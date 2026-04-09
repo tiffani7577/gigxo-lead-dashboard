@@ -932,6 +932,28 @@ export default function ArtistDashboard() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-6" style={{ background: '#080808', color: '#f0ede8' }}>
+        <div
+          className="mb-4 rounded-md px-3 py-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
+          style={{ border: "1px solid rgba(201,168,76,0.2)", background: "rgba(201,168,76,0.04)" }}
+        >
+          <div>
+            <p className="text-[0.65rem] uppercase tracking-widest font-semibold mb-0.5" style={{ color: "rgba(201,168,76,0.9)" }}>
+              Latest from Gigxo
+            </p>
+            <p className="text-sm font-medium text-stone-200">I Was Inside Tortuga 2026 Before Anyone Else</p>
+            <p className="text-xs text-stone-500 mt-0.5 max-w-xl">
+              Setup day, production, and rain — the festival before the crowd arrives.
+            </p>
+          </div>
+          <Link
+            href="/blog/tortuga-2026"
+            className="text-xs font-semibold whitespace-nowrap shrink-0"
+            style={{ color: "#c9a84c" }}
+          >
+            Read more →
+          </Link>
+        </div>
+
         {/* LEADS TAB */}
         {activeTab === "leads" && (
           <>

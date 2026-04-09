@@ -77,6 +77,7 @@ async function buildSitemapResponse(baseUrl: string): Promise<string> {
         { url: "/artists", priority: "0.9", changefreq: "daily" },
         { url: "/av-staffing", priority: "0.9", changefreq: "weekly" },
         { url: "/av-work", priority: "0.9", changefreq: "weekly" },
+        { url: "/blog/tortuga-2026", priority: "0.85", changefreq: "weekly" },
       ];
 
       // SEO landing pages - service × city (matches seoConfig)
