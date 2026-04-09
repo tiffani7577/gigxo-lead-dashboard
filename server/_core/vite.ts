@@ -127,6 +127,18 @@ export function serveStatic(app: Express) {
       return;
     }
 
+    const reqPath = req.path;
+    if (
+      reqPath.startsWith("/blog") ||
+      reqPath.startsWith("/dashboard") ||
+      reqPath.startsWith("/admin") ||
+      reqPath.startsWith("/login") ||
+      reqPath.startsWith("/signup")
+    ) {
+      res.status(200).set({ "Content-Type": "text/html; charset=utf-8" }).send(cachedIndexHtml);
+      return;
+    }
+
     const slug = seoSlugFromPath(req.path);
     const pageConfig = slug ? SEO_LANDING_PAGES.get(slug) : undefined;
 
