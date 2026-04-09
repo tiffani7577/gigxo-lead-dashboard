@@ -86,8 +86,9 @@ function Router() {
       <Route path="/av-staffing" component={AVStaffing} />
       <Route path="/av-work" component={AVWorkerSignup} />
       <Route path="/av-work/:city" component={SEOLandingPage} />
-      <Route path="/blog/tortuga-2026" component={BlogArticle} />
+      {/* Blog: exact /blog must precede /blog/tortuga-2026; both must precede /:slug or "blog" is captured as an SEO slug */}
       <Route path="/blog" component={Blog} />
+      <Route path="/blog/tortuga-2026" component={BlogArticle} />
       {/* SEO Landing Pages - Dynamic route for all service+city combinations */}
       <Route path="/:slug" component={SEOLandingPage} />
       <Route path="/404" component={NotFound} />
