@@ -118,11 +118,28 @@ export function serveStatic(app: Express) {
     console.error("[server] Failed to read index.html for caching:", indexPath);
   }
 
-  app.use(express.static(distPath));
+  const oneYearMs = 365 * 24 * 60 * 60 * 1000;
+  app.use(
+    express.static(distPath, {
+      maxAge: oneYearMs,
+      immutable: true,
+      setHeaders(res, filePath) {
+        if (filePath.endsWith(".html")) {
+          res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        }
+      },
+    })
+  );
+
+  const htmlHeaders = {
+    "Content-Type": "text/html; charset=utf-8",
+    "Cache-Control": "no-cache, no-store, must-revalidate",
+  } as const;
 
   // fall through to index.html if the file doesn't exist
   app.use("*", (req, res) => {
     if (!cachedIndexHtml) {
+      res.status(200).set(htmlHeaders);
       res.sendFile(path.resolve(distPath, "index.html"));
       return;
     }
@@ -135,7 +152,7 @@ export function serveStatic(app: Express) {
       reqPath.startsWith("/login") ||
       reqPath.startsWith("/signup")
     ) {
-      res.status(200).set({ "Content-Type": "text/html; charset=utf-8" }).send(cachedIndexHtml);
+      res.status(200).set(htmlHeaders).send(cachedIndexHtml);
       return;
     }
 
@@ -146,10 +163,10 @@ export function serveStatic(app: Express) {
 
     if (pageConfig) {
       const html = injectSeoIntoIndexHtml(cachedIndexHtml, pageConfig, req.path);
-      res.status(200).set({ "Content-Type": "text/html; charset=utf-8" }).send(html);
+      res.status(200).set(htmlHeaders).send(html);
       return;
     }
 
-    res.status(200).set({ "Content-Type": "text/html; charset=utf-8" }).send(cachedIndexHtml);
+    res.status(200).set(htmlHeaders).send(cachedIndexHtml);
   });
 }
