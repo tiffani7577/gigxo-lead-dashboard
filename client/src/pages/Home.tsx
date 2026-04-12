@@ -143,8 +143,9 @@ export default function Home() {
 
   if (isAuthenticated && user) return null;
 
-  const homeTitle = "Gigxo — Gig Leads for DJs & Live Artists";
-  const homeDescription = "Browse verified gig leads for DJs and performers across the US. Unlock contact info from $7. No commission, no middleman.";
+  const homeTitle = "Gigxo — DJ & Live Music Leads for DJs, Bands & Live Acts";
+  const homeDescription =
+    "Browse verified gig leads for DJs, bands, and live performers across the US. Unlock contact info from $7. No commission, no middleman.";
   const homeCanonical = canonicalUrlForPathname("/");
   const homeOg = `${homeCanonical.replace(/\/$/, "")}/og-default.png`;
 
@@ -225,7 +226,7 @@ export default function Home() {
             <span style={{ display: 'block', color: 'var(--gold)' }}>Zero Commission.</span>
           </h1>
           <p style={{ fontSize: '1.1rem', color: 'rgba(240,237,232,0.75)', maxWidth: '560px', margin: '0 auto 2.5rem', lineHeight: 1.7, fontWeight: 300 }}>
-            Verified private event leads for DJs and live artists across South Florida. Unlock direct contact from $7 — no middleman, no booking fees, ever.
+            Verified private event leads for DJs, bands, and live acts across South Florida. Unlock direct contact from $7 — no middleman, no booking fees, ever.
           </p>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '4rem' }}>
             <button className="btn-gold" onClick={() => navigate('/gigs')}>
@@ -371,9 +372,9 @@ export default function Home() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1rem' }}>
           <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663413300520/SBBXIrGvxQBmkJQD.jpg" alt="Intracoastal boat party Fort Lauderdale"
             style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '2px' }} />
-          <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663413300520/tRkmkWCAeEumIllR.jpg" alt="Festival DJ gig South Florida"
+          <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663413300520/tRkmkWCAeEumIllR.jpg" alt="Festival DJ, band, and live music gig South Florida"
             style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '2px' }} />
-          <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663413300520/cfKhGCAitiAmvTKa.jpg" alt="Nightclub DJ Miami"
+          <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663413300520/cfKhGCAitiAmvTKa.jpg" alt="Nightclub DJ and live entertainment Miami"
             style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '2px' }} />
         </div>
       </section>

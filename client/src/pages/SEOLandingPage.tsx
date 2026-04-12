@@ -11,6 +11,7 @@ import { DEFAULT_OG_IMAGE } from "@/lib/meta-tags";
 import { MapPin, Music, ChevronRight } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import NotFound from "@/pages/NotFound";
+import BlogCatchAll from "@/pages/BlogCatchAll";
 import { SiteFooter } from "@/components/SiteFooter";
 
 /** Production canonical origin — always https://www.gigxo.com (never http, never bare domain). */
@@ -255,6 +256,10 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
     }
   };
 
+  if (pathOnly.startsWith("/blog")) {
+    return <BlogCatchAll />;
+  }
+
   if (!pageConfig) {
     return <NotFound />;
   }
@@ -318,7 +323,7 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
           priceCurrency: "USD",
           availability: "https://schema.org/InStock",
           url: gigxoCanonicalUrl,
-          name: isYachtHirePage ? "Yacht DJ hire in Miami" : heading,
+          name: isYachtHirePage ? "Yacht DJ and live music hire in Miami" : heading,
         },
       }),
     );
@@ -375,7 +380,7 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
         <section style={{ position: 'relative', minHeight: '70vh', display: 'flex', alignItems: 'flex-end', overflow: 'hidden' }}>
           <img
             src="/images/hero_v2_night.jpg"
-            alt={`${cityName} DJ`}
+            alt={`${cityName} — DJs, bands, and live performers`}
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }}
           />
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(8,8,8,0.2) 0%, rgba(8,8,8,0.75) 70%, rgba(8,8,8,1) 100%)' }} />
@@ -436,7 +441,7 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
               <div className="text-gray-700 mb-4 whitespace-pre-line leading-7">{expandedContent}</div>
               {isBoatContextPage && (
                 <p className="text-sm text-gray-600">
-                  This page highlights yacht-focused DJs in Miami and nearby marinas. We prioritize performers familiar
+                  This page highlights yacht-focused DJs and live acts in Miami and nearby marinas. We prioritize performers familiar
                   with compact, boat-safe setups and can match you with battery-powered or low-profile systems when
                   needed.
                 </p>
@@ -640,7 +645,7 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
             <Card className="p-6 sticky top-4">
               <h2 className="text-xl font-bold mb-4">
                 {calculatorVariant === "yachtCost"
-                  ? "Yacht DJ pricing calculator"
+                  ? "Yacht DJ & live music pricing calculator"
                   : calculatorVariant === "boatEntertainment"
                   ? "Boat entertainment package builder"
                   : "Tell us about your event"}
@@ -656,7 +661,7 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
                     <li>Event duration or charter window</li>
                     <li>Power availability (shore power vs. generator)</li>
                     <li>Indoor vs. outdoor deck or mixed layout</li>
-                    <li>DJ only vs. DJ + add-ons (sax, percussion, lighting)</li>
+                    <li>DJ only vs. DJ + live add-ons (sax, percussion, lighting) — or ask about small bands / hybrid acts</li>
                   </ul>
                 </div>
               )}
@@ -869,7 +874,7 @@ export default function SEOLandingPage({ params }: SEOLandingPageProps) {
               <CardHeader>
                 <CardTitle className="text-base">Fort Lauderdale yacht & marina pages</CardTitle>
                 <CardDescription className="text-xs">
-                  Jump between Fort Lauderdale yacht hire and yacht DJ pricing pages.
+                  Jump between Fort Lauderdale yacht hire and yacht DJ & live music pricing pages.
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-2 text-xs">

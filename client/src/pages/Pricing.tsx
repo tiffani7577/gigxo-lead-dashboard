@@ -5,7 +5,7 @@ import { Helmet } from "react-helmet-async";
 import { canonicalUrlForPathname, DEFAULT_OG_IMAGE } from "@/lib/meta-tags";
 
 export default function Pricing() {
-  const title = "Gigxo Pricing | DJ & Performer Gig Leads — Pay As You Go or Pro";
+  const title = "Gigxo Pricing | DJ & Live Music Leads — Pay As You Go or Pro";
   const description =
     "Simple Gigxo pricing: discovery leads $3, standard $7, premium $15 — or Pro $49/month for 15 leads any tier. No commission, no booking fees. Curated Miami & Fort Lauderdale gigs.";
   const url = canonicalUrlForPathname("/pricing");
@@ -40,6 +40,17 @@ export default function Pricing() {
               </span>
             </div>
           </Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
+            <Link href="/artists">
+              <span style={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b6860', cursor: 'pointer' }}>Browse Artists</span>
+            </Link>
+            <Link href="/blog">
+              <span style={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b6860', cursor: 'pointer' }}>Blog</span>
+            </Link>
+            <Link href="/pricing">
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#c9a84c', cursor: 'pointer' }}>Pricing</span>
+            </Link>
+          </div>
           <div style={{ display: 'flex', gap: '0.75rem' }}>
             <Link href="/login">
               <button style={{ padding: '0.5rem 1.25rem', border: '1px solid rgba(201,168,76,0.4)', background: 'transparent', color: '#c9a84c', borderRadius: '2px', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', cursor: 'pointer' }}>

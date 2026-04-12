@@ -77,7 +77,8 @@ async function buildSitemapResponse(baseUrl: string): Promise<string> {
         { url: "/artists", priority: "0.9", changefreq: "daily" },
         { url: "/av-staffing", priority: "0.9", changefreq: "weekly" },
         { url: "/av-work", priority: "0.9", changefreq: "weekly" },
-        { url: "/blog", priority: "0.8", changefreq: "weekly" },
+        { url: "/blog", priority: "0.6", changefreq: "monthly" },
+        { url: "/blog/miami-pride-2026", priority: "0.5", changefreq: "yearly" },
         { url: "/blog/tortuga-2026", priority: "0.85", changefreq: "weekly" },
       ];
 
