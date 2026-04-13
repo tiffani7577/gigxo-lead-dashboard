@@ -7,20 +7,20 @@ import { Link } from "wouter";
 const BASE = "/images/blog/miami-pride-2026";
 
 const photos = {
-  hero: `${BASE}/IMG_2328.jpeg`,
-  stageOpener: `${BASE}/IMG_2001.jpeg`,
-  djBooth: `${BASE}/IMG_1930.jpeg`,
-  twoDJs: `${BASE}/IMG_2274.jpeg`,
-  twoDJsDaytime: `${BASE}/IMG_2216.jpeg`,
-  djsSmiling: `${BASE}/IMG_2145.jpeg`,
-  crowdDancing1: `${BASE}/IMG_2044.jpeg`,
-  crowdDancing2: `${BASE}/IMG_2043.jpeg`,
-  vendorPath: `${BASE}/IMG_2254.jpeg`,
-  humanSign1: `${BASE}/IMG_2243.jpeg`,
-  humanSign2: `${BASE}/IMG_2237.jpeg`,
-  carouselGuy: `${BASE}/IMG_2232.jpeg`,
-  legacyStage: `${BASE}/IMG_2319.jpeg`,
-  foodVendor: `${BASE}/IMG_2061.jpeg`,
+  hero: `${BASE}/preview-2.webp`,
+  stageOpener: `${BASE}/preview-14.webp`,
+  djBooth: `${BASE}/preview-15.webp`,
+  twoDJs: `${BASE}/preview-4.webp`,
+  twoDJsDaytime: `${BASE}/preview-9.webp`,
+  djsSmiling: `${BASE}/preview-10.webp`,
+  crowdDancing1: `${BASE}/preview-12.webp`,
+  crowdDancing2: `${BASE}/preview-13.webp`,
+  vendorPath: `${BASE}/preview-5.webp`,
+  humanSign1: `${BASE}/preview-6.webp`,
+  humanSign2: `${BASE}/preview-7.webp`,
+  carouselGuy: `${BASE}/preview-8.webp`,
+  legacyStage: `${BASE}/preview-3.webp`,
+  foodVendor: `${BASE}/preview-11.webp`,
 };
 
 const CANONICAL = "https://www.gigxo.com/blog/miami-pride-2026";

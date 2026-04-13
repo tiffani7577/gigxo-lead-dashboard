@@ -17,7 +17,7 @@ const POSTS = [
     subtitle:
       "We spent Pride weekend at the Garden of Eve stage. Here's what happened when 12 women DJs took over and why it matters for the future of live events in Miami.",
     date: "April 2026",
-    thumb: "/images/blog/miami-pride-2026/IMG_2145.jpeg",
+    thumb: "/images/blog/miami-pride-2026/preview-10.webp",
     thumbAlt: "Two women DJs smiling at the Garden of Eve booth, crowd behind",
   },
   {
